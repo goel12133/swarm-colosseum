@@ -11,7 +11,9 @@ Writes out/leaderboard.json, out/matrix.json, out/replays/ and out/BALANCE.md.
 """
 import argparse
 import json
+import os
 from collections import defaultdict
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 from .elo import Ladders
@@ -26,13 +28,46 @@ def discover(folder: Path):
     return sorted(p for p in folder.glob("*.py") if not p.name.startswith("_"))
 
 
+def _role_of(path: Path) -> str:
+    """Read ROLE out of a bot file without executing it.
+
+    House bots are untrusted, so the host reads the text and never imports them; the only
+    place they run is inside a container.
+    """
+    import re
+    m = re.search(r'^ROLE\s*=\s*["\'](attacker|defender)["\']',
+                  path.read_text(errors="replace"), re.M)
+    return m.group(1) if m else ""
+
+
+def default_workers() -> int:
+    """One fewer than the cores, so the box stays usable while a tournament runs."""
+    return max(1, (os.cpu_count() or 2) - 1)
+
+
+def _match_job(job):
+    """Runs in a worker process. Writes its own replay so only the meta crosses back."""
+    a, d, seed, rules, record, sandbox, out = job
+    res = run_match(a, d, seed, rules=rules, record=record, sandbox=sandbox)
+    if record:
+        name = f"{Path(a).stem}__{Path(d).stem}__s{seed}.json"
+        (Path(out) / "replays" / name).write_text(replay_json(res))
+    return res["meta"]
+
+
 def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
-                   quiet=False, sandbox=False):
+                   quiet=False, sandbox=False, workers=None):
     attackers = discover(ROOT / "bots" / "attackers")
     defenders = discover(ROOT / "bots" / "defenders")
-    house = discover(ROOT / "bots" / "house")
-    attackers += [p for p in house if "attacker" in p.read_text()[:400]]
+    for p in discover(ROOT / "bots" / "house"):
+        role = _role_of(p)
+        if role == "attacker":
+            attackers.append(p)
+        elif role == "defender":
+            defenders.append(p)
+    attackers, defenders = sorted(attackers), sorted(defenders)
     seed_list = list(range(seeds))
+    workers = default_workers() if workers is None else max(1, int(workers))
 
     out = Path(out)
     (out / "replays").mkdir(parents=True, exist_ok=True)
@@ -43,37 +78,41 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
     ladders = Ladders([p.stem for p in attackers], [p.stem for p in defenders])
     results = []
 
-    for a in attackers:
-        for d in defenders:
-            for seed in seed_list:
-                res = run_match(a, d, seed, rules=rules, record=write_replays,
-                                sandbox=sandbox)
-                meta = res["meta"]
-                results.append(meta)
-                ladders.record(a.stem, d.stem, meta["score_attacker"])
-                pair_scores[(a.stem, d.stem)].append(meta["score_defender"])
+    # The job list is built in sorted order and the RESULTS ARE CONSUMED IN THAT ORDER,
+    # whatever order the workers finish in. Elo is path dependent, so consuming by
+    # completion order would make the ladder depend on machine timing.
+    jobs = [(str(a), str(d), seed, rules, write_replays, sandbox, str(out))
+            for a in attackers for d in defenders for seed in seed_list]
 
-                sa, sd = stats[("attacker", a.stem)], stats[("defender", d.stem)]
-                sa["matches"] += 1
-                sd["matches"] += 1
-                sa["score"] += meta["score_attacker"]
-                sd["score"] += meta["score_defender"]
-                sa["wins"] += 1 if meta["outcome"] == "breached" else 0
-                sd["wins"] += 1 if meta["outcome"] == "defended" else 0
-                if meta["defender_spent"] > 0:
-                    sd["cer"] += meta["cost_exchange_ratio"]
-                    sd["cer_n"] += 1
-                    sa["cer"] += meta["cost_exchange_ratio"]
-                    sa["cer_n"] += 1
+    if workers > 1 and len(jobs) > 1:
+        with ProcessPoolExecutor(max_workers=workers) as ex:
+            metas = list(ex.map(_match_job, jobs))     # map preserves input order
+    else:
+        metas = [_match_job(j) for j in jobs]
 
-                if write_replays:
-                    name = f"{a.stem}__{d.stem}__s{seed}.json"
-                    (out / "replays" / name).write_text(replay_json(res))
-                if not quiet:
-                    print(f"  {a.stem:<14} vs {d.stem:<22} s{seed}  "
-                          f"{meta['outcome']:<9} hp={meta['asset_hp']:<3} "
-                          f"cer={meta['cost_exchange_ratio']:.2f} "
-                          f"score_def={meta['score_defender']:.3f}", flush=True)
+    for (a_s, d_s, seed, *_), meta in zip(jobs, metas):
+        a_stem, d_stem = Path(a_s).stem, Path(d_s).stem
+        results.append(meta)
+        ladders.record(a_stem, d_stem, meta["score_attacker"])
+        pair_scores[(a_stem, d_stem)].append(meta["score_defender"])
+
+        sa, sd = stats[("attacker", a_stem)], stats[("defender", d_stem)]
+        sa["matches"] += 1
+        sd["matches"] += 1
+        sa["score"] += meta["score_attacker"]
+        sd["score"] += meta["score_defender"]
+        sa["wins"] += 1 if meta["outcome"] == "breached" else 0
+        sd["wins"] += 1 if meta["outcome"] == "defended" else 0
+        if meta["defender_spent"] > 0:
+            sd["cer"] += meta["cost_exchange_ratio"]
+            sd["cer_n"] += 1
+            sa["cer"] += meta["cost_exchange_ratio"]
+            sa["cer_n"] += 1
+        if not quiet:
+            print(f"  {a_stem:<14} vs {d_stem:<22} s{seed}  "
+                  f"{meta['outcome']:<9} hp={meta['asset_hp']:<3} "
+                  f"cer={meta['cost_exchange_ratio']:.2f} "
+                  f"score_def={meta['score_defender']:.3f}", flush=True)
 
     for (a, d), scores in pair_scores.items():
         matrix[a][d] = round(sum(scores) / len(scores), 4)
@@ -155,10 +194,12 @@ def main():
     ap.add_argument("--quiet", action="store_true")
     ap.add_argument("--sandbox", action="store_true",
                     help="run every bot in its own container (see colosseum/sandbox.py)")
+    ap.add_argument("--workers", type=int, default=None,
+                    help=f"parallel matches (default: cores - 1 = {default_workers()})")
     args = ap.parse_args()
     lb, _, results = run_tournament(seeds=args.seeds, out=args.out,
                                     write_replays=not args.no_replays, quiet=args.quiet,
-                                    sandbox=args.sandbox)
+                                    sandbox=args.sandbox, workers=args.workers)
     print(f"\n{len(results)} matches -> {args.out}")
     print(f"top attacker: {lb['attackers'][0]['name']} ({lb['attackers'][0]['elo']:.0f})")
     print(f"top defender: {lb['defenders'][0]['name']} ({lb['defenders'][0]['elo']:.0f})")
