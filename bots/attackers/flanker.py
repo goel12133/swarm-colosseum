@@ -11,7 +11,10 @@ NAME = "flanker"
 ROLE = "attacker"
 LAUNCH_BEARING = 200.0
 TURN_BEARING = 20.0
-DOGLEG_RADIUS = 300.0
+# The turn has to happen OUTSIDE radar range, or the defender simply watches the dogleg
+# and the bot is only flying a longer exposed path. The first version turned at 300 u,
+# well inside the 450 u radar, and lost every match for exactly that reason.
+DOGLEG_RADIUS = 470.0
 
 
 def act(obs):

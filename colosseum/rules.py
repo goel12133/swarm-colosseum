@@ -43,7 +43,12 @@ class Rules:
 
     # --- defender gun ------------------------------------------------------
     gun_range: float = 100.0
-    gun_ammo: int = 400
+    # Balance pass, iteration 1: 400 -> 120. At one shot per tick in a 600-tick match,
+    # 400 rounds is effectively unlimited, so the gun was a free backstop and waiting for
+    # identification carried no risk -- identify_then_engage won 100% of matches. At 120
+    # the magazine is a resource that has to be budgeted against saturation, which is the
+    # trade-off the game is supposed to be about. See out/BALANCE.md and PROGRESS.md.
+    gun_ammo: int = 120
     gun_cost: float = 0.1
     gun_pk_scale: float = 0.40      # kill chance = scale * (1 - d/range) + floor
     gun_pk_floor: float = 0.05

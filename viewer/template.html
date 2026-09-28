@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Swarm Colosseum — replay viewer</title>
+<style>
+  :root{
+    --bg:#eef1f4; --panel:#fff; --ink:#131a20; --soft:#5e6d79; --rule:#d4dce3;
+    --grid:#c6d1da; --asset:#2f6f4f; --striker:#b23a2c; --decoy:#c8922a;
+    --intercept:#2a6ea8; --blast:#e8643c; --tracer:#7d8b96; --accent:#1f5d8c;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0d1216; --panel:#151d23; --ink:#e6edf3; --soft:#93a4b1; --rule:#25313a;
+      --grid:#22303a; --asset:#4fbd88; --striker:#ff7a66; --decoy:#f0c063;
+      --intercept:#6fb2e6; --blast:#ff9463; --tracer:#54646f; --accent:#7fb3dd;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--ink);
+       font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:18px 32px;
+        display:flex;flex-direction:column;gap:14px}
+  header{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+  h1{font-size:1.15rem;margin:0;letter-spacing:-.01em}
+  header .sub{color:var(--soft);font-size:.85rem}
+  .main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
+  @media (max-width:760px){.main{grid-template-columns:1fr}}
+  .stage{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px;
+         display:flex;flex-direction:column;gap:10px}
+  canvas{width:100%;aspect-ratio:1/1;max-width:100%;display:block;border-radius:6px;
+         background:transparent;touch-action:none}
+  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:7px 13px;
+         font-size:.9rem;cursor:pointer;font-variant-numeric:tabular-nums}
+  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+  button.ghost[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
+  .tick{font-variant-numeric:tabular-nums;color:var(--soft);font-size:.85rem;min-width:7ch}
+  aside{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px;
+        display:flex;flex-direction:column;gap:10px;font-size:.87rem}
+  aside h2{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);
+           margin:0;font-weight:600}
+  dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 10px}
+  dt{color:var(--soft)}
+  dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+  .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:.78rem;
+        font-weight:600}
+  .pill.defended{background:color-mix(in srgb,var(--asset) 18%,transparent);color:var(--asset)}
+  .pill.breached{background:color-mix(in srgb,var(--striker) 18%,transparent);color:var(--striker)}
+  .drop{border:1px dashed var(--rule);border-radius:8px;padding:10px;text-align:center;
+        color:var(--soft);font-size:.82rem}
+  .drop.over{border-color:var(--accent);color:var(--accent)}
+  .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--soft)}
+  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Swarm Colosseum</h1>
+    <span class="sub">replay viewer · abstract strategy benchmark, arbitrary units</span>
+  </header>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="cv" width="720" height="720"></canvas>
+      <div class="controls">
+        <button id="play">▶ Play</button>
+        <button class="ghost" data-speed="1" aria-pressed="true">1×</button>
+        <button class="ghost" data-speed="4" aria-pressed="false">4×</button>
+        <button class="ghost" data-speed="16" aria-pressed="false">16×</button>
+        <input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Replay position">
+        <span class="tick" id="tick">t 0</span>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--striker)"></i>striker</span>
+        <span><i style="background:var(--decoy)"></i>decoy</span>
+        <span><i style="background:var(--intercept)"></i>interceptor</span>
+        <span><i style="background:var(--asset)"></i>asset</span>
+        <span>rings: radar 450 u · identification 150 u</span>
+      </div>
+      <label class="drop" id="drop">
+        Drop a replay JSON here, or <input id="file" type="file" accept=".json" style="display:inline">
+      </label>
+    </div>
+
+    <aside>
+      <h2>Match</h2>
+      <div><span class="pill" id="outcome">—</span></div>
+      <dl id="meta"></dl>
+      <h2>Economy</h2>
+      <dl id="econ"></dl>
+    </aside>
+  </div>
+</div>
+
+<script>
+const SAMPLE = __SAMPLE_REPLAY__;
+
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const scrub = document.getElementById('scrub'), tickLabel = document.getElementById('tick');
+const playBtn = document.getElementById('play');
+let replay = null, idx = 0, playing = false, speed = 1, timer = null;
+const trails = new Map();
+
+function fit(){
+  const dpr = window.devicePixelRatio || 1;
+  const size = cv.clientWidth || 720;
+  cv.width = Math.round(size * dpr); cv.height = Math.round(size * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+window.addEventListener('resize', fit);
+
+function css(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function load(data){
+  replay = data; trails.clear();
+  scrub.max = Math.max(0, replay.frames.length - 1);
+  // #t=NN opens the replay at a frame, so a specific moment can be linked or shared
+  const want = parseInt((location.hash.match(/t=(\d+)/) || [])[1], 10);
+  idx = Number.isFinite(want) ? Math.min(Math.max(0, want), replay.frames.length - 1) : 0;
+  scrub.value = idx;
+  showMeta(); draw();
+}
+
+function showMeta(){
+  const m = replay.meta;
+  const pill = document.getElementById('outcome');
+  pill.textContent = m.outcome; pill.className = 'pill ' + m.outcome;
+  const rows = [
+    ['attacker', m.attacker], ['defender', m.defender], ['seed', m.seed],
+    ['ticks', m.ticks], ['ended', m.end_reason.replace(/_/g,' ')],
+    ['asset HP', m.asset_hp + ' / ' + m.asset_hp_max],
+  ];
+  document.getElementById('meta').innerHTML =
+    rows.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  const econ = [
+    ['cost exchange', m.cost_exchange_ratio.toFixed(2)],
+    ['value destroyed', m.value_destroyed.toFixed(1)],
+    ['defender spent', m.defender_spent.toFixed(1)],
+    ['interceptors', m.interceptors_launched], ['shots', m.shots_fired],
+    ['score (def)', m.score_defender.toFixed(3)],
+    ['score (atk)', m.score_attacker.toFixed(3)],
+  ];
+  document.getElementById('econ').innerHTML =
+    econ.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+}
+
+function draw(){
+  if(!replay) return;
+  const size = cv.clientWidth || 720, R = size/2, scale = R/520;
+  const f = replay.frames[idx]; if(!f) return;
+  const X = x => R + x*scale, Y = y => R - y*scale;
+  const rules = replay.meta.rules || {};
+  ctx.clearRect(0,0,size,size);
+
+  // range rings
+  ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  for(const [r,dash] of [[450,[4,5]],[150,[2,4]]]){
+    ctx.setLineDash(dash); ctx.beginPath(); ctx.arc(R,R,r*scale,0,7); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // asset + HP ring
+  const hpFrac = f.hp / replay.meta.asset_hp_max;
+  ctx.strokeStyle = css('--asset'); ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(R,R,25*scale,-Math.PI/2,-Math.PI/2 + 2*Math.PI*hpFrac); ctx.stroke();
+  ctx.fillStyle = css('--asset'); ctx.globalAlpha = .25;
+  ctx.beginPath(); ctx.arc(R,R,25*scale,0,7); ctx.fill(); ctx.globalAlpha = 1;
+
+  // events in this frame's window
+  const t0 = f.t - 1, t1 = f.t;
+  for(const e of replay.events){
+    if(e.t < t0 || e.t > t1) continue;
+    if(e.kind === 'shot'){
+      ctx.strokeStyle = css('--tracer'); ctx.lineWidth = 1; ctx.globalAlpha = .8;
+      ctx.beginPath(); ctx.moveTo(R,R); ctx.lineTo(X(e.x), Y(e.y)); ctx.stroke();
+      ctx.globalAlpha = 1;
+    } else if(e.kind === 'blast'){
+      ctx.strokeStyle = css('--blast'); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(X(e.x), Y(e.y), Math.max(4, 10*scale*1.6), 0, 7); ctx.stroke();
+    } else if(e.kind === 'impact'){
+      ctx.fillStyle = css('--striker'); ctx.globalAlpha = .5;
+      ctx.beginPath(); ctx.arc(X(e.x), Y(e.y), 7, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    }
+  }
+
+  // interceptors with short trails
+  const live = new Set();
+  for(const [id,x,y] of f.i){
+    live.add(id);
+    let tr = trails.get(id) || []; tr.push([x,y]); if(tr.length>4) tr.shift(); trails.set(id,tr);
+    ctx.strokeStyle = css('--intercept'); ctx.globalAlpha = .45; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    tr.forEach(([tx,ty],k)=>k?ctx.lineTo(X(tx),Y(ty)):ctx.moveTo(X(tx),Y(ty)));
+    ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.fillStyle = css('--intercept');
+    ctx.beginPath(); ctx.arc(X(x),Y(y),2.6,0,7); ctx.fill();
+  }
+  for(const id of [...trails.keys()]) if(!live.has(id)) trails.delete(id);
+
+  // drones: strikers are triangles pointing at the asset, decoys are diamonds
+  for(const [id,isStriker,x,y] of f.d){
+    const px = X(x), py = Y(y);
+    ctx.fillStyle = isStriker ? css('--striker') : css('--decoy');
+    if(isStriker){
+      // world heading -> screen: y is flipped, so sin is negated on every vertex
+      const a = Math.atan2(-y, -x), s = 5.5;
+      ctx.beginPath();
+      ctx.moveTo(px + Math.cos(a)*s,       py - Math.sin(a)*s);
+      ctx.lineTo(px + Math.cos(a+2.5)*s,   py - Math.sin(a+2.5)*s);
+      ctx.lineTo(px + Math.cos(a-2.5)*s,   py - Math.sin(a-2.5)*s);
+      ctx.closePath(); ctx.fill();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(px, py-3.5); ctx.lineTo(px+3.5, py); ctx.lineTo(px, py+3.5);
+      ctx.lineTo(px-3.5, py); ctx.closePath(); ctx.fill();
+    }
+  }
+  tickLabel.textContent = 't ' + f.t;
+}
+
+function step(){
+  if(!replay) return;
+  idx = Math.min(replay.frames.length - 1, idx + speed);
+  scrub.value = idx; draw();
+  if(idx >= replay.frames.length - 1) setPlaying(false);
+}
+function setPlaying(on){
+  playing = on; playBtn.textContent = on ? '❚❚ Pause' : '▶ Play';
+  if(timer) clearInterval(timer);
+  if(on){
+    if(idx >= replay.frames.length - 1){ idx = 0; trails.clear(); }
+    timer = setInterval(step, 60);
+  }
+}
+playBtn.onclick = () => setPlaying(!playing);
+scrub.oninput = () => { idx = +scrub.value; trails.clear(); draw(); };
+for(const b of document.querySelectorAll('[data-speed]')){
+  b.onclick = () => {
+    speed = +b.dataset.speed;
+    document.querySelectorAll('[data-speed]').forEach(o =>
+      o.setAttribute('aria-pressed', String(o === b)));
+  };
+}
+function readFile(file){
+  const fr = new FileReader();
+  fr.onload = () => { try { load(JSON.parse(fr.result)); } catch(err){ alert('Not a replay JSON: ' + err.message); } };
+  fr.readAsText(file);
+}
+document.getElementById('file').onchange = e => e.target.files[0] && readFile(e.target.files[0]);
+const drop = document.getElementById('drop');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault(); drop.classList.remove('over');
+  if(e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+load(SAMPLE); fit();
+</script>
+</body>
+</html>

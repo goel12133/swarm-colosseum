@@ -37,3 +37,76 @@ then viewer, then the balance pass.
   calls, which makes the draw sequence depend on call history. `normalvariate` does not.
 - Every random draw is made iterating ids in sorted order, so determinism does not depend
   on dict insertion order.
+
+---
+
+## Session 1 — Stage 1 complete
+
+### What I built
+
+Engine, nine bots, tournament with two Elo ladders, replay viewer, balance pass. Order was
+rules → engine → tests → bots → tournament → viewer → balance, as planned.
+
+### Commands run, and what they showed
+
+```
+$ python -m pytest tests/ -q
+25 passed in 2.94s
+
+$ python -m colosseum.tournament --seeds 10 --quiet
+200 matches -> /root/swarm-colosseum/out
+top attacker: trickle (1106)
+top defender: layered (1061)
+
+$ python viewer/build_viewer.py
+embedded trickle__nearest_first__s8.json (163 frames, 188 events) -> viewer/index.html (71,543 bytes)
+```
+
+The viewer was rendered headless and checked by eye at `#t=96`: strikers point at the asset,
+decoys are visually distinct, gun tracers draw from the asset, the HP ring is partial, and the
+sidebar shows CER and outcome. Sidebar values on the embedded sample: breached, CER 0.57,
+value destroyed 52.5 against 92.0 spent.
+
+### Balance pass
+
+**Iteration 1 (the only one needed): `gun_ammo` 400 → 120.**
+
+The first full run flagged `identify_then_engage` winning **100%** of its matches. I checked
+the obvious cause first and it was wrong: sweeping `id_range` from 150 down to 60 barely moved
+it (100% → 100%), so "identification is too generous" was not the explanation.
+
+The actual cause is the gun. One shot per tick over a 100 u approach at speed 4 is roughly 19
+shots per drone, and 400 rounds in a 600-tick match is effectively an unlimited magazine — so
+the gun was a free backstop, which made waiting for identification risk-free. A sweep over
+`gun_range`, `gun_ammo` and `attacker_budget` at 4 seeds, then the shortlist re-run at 10:
+
+| variant | defender role win | ITE win | max any-bot win | verdict |
+|---|---|---|---|---|
+| ammo 400 (baseline) | 68% | 100% | 100% | flagged |
+| ammo 200 | 67% | 100% | 100% | flagged |
+| ammo 150 | 64% | 92% | 92% | flagged |
+| **ammo 120** | **58%** | **82%** | **82%** | **clean** |
+
+Post-change: 200 matches, defenders hold 58%, attackers breach 42%, no bot above 82%, no
+threshold flagged. One iteration used of the three allowed.
+
+### Deviations from the brief, and why
+
+- **Python 3.12.3**, not 3.11 — it is what is on the box. Standard library only in the engine,
+  as specified.
+- **`flanker`'s dogleg radius 300 → 470.** Its docstring claims it arrives from an unexpected
+  side; turning at 300 u is inside the 450 u radar, so the defender simply watched the turn and
+  the bot was only flying a longer exposed path. Moving the turn outside radar range made the
+  implementation match its stated idea. **It changed nothing** — flanker still wins 0%, and
+  against a passive defender it destroys the asset, so it is not broken. Spreading out to dodge
+  a 10 u blast costs more saturation than it saves. Recorded in ROADMAP.md as an open question
+  rather than tuned away.
+- **Viewer `#t=NN` deep link**, not in the brief. One line, and it makes a specific moment in a
+  replay linkable, which the brief's "replay you can share" wants.
+- **`viewer/template.html` + `build_viewer.py`.** `index.html` is still a single dependency-free
+  file that works on open; the generator only substitutes the embedded sample so it cannot go
+  stale against the replay format.
+
+### What is not done
+
+Stage 2, deliberately. No ports opened, nothing deployed, no outside code executed.
