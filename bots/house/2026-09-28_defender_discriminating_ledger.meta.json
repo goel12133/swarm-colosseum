@@ -1,0 +1,16 @@
+{
+  "backend": "cli",
+  "date": "2026-09-28",
+  "dry_run": false,
+  "model": "opus",
+  "name": "2026-09-28_defender_discriminating_ledger",
+  "note": "Backfilled. Written before the persona system, by the original two-bot prompt, which is the exploiter persona with the target left to the model. Tokens are for the single call that produced both bots.",
+  "persona": "exploiter",
+  "raw_response": "out/house_raw/2026-09-28T044853_cli.md",
+  "role": "defender",
+  "target": "trickle (self-chosen in the docstring; also decoy_screen)",
+  "tokens": {
+    "input": 2929,
+    "output": 5742
+  }
+}

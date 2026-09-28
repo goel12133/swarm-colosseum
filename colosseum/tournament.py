@@ -140,7 +140,11 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
         dict(note="mean score_defender for each attacker x defender pair",
              matrix={a: matrix[a] for a in sorted(matrix)}),
         indent=2, sort_keys=True))
-    (out / "BALANCE.md").write_text(balance_report(leaderboard, matrix, results))
+    report = balance_report(leaderboard, matrix, results)
+    findings = ROOT / "BALANCE.md"          # hand-written rules findings, committed
+    if findings.exists():
+        report += "\n---\n\n" + findings.read_text()
+    (out / "BALANCE.md").write_text(report)
     return leaderboard, matrix, results
 
 

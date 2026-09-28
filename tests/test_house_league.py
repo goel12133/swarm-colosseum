@@ -260,7 +260,7 @@ def test_context_and_prompt_are_built_from_real_results():
     ctx = hl.gather_context()
     assert ctx["leaderboard"]["attackers"] and ctx["matrix"]
     prompt = hl.build_prompt(ctx)
-    for needed in ("score_defender", "ROLE", "striker", "fenced Python code blocks"):
+    for needed in ("score_defender", "ROLE", "striker", "one fenced Python code block"):
         assert needed in prompt
     assert len(prompt) > 1500
 
@@ -285,3 +285,150 @@ def test_a_house_bot_at_the_top_is_not_recorded_as_bottom(tmp_path, monkeypatch)
           "defenders": [{"name": "champ"}, {"name": "gun_only"}]}
     night = hl.record_night({"nights": []}, lb, "d")["nights"][0]
     assert night["defender_bottom"] is None and night["attacker_bottom"] is None
+
+
+# --- personas -----------------------------------------------------------------
+
+from colosseum import personas as P  # noqa: E402
+
+
+def toy_ctx(top_def_win=1.0, top_att_win=0.5):
+    lb = {"attackers": [dict(name="a_top", elo=1100, win_rate=top_att_win, mean_cer=1.0,
+                             mean_score=0.6),
+                        dict(name="a_low", elo=900, win_rate=0.2, mean_cer=1.0,
+                             mean_score=0.4)],
+          "defenders": [dict(name="d_top", elo=1200, win_rate=top_def_win, mean_cer=1.0,
+                             mean_score=0.7),
+                        dict(name="d_low", elo=900, win_rate=0.3, mean_cer=1.0,
+                             mean_score=0.3)]}
+    matrix = {"a_top": {"d_top": 0.7, "d_low": 0.1},     # d_low's worst result: 0.1
+              "a_low": {"d_top": 0.9, "d_low": 0.4}}     # a_low's worst result: 0.9
+    return dict(leaderboard=lb, matrix=matrix, lopsided=[], rules={})
+
+
+def test_a_dominant_opponent_gets_the_counter_meta_persona():
+    ctx = toy_ctx(top_def_win=0.95, top_att_win=0.5)
+    assert P.choose("attacker", ctx, nights=7) == "counter_meta"
+    assert P.target_for("counter_meta", "attacker", ctx) == "d_top"
+    assert P.choose("defender", ctx, nights=7) != "counter_meta"
+
+
+def test_without_a_dominant_opponent_personas_rotate_and_differ_within_a_night():
+    ctx = toy_ctx(top_def_win=0.5, top_att_win=0.5)
+    seen = set()
+    for n in range(3):
+        a, d = P.choose("attacker", ctx, n), P.choose("defender", ctx, n)
+        assert a != d
+        seen.add(a)
+    assert seen == set(P.ROTATION)
+
+
+def test_persona_override_and_bad_names():
+    ctx = toy_ctx(top_def_win=1.0)
+    assert P.choose("attacker", ctx, 0, "attacker=contrarian") == "contrarian"
+    with pytest.raises(ValueError):
+        P.choose("attacker", ctx, 0, "attacker=nonsense")
+
+
+def test_persona_targets():
+    ctx = toy_ctx()
+    assert P.target_for("exploiter", "attacker", ctx) == "d_low"
+    assert P.target_for("exploiter", "defender", ctx) == "a_low"
+    assert P.target_for("generalist", "attacker", ctx) == "field"
+    assert P.target_for("contrarian", "defender", ctx) == "a_top"
+
+
+@pytest.mark.parametrize("persona", P.PERSONAS)
+@pytest.mark.parametrize("role", ["attacker", "defender"])
+def test_every_persona_builds_a_prompt_from_real_results(persona, role):
+    ctx = hl.gather_context()
+    prompt = hl.build_prompt(ctx, role, persona)
+    target = P.target_for(persona, role, ctx)
+    assert "one fenced Python code block" in prompt and f"ONE bot: " in prompt
+    assert f" {role}. Return" in prompt
+    if target != "field":
+        assert target in prompt
+
+
+def test_counter_meta_is_shown_the_targets_source_and_its_closest_calls():
+    ctx = hl.gather_context()
+    top = ctx["leaderboard"]["defenders"][0]["name"]
+    prompt = hl.build_prompt(ctx, "attacker", "counter_meta")
+    assert P.bot_path(top).read_text().strip()[:200] in prompt
+    assert "closest calls" in prompt
+
+
+def test_judge_scores_from_the_new_bots_side():
+    lb = {"attackers": [dict(name="new", mean_score=0.6), dict(name="old", mean_score=0.5)]}
+    matrix = {"new": {"d_top": 0.3, "d_low": 0.5}, "old": {"d_top": 0.8, "d_low": 0.2}}
+    r = hl.judge("new", dict(role="attacker", target="d_top"), lb, matrix)
+    assert r["score_vs_target"] == 0.7 and r["beat_target"] and r["rank"] == 1
+    r = hl.judge("new", dict(role="attacker", target="field"), lb, matrix)
+    assert r["field_mean"] == 0.6 and r["beat_target"]
+
+
+ONE_ATTACKER = '''```python
+NAME = "fake_att"
+ROLE = "attacker"
+def act(obs):
+    return {"launch": [], "steer": {}}
+```'''
+ONE_DEFENDER = '''```python
+NAME = "fake_def"
+ROLE = "defender"
+def act(obs):
+    return {"intercept": [], "retarget": {}, "gun": None}
+```'''
+
+
+def test_a_night_makes_one_call_per_persona_and_writes_metadata(monkeypatch, tmp_path):
+    out = tmp_path / "out"
+    out.mkdir()
+    for f in ("leaderboard.json", "matrix.json", "BALANCE.md"):
+        (out / f).write_text((hl.DEFAULT_OUT / f).read_text())
+    house = tmp_path / "house"
+    for name, val in [("HOUSE", house), ("RAW", tmp_path / "raw"),
+                      ("HISTORY", tmp_path / "history.json")]:
+        monkeypatch.setattr(hl, name, val)
+    monkeypatch.setattr(hl, "smoke_test", lambda path, role: (True, "ok (stubbed)"))
+    monkeypatch.setenv("HOUSE_LEAGUE_PERSONAS", "attacker=counter_meta,defender=generalist")
+
+    prompts = []
+
+    def fake_call(prompt, caps, spend, dry_run):
+        prompts.append(prompt)
+        spend.add(caps.model, 100, 50, priced=False)
+        return ONE_ATTACKER if "ONE bot: an attacker" in prompt else ONE_DEFENDER
+    monkeypatch.setattr(hl, "call_model", fake_call)
+
+    today = hl.date.today().isoformat()
+    a, d = f"{today}_attacker_fake_att", f"{today}_defender_fake_def"
+
+    def fake_tournament(seeds, out, sandbox, quiet):
+        lb = json.loads((hl.DEFAULT_OUT / "leaderboard.json").read_text())
+        matrix = json.loads((hl.DEFAULT_OUT / "matrix.json").read_text())["matrix"]
+        matrix[a] = {k: 0.4 for k in next(iter(matrix.values()))}
+        for row in matrix.values():
+            row[d] = 0.6
+        lb["attackers"].insert(0, dict(name=a, role="attacker", elo=1300, win_rate=0.6,
+                                       mean_score=0.6))
+        lb["defenders"].insert(0, dict(name=d, role="defender", elo=1300, win_rate=0.6,
+                                       mean_score=0.99))
+        (out / "matrix.json").write_text(json.dumps({"matrix": matrix}))
+        return lb, matrix, [None] * 3
+    monkeypatch.setattr(hl, "run_tournament", fake_tournament)
+
+    summary = hl.run_night(caps=hl.Caps(), out=out)
+    assert summary["status"] == "ok" and len(summary["written"]) == 2
+    assert len(prompts) == 2 and summary["spend"]["calls"] == 2
+    metas = {m["role"]: m for m in (json.loads(p.read_text())
+                                    for p in house.glob("*.meta.json"))}
+    top_defender = json.loads(
+        (hl.DEFAULT_OUT / "leaderboard.json").read_text())["defenders"][0]["name"]
+    assert metas["attacker"]["persona"] == "counter_meta"
+    assert metas["attacker"]["target"] == top_defender
+    assert metas["defender"]["persona"] == "generalist"
+    assert metas["defender"]["target"] == "field"
+    assert metas["attacker"]["tokens"] == {"input": 100, "output": 50}
+    assert metas["attacker"]["result"]["beat_target"] is True      # 1 - 0.4 > 0.5
+    assert summary["house_positions"][a]["persona"] == "counter_meta"

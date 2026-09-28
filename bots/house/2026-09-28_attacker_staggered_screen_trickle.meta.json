@@ -1,0 +1,16 @@
+{
+  "backend": "cli",
+  "date": "2026-09-28",
+  "dry_run": false,
+  "model": "opus",
+  "name": "2026-09-28_attacker_staggered_screen_trickle",
+  "note": "Backfilled. Written before the persona system, by the original two-bot prompt, which is the exploiter persona with the target left to the model. Tokens are for the single call that produced both bots.",
+  "persona": "exploiter",
+  "raw_response": "out/house_raw/2026-09-28T044853_cli.md",
+  "role": "attacker",
+  "target": "identify_then_engage (self-chosen in the docstring)",
+  "tokens": {
+    "input": 2929,
+    "output": 5742
+  }
+}

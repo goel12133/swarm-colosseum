@@ -12,13 +12,16 @@ Two generator backends:
 
 What one night does:
 
- 1. read the current leaderboard, matrix, balance read and the most lopsided replays
- 2. check the spend caps *before* spending anything
- 3. ask Claude for one attacker and one defender that exploit a named weakness
- 4. validate the returned files without executing them on the host
- 5. write them into bots/house/ with a date-stamped name
+ 1. read the current leaderboard, matrix, balance read and replays
+ 2. pick a persona per role (colosseum/personas.py): exploiter, counter_meta, generalist
+    or contrarian -- each defined by the evidence it is shown and the bot it must beat
+ 3. per bot: check the caps *before* spending anything, then one model call
+ 4. validate the returned file without executing it on the host
+ 5. write it into bots/house/ with a date-stamped name, plus a .meta.json sidecar that
+    records persona, target, backend, model and tokens
  6. smoke-test each one **in the sandbox** -- house bots are untrusted from here on
- 7. rerun the full tournament, sandboxed and parallel
+ 7. rerun the full tournament, sandboxed and parallel; record whether each new bot beat
+    the target its persona was given
  8. retire any house bot that has finished bottom of its ladder three nights running
 
 Caps are hard and checked before the call, not after: a night that would exceed the token
@@ -39,6 +42,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+from . import personas
 from .rules import SEASON0
 from .sim import run_match
 from .tournament import DEFAULT_OUT, ROOT, run_tournament
@@ -169,72 +173,52 @@ def gather_context(out: Path = DEFAULT_OUT, n_replays: int = 3) -> dict:
                 lopsided=samples, rules=SEASON0.as_dict())
 
 
-def build_prompt(ctx: dict) -> str:
-    lb = ctx["leaderboard"]
-    atk = "\n".join(f"  {r['name']}: elo {r['elo']:.0f}, win rate {r['win_rate']:.0%}, "
-                    f"mean CER {r['mean_cer']}" for r in lb["attackers"])
-    dfn = "\n".join(f"  {r['name']}: elo {r['elo']:.0f}, win rate {r['win_rate']:.0%}, "
-                    f"mean CER {r['mean_cer']}" for r in lb["defenders"])
-    return f"""You are writing bots for Swarm Colosseum, an abstract strategy benchmark on a
+INTRO = """You are writing a bot for Swarm Colosseum, an abstract strategy benchmark on a
 blank 2D plane with made-up units. It is a game, not a model of anything real.
 
 A protected asset sits at the origin. An attacker launches cheap drones from a ring; a
 defender has a limited magazine of interceptors, a short-range gun, and a radar that sees
 position but only reveals a drone's type inside a close range. Everything is made-up units.
+"""
 
-## Current standings
-
-Attackers:
-{atk}
-
-Defenders:
-{dfn}
-
-## Mean score_defender per pairing (high = defender did well)
-
-{json.dumps(ctx['matrix'], indent=2)}
-
-## The most lopsided pairings, with one match each
-
-{json.dumps(ctx['lopsided'], indent=2)}
-
-## Current rules
-
-{json.dumps(ctx['rules'], indent=2)}
-
-## The policy API
+API = """## The policy API
 
 A bot is one Python file with module-level `NAME` (str), `ROLE` ("attacker" or
 "defender"), `act(obs) -> dict`, and optionally `reset(seed)`. Standard library only.
 It is loaded fresh for every match, so module state does not leak between matches.
 
-Attacker obs: tick, budget, asset{{pos,hp,radius}}, drones[{{id,type,pos,vel,waypoint}}],
+Attacker obs: tick, budget, asset{pos,hp,radius}, drones[{id,type,pos,vel,waypoint}],
 interceptors[[x,y]], rules.
-Attacker action: {{"launch": [{{"type": "striker"|"decoy", "bearing": float}}],
-                   "steer": {{drone_id: [x,y] or None}}}}
+Attacker action: {"launch": [{"type": "striker"|"decoy", "bearing": float}],
+                  "steer": {drone_id: [x,y] or None}}
 A drone flies to its waypoint if it has one, then heads for the asset.
 
-Defender obs: tick, asset, tracks[{{id,pos,vel,range,cls}}] where cls is
-"unknown"/"striker"/"decoy", interceptors[{{id,target,pos,age}}], stock, ammo, rules.
-Defender action: {{"intercept": [track_id], "retarget": {{interceptor_id: track_id}},
-                   "gun": track_id or None}}
+Defender obs: tick, asset, tracks[{id,pos,vel,range,cls}] where cls is
+"unknown"/"striker"/"decoy", interceptors[{id,target,pos,age}], stock, ammo, rules.
+Defender action: {"intercept": [track_id], "retarget": {interceptor_id: track_id},
+                  "gun": track_id or None}
 
 Launch caps are per tick and enforced by the engine; exceeding them wastes the request.
-
-## Your task
-
-Write exactly TWO bots: one attacker and one defender. Each must exploit a weakness you can
-name in the current standings above — the docstring must say which bot or which pairing it
-is targeting and why the weakness exists.
 
 Requirements:
 - Standard library only. No file, network or subprocess access.
 - Fast: `act` is called up to 600 times per match, with a per-tick timeout.
 - Deterministic given the same observations. If you need randomness, seed it in `reset`.
 - Do not raise. Return a well-formed action every tick.
+"""
 
-Return exactly two fenced Python code blocks and nothing else — the attacker first, then
-the defender. No commentary outside the blocks."""
+
+def build_prompt(ctx: dict, role: str = "attacker", persona: str = "exploiter",
+                 target: str = None, out: Path = DEFAULT_OUT) -> str:
+    """One bot, one persona: shared intro, rules and API, plus the persona's evidence/task."""
+    target = target or personas.target_for(persona, role, ctx)
+    return "\n".join([
+        INTRO,
+        personas.evidence(persona, role, target, ctx, out),
+        f"## Current rules\n\n{json.dumps(ctx['rules'], indent=2)}\n",
+        API,
+        personas.task(persona, role, target),
+    ])
 
 
 # --- model call ---------------------------------------------------------------
@@ -547,9 +531,45 @@ def apply_retirement(history: dict, nights: int = 3) -> list:
             if src.exists():
                 RETIRED.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(src), str(RETIRED / src.name))
+                meta = src.with_suffix(".meta.json")
+                if meta.exists():
+                    shutil.move(str(meta), str(RETIRED / meta.name))
                 retired.append(names[0])
                 log(f"retired {names[0]}: bottom of its ladder {nights} nights running")
     return retired
+
+
+# --- bot metadata -------------------------------------------------------------
+
+def rel(path: Path) -> str:
+    """Repo-relative when inside the repo (readable in logs), absolute otherwise."""
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
+def write_meta(bot: Path, meta: dict):
+    """Sidecar next to the bot. tournament.discover() only globs *.py, so it is inert."""
+    bot.with_suffix(".meta.json").write_text(json.dumps(meta, indent=2, sort_keys=True) + "\n")
+
+
+def judge(stem: str, meta: dict, lb: dict, matrix: dict) -> dict:
+    """Did the new bot beat what its persona told it to beat? Scores are its own side's."""
+    role, target = meta["role"], meta["target"]
+    if role == "attacker":
+        mine = {d: round(1.0 - s, 3) for d, s in matrix[stem].items()}
+    else:
+        mine = {a: round(row[stem], 3) for a, row in matrix.items()}
+    ladder = lb[role + "s"]
+    rank = next(i for i, r in enumerate(ladder, 1) if r["name"] == stem)
+    field_mean = round(sum(mine.values()) / len(mine), 3)
+    if target == "field":
+        others = [r["mean_score"] for r in ladder if r["name"] != stem]
+        return dict(field_mean=field_mean, rank=rank,
+                    beat_target=field_mean > max(others, default=0.0))
+    return dict(score_vs_target=mine.get(target), field_mean=field_mean, rank=rank,
+                beat_target=mine.get(target, 0.0) > 0.5)
 
 
 # --- the night ----------------------------------------------------------------
@@ -567,40 +587,64 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
     log(f"night {when} starting: {caps.describe()} dry_run={dry_run}")
 
     ctx = gather_context(out)
-    prompt = build_prompt(ctx)
-    try:
-        text = call_model(prompt, caps, spend, dry_run)
-    except CapExceeded as exc:
-        log(f"ABORT before any model call -- {exc}")
-        return dict(status="aborted", reason=str(exc), spend=vars(spend))
-    except Exception as exc:
-        # This runs unattended from cron: a logged-out CLI, a missing key or SDK, a timeout
-        # must leave a log line and a non-zero exit, not a traceback nobody reads.
-        log(f"ABORT: {type(exc).__name__}: {exc}")
-        return dict(status="error", reason=f"{type(exc).__name__}: {exc}",
-                    spend=vars(spend))
+    nights = len(load_history()["nights"])
+    roles = ["attacker", "defender"][:max(1, min(2, caps.bots_per_night))]
+    written, rejected, metas = [], [], {}
+    for index, role in enumerate(roles):
+        try:
+            persona = personas.choose(role, ctx, nights,
+                                      os.environ.get("HOUSE_LEAGUE_PERSONAS", ""))
+            target = personas.target_for(persona, role, ctx)
+            prompt = build_prompt(ctx, role, persona, target, out)
+        except (ValueError, KeyError, OSError) as exc:
+            log(f"ABORT: persona setup failed for {role}: {type(exc).__name__}: {exc}")
+            if not written:
+                return dict(status="error", reason=str(exc), spend=vars(spend))
+            rejected.append((role, f"persona setup: {exc}"))
+            break
+        log(f"{role}: persona={persona} target={target} prompt={len(prompt):,} chars")
+        before = (spend.input_tokens, spend.output_tokens)
+        try:
+            text = call_model(prompt, caps, spend, dry_run)
+        except CapExceeded as exc:
+            log(f"ABORT before the {role} call -- {exc}")
+            if not written:
+                return dict(status="aborted", reason=str(exc), spend=vars(spend))
+            rejected.append((role, f"cap: {exc}"))
+            break
+        except Exception as exc:
+            # This runs unattended from cron: a logged-out CLI, a missing key or SDK, a
+            # timeout must leave a log line and a non-zero exit, not a traceback nobody reads.
+            log(f"ABORT: {type(exc).__name__}: {exc}")
+            if not written:
+                return dict(status="error", reason=f"{type(exc).__name__}: {exc}",
+                            spend=vars(spend))
+            rejected.append((role, f"{type(exc).__name__}: {exc}"))
+            break
 
-    if not dry_run:
-        RAW.mkdir(parents=True, exist_ok=True)
-        raw_path = RAW / f"{datetime.now(timezone.utc):%Y-%m-%dT%H%M%S}_{caps.backend}.md"
-        raw_path.write_text(text)
-        log(f"raw response saved to {raw_path.relative_to(ROOT)} ({len(text):,} chars)")
+        raw_path = None
+        if not dry_run:
+            RAW.mkdir(parents=True, exist_ok=True)
+            raw_path = RAW / (f"{datetime.now(timezone.utc):%Y-%m-%dT%H%M%S}_{caps.backend}"
+                              f"_{role}_{persona}.md")
+            raw_path.write_text(text)
+            log(f"raw response saved to {rel(raw_path)} ({len(text):,} chars)")
 
-    blocks = extract_bots(text)
-    wanted = [("attacker", 0), ("defender", 1)][:max(1, caps.bots_per_night)]
-    written, rejected = [], []
-    for role, index in wanted:
-        if index >= len(blocks):
-            rejected.append((role, "model returned too few code blocks"))
+        blocks = extract_bots(text)
+        if dry_run:                          # the canned response holds both roles
+            blocks = blocks[index:index + 1]
+        if not blocks:
+            log(f"rejected {role}: model returned no code block")
+            rejected.append((role, "model returned no code block"))
             continue
-        ok, name, reason = validate_bot(blocks[index], role)
+        ok, name, reason = validate_bot(blocks[0], role)
         if not ok:
             log(f"rejected {role}: {reason}")
             rejected.append((role, reason))
             continue
         HOUSE.mkdir(parents=True, exist_ok=True)
         path = HOUSE / f"{when}_{role}_{slug(name)}.py"
-        path.write_text(blocks[index] + "\n")
+        path.write_text(blocks[0] + "\n")
         ok, detail = smoke_test(path, role)
         if not ok:
             log(f"rejected {path.name}: {detail}")
@@ -609,6 +653,13 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
             continue
         log(f"accepted {path.name}: {detail}")
         written.append(path.name)
+        metas[path.stem] = dict(
+            name=path.stem, role=role, date=when, persona=persona, target=target,
+            backend=caps.backend, model=caps.model, dry_run=dry_run,
+            tokens=dict(input=spend.input_tokens - before[0],
+                        output=spend.output_tokens - before[1]),
+            raw_response=rel(raw_path) if raw_path else None)
+        write_meta(path, metas[path.stem])
 
     lb = None
     tournament_s = None
@@ -617,6 +668,12 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
         lb, _, results = run_tournament(seeds=seeds, out=out, sandbox=True, quiet=True)
         tournament_s = round(time.monotonic() - t0, 1)
         log(f"tournament: {len(results)} sandboxed matches in {tournament_s}s")
+        matrix = json.loads((out / "matrix.json").read_text())["matrix"]
+        for stem, meta in metas.items():
+            meta["result"] = judge(stem, meta, lb, matrix)
+            write_meta(HOUSE / f"{stem}.py", meta)
+            log(f"{stem} ({meta['persona']} vs {meta['target']}): "
+                f"{json.dumps(meta['result'])}")
         if dry_run:
             retired = []                     # canned bots must not count toward retirement
         else:
@@ -635,9 +692,12 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
         summary["top_attacker"] = lb["attackers"][0]["name"]
         summary["top_defender"] = lb["defenders"][0]["name"]
         summary["house_positions"] = {
-            r["name"]: dict(role=r["role"], elo=r["elo"], win_rate=r["win_rate"])
+            r["name"]: dict(role=r["role"], elo=r["elo"], win_rate=r["win_rate"],
+                            rank=lb[role].index(r) + 1, persona=metas[r["name"]]["persona"],
+                            target=metas[r["name"]]["target"],
+                            beat_target=metas[r["name"]].get("result", {}).get("beat_target"))
             for role in ("attackers", "defenders") for r in lb[role]
-            if r["name"] in {Path(w).stem for w in written}}
+            if r["name"] in metas}
     log(f"night {when} done: {json.dumps(summary)}")
     return summary
 

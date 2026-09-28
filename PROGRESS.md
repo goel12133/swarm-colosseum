@@ -359,3 +359,86 @@ the docstring, since every baseline attacker leans on decoys.
 $ python3 -m pytest tests -q
 68 passed
 ```
+
+## Session 5 — auditing discriminating_ledger's sweep, and personas
+
+### 1. Leak or tactic: no leak
+
+`tests/test_leakage.py`, permanent. Two tests, idle defender so no kill roll touches the RNG:
+
+- **Counterfactual, exact.** A random mixed launch plan, then the same plan with every
+  striker ↔ decoy swapped. Outside id range the defender's entire view (every track field,
+  track order, ids) is bit-identical, four seeds. This catches fields nobody has thought of.
+- **Statistical.** 40 random plans, 480 drones per type, one sample per drone (its mean over
+  out-of-range ticks), two-sample KS at alpha 0.001, critical 0.126. Largest statistic:
+  heading error 0.083; speed 0.058, id rank 0.042, id parity 0.012, list position 0.042.
+  Track dicts carry exactly `id, pos, vel, range, cls` — no hp, no radius.
+
+A first version counted every tick as a sample and flagged `id_rank` (KS 0.085 vs 0.038).
+That was the test, not the engine: a drone's ~75 consecutive ticks are not independent, so
+the sample size was inflated ~75× and KS found chance structure in six shuffles.
+
+The bot decides on `cls` alone (plus "unknown inside 135 u", which effectively never
+happens). sim.py unchanged; nothing to fix, no rerun needed.
+
+### 2. Characterising the win
+
+`python3 scripts/audit_defender.py <defender>` — engine on the host, both bots sandboxed,
+per-tick launch/cap/backlog instrumentation. For discriminating_ledger (10 seeds each):
+
+| attacker | mean score | CER | defended | cap ticks (binding) | stock out |
+|---|---|---|---|---|---|
+| multi_axis | 0.661 | 0.67 | 10/10 | 88 (32) | 10/10 |
+| staggered_screen_trickle | 0.731 | 0.49 | 10/10 | 0 (0) | 10/10 |
+| trickle | 0.745 | 0.57 | 10/10 | 10 (0) | 10/10 |
+| decoy_screen | 0.766 | 0.71 | 10/10 | 98 (90) | 10/10 |
+| flanker | 0.771 | 0.75 | 10/10 | 39 (30) | 10/10 |
+| rush | 0.771 | 0.75 | 10/10 | 100 (90) | 10/10 |
+
+"100% win rate" means never breached. By score it lost 2 of 60 (multi_axis seeds 2 and 6,
+0.354), and its CER is below 1 in every pairing. Its real edge over identify_then_engage is
+not collapsing against trickle-style attackers (0.745 vs 0.16); against multi_axis it is
+worse (0.661 vs 0.77).
+
+**Flanker:** neither hypothesis. The cap bound only 2–3 ticks per match (≈ tick 336), and
+stock does *not* cover every striker — 30 strikers against 20 interceptors, stock gone every
+match. It is the blast radius: 297 of 300 strikers died to 200 interceptors because timed
+two-axis arrival bunches strikers inside 10 u (90 of 158 blasts killed ≥ 2; one killed 10).
+
+**Two most vulnerable replays** (multi_axis s2 and s6, asset 10/30, near-identical):
+stock hit zero at tick 124 with 2–3 identified strikers still uncovered; two got past the gun
+at ticks 165–166. *What breaks it:* one more striker held back until after tick 124 — a
+third impact is a breach. Same in s6.
+
+**Rules finding** recorded in the new committed `BALANCE.md` (S0-1): decoys are worthless
+against a defender that ignores them, because identification at 150 u leaves ~31 ticks and an
+interceptor needs ~9. Not fixed; season-two options listed there. `out/BALANCE.md` now ends
+with a copy of it, so the house league's context includes it too.
+
+### 3. Personas
+
+`colosseum/personas.py`. Each persona is its evidence plus the bot it must beat:
+
+| persona | evidence | must beat |
+|---|---|---|
+| exploiter | standings, matrix, most lopsided pairings | opponent with the single worst result |
+| counter_meta | opposing #1's full source, its matrix row, best pairings, closest calls | opposing #1 |
+| generalist | full matrix, every opponent's docstring | the field (mean score) |
+| contrarian | every same-role bot's docstring, as approaches to avoid | opposing #1, with a new idea |
+
+Selection: `HOUSE_LEAGUE_PERSONAS` override → counter_meta if the opposing #1 wins ≥ 90% →
+else rotate exploiter/generalist/contrarian by night (defender offset by one). One call per
+bot now (was one call for both); two bots per night is still the cap. Every bot gets a
+`.meta.json` sidecar (persona, target, backend, model, tokens, raw response) and, after the
+tournament, a `result` with its score vs the target and `beat_target`. Retirement moves the
+sidecar with the bot. Last night's two bots got backfilled sidecars (persona exploiter).
+
+**Tonight (03:30):** attacker = counter_meta vs discriminating_ledger, shown its source and
+its closest calls (the multi_axis stock-exhaustion matches). Defender = contrarian vs
+staggered_screen_trickle (76% < 90%, so rotation). Projected worst case ≈ 78k tokens over
+2 calls, under the 200k / 4-call caps.
+
+```
+$ python3 -m pytest tests -q
+88 passed
+```
