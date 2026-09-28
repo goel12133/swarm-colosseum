@@ -110,3 +110,88 @@ threshold flagged. One iteration used of the three allowed.
 ### What is not done
 
 Stage 2, deliberately. No ports opened, nothing deployed, no outside code executed.
+
+---
+
+## Session 2 — flanker rewrite, and the Stage 2 sandbox
+
+### 1. Flanker: 0% → 68% win rate, last → second in the ladder
+
+Rewritten around a rate limit rather than geometry: the defender can answer 2 interceptors
+and 1 gun shot per tick, and the attacker's own 4-per-tick launch cap puts a ceiling of 4
+arrivals per tick on any single-axis attack. Two axes with different path lengths break that
+ceiling — a dogleg wave and a direct wave launched later by exactly the difference in flight
+time, both landing in the same few ticks.
+
+Two things had to be measured rather than assumed:
+
+- **The dogleg has to be an arc, not a chord.** A straight line from 0° to 120° at radius 480
+  passes within ~240 u of the asset, deep inside the 450 u radar. The wave was tracked and
+  destroyed for 200 ticks before arriving: **0 impacts against every active defender**. The bot
+  now walks 9° around the circle per tick, staying outside radar for the whole transit.
+- **Zero spreading is a free multi-kill, not concentration.** Four drones launched on the same
+  tick from the same bearing sit at *identical* coordinates. Kill events showed single blasts
+  taking 6, 8 and 11 drones. A 2.5° de-stack puts same-tick launches ~20 u apart, outside one
+  blast radius, without moving them out of the arrival window.
+
+The de-stack is a deliberate, documented departure from "drop the spreading": the fan that was
+dropped was 11° per drone across 7 dogleg bearings, which desynchronised arrivals. This does
+not — it is the minimum separation that stops four drones occupying one point.
+
+```
+$ python -m pytest tests/ -q
+25 passed in 2.75s
+
+$ python -m colosseum.tournament --seeds 10 --quiet
+200 matches; top attacker: trickle (1082); top defender: identify_then_engage (1054)
+```
+
+Per-defender breaches, seeds 0-9: nearest_first 10/10, layered 7/10, gun_only 10/10,
+identify_then_engage 0/10 — **27/40 against active defenders**.
+
+**Pass conditions, all met:** at least one win against a non-passive defender ✓ (27); no bot
+above 90% — highest is identify_then_engage at 82% ✓; neither role above 85% — 44% defended
+against 56% breached ✓. `rules.py` untouched, as instructed.
+
+Ladder after the rewrite: trickle 1082, **flanker 1067**, multi_axis 1060, decoy_screen 1023,
+rush 908. Defenders: identify_then_engage 1054, layered 1032, nearest_first 894, gun_only 878.
+The role split moved from 58/42 to 44/56, still inside the thresholds.
+
+### 2. Docker sandbox (Stage 2, step one only)
+
+`colosseum/sandbox.py` (host) and `colosseum/sandbox_runner.py` (inside the container).
+`SandboxedPolicy` has the same surface as `PolicyRunner`, so `run_match(..., sandbox=True)` is
+the only thing that changes — a bot that behaves differently between modes is a sandbox bug,
+which is what the determinism test exists to catch.
+
+Container: `--network=none`, `--cpus=0.5`, `--memory=128m` with `--memory-swap=128m` so the
+limit actually kills rather than swaps, `--pids-limit=64`, `--read-only` plus an 8 MB tmpfs,
+`--cap-drop=ALL`, `--security-opt=no-new-privileges`, non-root user, `PYTHONHASHSEED=0`.
+Host enforces a wall-clock deadline on every call.
+
+A timeout or crash is a counted no-op, exactly as in-process. A container that stops answering
+is restarted up to `max_restarts`; after that the policy is dead and every remaining call is an
+instant counted no-op, so a busy loop costs bounded time rather than 600 timeouts. One
+container per match, not per tick — a start is ~0.3 s, which would be 600 × that per match.
+
+```
+$ python -m pytest tests/test_sandbox.py -q
+8 passed in 10.29s
+
+$ python -m pytest tests/ -q
+33 passed in 13.11s
+
+$ /usr/bin/time python -m colosseum.tournament --seeds 10 --quiet --no-replays
+3.08 s
+$ /usr/bin/time python -m colosseum.tournament --seeds 10 --quiet --no-replays --sandbox
+152.55 s
+```
+
+**Sandboxed is ~50× slower: 152.55 s against 3.08 s** for 200 matches (400 container starts).
+The leaderboard and matrix from the two runs are **byte-identical**, so determinism survives
+the container boundary at tournament scale, not just in the three single-match tests.
+
+### Still not done, deliberately
+
+House league, meta report, video export, public site. No ports opened, nothing deployed, no
+firewall or SSH changes, no outside submissions accepted.
