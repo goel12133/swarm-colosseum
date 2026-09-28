@@ -263,3 +263,25 @@ def test_context_and_prompt_are_built_from_real_results():
     for needed in ("score_defender", "ROLE", "striker", "fenced Python code blocks"):
         assert needed in prompt
     assert len(prompt) > 1500
+
+
+@pytest.mark.parametrize("fence", ["```python\n", "```py\n", "```Python \r\n", "```\n"])
+def test_code_fence_variants_are_all_extracted(fence):
+    assert hl.extract_bots(f"text\n{fence}NAME = 'x'\n```\n") == ["NAME = 'x'"]
+
+
+def test_cli_input_estimate_covers_the_observed_real_calls():
+    """Real nights on 2026-09-28 used 2,929 and 5,927 input tokens; the guard must not be lower."""
+    prompt = hl.build_prompt(hl.gather_context())
+    assert hl.estimate_input_tokens(prompt, "cli") >= 5927
+
+
+def test_a_house_bot_at_the_top_is_not_recorded_as_bottom(tmp_path, monkeypatch):
+    house = tmp_path / "house"
+    house.mkdir()
+    (house / "champ.py").write_text('NAME = "champ"\nROLE = "defender"\n')
+    monkeypatch.setattr(hl, "HOUSE", house)
+    lb = {"attackers": [{"name": "rush"}],
+          "defenders": [{"name": "champ"}, {"name": "gun_only"}]}
+    night = hl.record_night({"nights": []}, lb, "d")["nights"][0]
+    assert night["defender_bottom"] is None and night["attacker_bottom"] is None

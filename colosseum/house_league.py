@@ -47,6 +47,7 @@ HOUSE = ROOT / "bots" / "house"
 RETIRED = HOUSE / "RETIRED"
 LOG = DEFAULT_OUT / "house_league.log"
 HISTORY = DEFAULT_OUT / "house_history.json"
+RAW = DEFAULT_OUT / "house_raw"            # every model response, verbatim, for post-mortems
 
 # $ per million tokens, from the model table cached in the claude-api skill (2026-06-24).
 # If Anthropic's prices move, this table is what needs updating -- the caps are enforced
@@ -268,21 +269,27 @@ def act(obs):
 ```'''
 
 
-def estimate_input_tokens(prompt: str) -> int:
+# What `claude -p` sends on top of our prompt (its own system prompt, tool-less). Observed
+# on 2026-09-28: 2,929 and 5,927 input tokens for a prompt this module estimates at ~2,300.
+CLI_INPUT_OVERHEAD = 4000
+
+
+def estimate_input_tokens(prompt: str, backend: str = "api") -> int:
     """Deliberately crude and deliberately high: ~3.5 chars per token, rounded up.
 
     The estimate only guards the pre-call cap check, and over-estimating is the safe
     direction -- it aborts a night that might have squeaked under, rather than spending
     past a cap the founder set.
     """
-    return int(len(prompt) / 3.5) + 500
+    overhead = CLI_INPUT_OVERHEAD if backend == "cli" else 0
+    return int(len(prompt) / 3.5) + 500 + overhead
 
 
 def check_caps(caps: Caps, spend: Spend, prompt: str):
     """Raise before spending anything if this call could take the night over a cap."""
     if spend.calls + 1 > caps.max_calls:
         raise CapExceeded(f"call cap: {spend.calls + 1} > {caps.max_calls}")
-    projected_in = estimate_input_tokens(prompt)
+    projected_in = estimate_input_tokens(prompt, caps.backend)
     projected_tokens = spend.tokens + projected_in + MAX_OUTPUT_TOKENS
     if projected_tokens > caps.max_tokens:
         raise CapExceeded(f"token cap: projected {projected_tokens:,} > "
@@ -440,7 +447,8 @@ def call_cli(prompt: str, caps: Caps, spend: Spend) -> str:
 
 # --- validation ---------------------------------------------------------------
 
-BLOCK = re.compile(r"```(?:python)?\s*\n(.*?)```", re.S)
+# Tolerant of ```py / ```Python / trailing spaces after the fence and CRLF line endings.
+BLOCK = re.compile(r"```[ \t]*(?:python3?|py)?[ \t]*\r?\n(.*?)```", re.S | re.I)
 
 
 def extract_bots(text: str):
@@ -517,8 +525,10 @@ def save_history(history: dict):
 def record_night(history: dict, leaderboard: dict, when: str) -> dict:
     house_names = {p.stem for p in HOUSE.glob("*.py")}
     def bottom(role):
-        rows = [r for r in leaderboard[role] if r["name"] in house_names]
-        return rows[-1]["name"] if rows else None
+        # The bottom of the whole ladder, and only if that is a house bot. Not "the lowest
+        # house bot": with one house bot at #1 that would count as a bottom finish.
+        rows = leaderboard[role]
+        return rows[-1]["name"] if rows and rows[-1]["name"] in house_names else None
     history["nights"].append(dict(date=when, attacker_bottom=bottom("attackers"),
                                   defender_bottom=bottom("defenders")))
     return history
@@ -569,6 +579,12 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
         log(f"ABORT: {type(exc).__name__}: {exc}")
         return dict(status="error", reason=f"{type(exc).__name__}: {exc}",
                     spend=vars(spend))
+
+    if not dry_run:
+        RAW.mkdir(parents=True, exist_ok=True)
+        raw_path = RAW / f"{datetime.now(timezone.utc):%Y-%m-%dT%H%M%S}_{caps.backend}.md"
+        raw_path.write_text(text)
+        log(f"raw response saved to {raw_path.relative_to(ROOT)} ({len(text):,} chars)")
 
     blocks = extract_bots(text)
     wanted = [("attacker", 0), ("defender", 1)][:max(1, caps.bots_per_night)]

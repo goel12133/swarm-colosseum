@@ -288,3 +288,74 @@ API call is tested and working; one real night and its recorded spend is waiting
 
 Meta report, video export, public site. No ports opened, nothing deployed, no firewall or
 SSH changes, `rules.py` frozen.
+
+## Session 4 — house league on the Claude Code CLI, and the first real night
+
+### Backend
+
+Default generator is now the Claude Code CLI on this box, headless, on the subscription
+login in `~/.claude` — no API key. The API backend stays behind `--backend api` /
+`HOUSE_LEAGUE_BACKEND=api`. On the cli backend only the token cap and call cap apply.
+
+The child call: `claude -p --output-format json --model opus --tools "" --setting-sources ""
+--strict-mcp-config --disable-slash-commands --no-session-persistence --system-prompt ...`,
+prompt on stdin, run in an empty temp dir. `--bare` was the obvious choice but it refuses
+OAuth, i.e. the subscription. No setting sources means no plugins and none of their hooks;
+the temp dir means no CLAUDE.md. The child env is built from scratch (HOME, PATH, LANG,
+`CLAUDE_CODE_MAX_OUTPUT_TOKENS=32000`): `ANTHROPIC_API_KEY` is dropped so a stray key can't
+turn a free night into a billed one. Validation is unchanged: `ast` only, never imported on
+the host, smoke test and tournament in the sandbox.
+
+Failure path, verified from `env -i HOME=<empty dir> PATH=/usr/bin:/bin bash scripts/nightly.sh`:
+`ABORT: BackendError: claude CLI failed (exit 1): Not logged in · Please run /login`, exit 2,
+nothing written, no tournament. Missing binary, timeout (900s) and non-JSON output take the
+same path; each has a test.
+
+Cron: `nightly.sh` now puts `~/.local/bin` on PATH (cron's is `/usr/bin:/bin`). Both real
+nights below were run as `env -i HOME=/root PATH=/usr/bin:/bin bash scripts/nightly.sh`,
+i.e. with cron's environment, not this session's.
+
+### The first real nights
+
+**Attempt 1 (04:45 UTC)** — call succeeded (5,927 in / 6,411 out, 77s, model resolved to
+`claude-opus-5-5`), but both bots rejected: "model returned too few code blocks". The raw
+response was not saved, so **the cause is unknown** — could have been a fence the regex
+didn't accept, could have been prose. Fixed the gap, not the guess: every response now goes
+verbatim to `out/house_raw/`, and the fence regex accepts ```py / ```Python / CRLF.
+
+**Attempt 2 (04:48 UTC)** — the night of record.
+
+| | |
+|---|---|
+| tokens | 2,929 in + 5,742 out = **8,671**, 1 call (cap 200,000 / 4) |
+| model call | 56.5s |
+| tournament | **300 sandboxed matches in 90.9s** (≈0.30 s/match, same rate as session 3) |
+| whole night | 150.2s |
+
+`2026-09-28_attacker_staggered_screen_trickle` — targets identify_then_engage, which waits
+to classify inside id range and then burns gun ammo on decoys. Groups of 2 decoys then 1
+striker on the same bearing, a group every 18 ticks, golden-angle bearing rotation, strikers
+jink sideways when an interceptor closes. **#1 attacker: elo 1109, 76% win rate.**
+
+`2026-09-28_defender_discriminating_ledger` — targets defenders that waste resources on
+decoys (nearest_first, identify_then_engage). Never engages decoys; one interceptor per
+confirmed striker, reassigned when its target dies; gun only at strikers. **#1 defender:
+elo 1195, 100% win rate** (mean score_defender 0.66–0.77 against every attacker). A clean
+sweep is worth a closer look before it's taken at face value; it is at least consistent with
+the docstring, since every baseline attacker leans on decoys.
+
+### Fixes found on the way
+
+- `log()` bound the log path at import, so tests wrote into the real `out/house_league.log`
+  (the stray "retired 2026-09-01_attacker_loser" line there came from a test).
+- Retirement recorded the lowest-ranked *house* bot, not the bottom of the ladder: a lone
+  house bot at #1 would have counted as a bottom finish. Tonight's history entry was
+  rewritten with the fixed rule (neither house bot is bottom).
+- Dry runs no longer count toward retirement.
+- The CLI adds its own input overhead, so the "deliberately high" estimate (≈2,300) was
+  under the real 2,929. Added a 4,000-token CLI overhead; a test pins it above 5,927.
+
+```
+$ python3 -m pytest tests -q
+68 passed
+```
