@@ -195,3 +195,96 @@ the container boundary at tournament scale, not just in the three single-match t
 
 House league, meta report, video export, public site. No ports opened, nothing deployed, no
 firewall or SSH changes, no outside submissions accepted.
+
+---
+
+## Session 3 — parallel tournament, and the nightly house league
+
+### 1. Parallelism instead of container reuse
+
+One fresh container per match stays the rule. Matches now run across `cores - 1` workers
+(3 on this 4-core box). The job list is built in sorted order and **results are consumed in
+that order regardless of completion order** — Elo is path dependent, so consuming by
+completion would make the ladder depend on machine timing. Each worker writes its own
+replay so only the match meta crosses the process boundary.
+
+```
+$ /usr/bin/time python -m colosseum.tournament --seeds 10 --quiet --no-replays --sandbox
+152.55 s          # sequential, session 2
+57.86 s           # workers=3
+```
+
+**57.86 s, down from 152.55 s.** Byte-identical leaderboard *and* matrix across three runs:
+parallel sandboxed, sequential sandboxed, and in-process. A nightly run is far under the
+20-minute mark that would justify revisiting reuse.
+
+This also fixed house-bot discovery: `ROLE` is now read out of the file with a regex rather
+than a substring check on the first 400 characters, and house **defenders** are picked up,
+which the old code silently dropped. The host still never imports a house bot.
+
+### 2. The nightly house league
+
+`python -m colosseum.house_league --once [--dry-run]`.
+
+One night: read the leaderboard, matrix, balance read and the three most lopsided pairings
+with one replay each → check caps → ask Claude for one attacker and one defender that
+exploit a weakness named in the docstring → validate → write date-stamped into `bots/house/`
+→ smoke-test **in the sandbox** → rerun the full tournament → apply the retirement rule.
+
+**Spend controls.** Dollar, token and call caps all come from env vars and are checked
+*before* the call, never after. The input-token estimate is deliberately rounded up, so the
+error is on the side of not spending. A night that would exceed a cap logs an `ABORT` line
+and spends nothing. Every call's token counts go to `out/house_league.log`. Prices come from
+a table in the module — `claude-opus-5` at $5/$25 per MTok — and if Anthropic's prices move,
+that table is what has to change, because the dollar cap is enforced against it.
+
+**House bots are untrusted from the moment they are written.** The host validates with `ast`
+and never imports them; a test asserts that a bot whose module body writes a file leaves no
+file behind. The only place they execute is a container.
+
+```
+$ python -m pytest tests/test_house_league.py -q
+16 passed in 0.05s
+
+$ python -m pytest tests/ -q
+49 passed in 11.96s
+
+$ time python -m colosseum.house_league --once --dry-run
+"written": ["2026-09-28_attacker_dryrun_attacker.py", "2026-09-28_defender_dryrun_defender.py"]
+"rejected": [], "retired": [], "spend": {"calls": 0, "usd": 0.0}, "seconds": 89.1
+real 1m29.206s
+```
+
+The dry run wrote both canned bots, smoke-tested each in the sandbox, reran the full
+tournament at 300 matches, and placed them in the ladders (attacker elo 956.9 / 46% win,
+defender elo 904.9 / 32% win). The canned bots were then deleted — they exist to exercise
+the path, not to compete.
+
+**Unattended failure path, verified:**
+
+```
+$ .venv/bin/python -m colosseum.house_league --once      # no API key set
+"status": "error"
+"reason": "TypeError: Could not resolve authentication method..."
+"spend": {"calls": 0, "usd": 0.0}
+exit code: 2
+```
+
+A log line and exit 2, not a traceback.
+
+**Cron:** `30 3 * * * /root/swarm-colosseum/scripts/nightly.sh`, installed. The wrapper
+sources `.house_league.env` (gitignored; `.house_league.env.example` is committed) so the
+key and caps never enter the crontab, and prefers `.venv/bin/python` because the engine is
+standard-library only while the house league needs the SDK and this box's python is
+Debian-managed.
+
+### Blocked: the real night
+
+**No Anthropic credentials exist on this machine** — `ANTHROPIC_API_KEY` is unset, the `ant`
+CLI is not installed, and there is no `~/.config/anthropic` profile. Everything except the
+API call is tested and working; one real night and its recorded spend is waiting on a key.
+
+### Still not done, deliberately
+
+Meta report, video export, public site. No ports opened, nothing deployed, no firewall or
+SSH changes, `rules.py` frozen.
