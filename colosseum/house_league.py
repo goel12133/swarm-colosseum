@@ -1,7 +1,14 @@
 """Nightly house league: Claude writes two new bots, they fight, the junk gets retired.
 
-    python -m colosseum.house_league --once          # one night, real API call
-    python -m colosseum.house_league --once --dry-run  # everything except the API call
+    python -m colosseum.house_league --once                 # one night, real model call
+    python -m colosseum.house_league --once --dry-run       # everything except the call
+    python -m colosseum.house_league --once --backend api   # Anthropic API, not the CLI
+
+Two generator backends:
+
+  cli (default)  the Claude Code CLI on this box, headless (`claude -p`), on the
+                 subscription login in ~/.claude. No API key, no dollar cost.
+  api            the Anthropic SDK with ANTHROPIC_API_KEY. Kept for later.
 
 What one night does:
 
@@ -15,7 +22,8 @@ What one night does:
  8. retire any house bot that has finished bottom of its ladder three nights running
 
 Caps are hard and checked before the call, not after: a night that would exceed the token
-cap, the dollar cap or the call cap aborts with a log line and spends nothing.
+cap or the call cap (and, on the api backend, the dollar cap) aborts with a log line and
+spends nothing. On the cli backend there is no dollar cost, so there is no dollar cap.
 """
 import argparse
 import ast
@@ -23,7 +31,9 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
+import tempfile
 import time
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
@@ -48,11 +58,19 @@ PRICES = {
     "claude-haiku-4-5": (1.0, 5.0),
 }
 DEFAULT_MODEL = "claude-opus-5"
-MAX_OUTPUT_TOKENS = 16000
+# The CLI takes an alias and resolves it itself; the resolved id is logged after the call.
+DEFAULT_CLI_MODEL = "opus"
+BACKENDS = ("cli", "api")
+MAX_OUTPUT_TOKENS = 32000
+CLI_TIMEOUT_S = 900
 
 
 class CapExceeded(RuntimeError):
     pass
+
+
+class BackendError(RuntimeError):
+    """The generator backend failed: not logged in, not installed, timed out, bad output."""
 
 
 @dataclass
@@ -61,18 +79,32 @@ class Caps:
     max_tokens: int = 200_000
     max_calls: int = 4
     bots_per_night: int = 2
-    model: str = DEFAULT_MODEL
+    model: str = ""                          # "" = the backend's default
+    backend: str = "cli"
+
+    def __post_init__(self):
+        if not self.model:
+            self.model = DEFAULT_CLI_MODEL if self.backend == "cli" else DEFAULT_MODEL
 
     @classmethod
-    def from_env(cls, env=None):
+    def from_env(cls, env=None, backend=None):
         env = os.environ if env is None else env
+        backend = backend or env.get("HOUSE_LEAGUE_BACKEND", "cli")
+        if backend not in BACKENDS:
+            raise ValueError(f"HOUSE_LEAGUE_BACKEND must be one of {BACKENDS}, got {backend!r}")
         return cls(
             max_usd=float(env.get("HOUSE_LEAGUE_MAX_USD", 2.00)),
             max_tokens=int(env.get("HOUSE_LEAGUE_MAX_TOKENS", 200_000)),
             max_calls=int(env.get("HOUSE_LEAGUE_MAX_CALLS", 4)),
             bots_per_night=int(env.get("HOUSE_LEAGUE_BOTS", 2)),
-            model=env.get("HOUSE_LEAGUE_MODEL", DEFAULT_MODEL),
+            model=env.get("HOUSE_LEAGUE_MODEL", ""),
+            backend=backend,
         )
+
+    def describe(self):
+        usd = "no $ cap (subscription)" if self.backend == "cli" else f"${self.max_usd:.2f}"
+        return (f"backend={self.backend} model={self.model} caps={usd}/"
+                f"{self.max_tokens:,} tokens/{self.max_calls} calls")
 
 
 @dataclass
@@ -82,19 +114,21 @@ class Spend:
     output_tokens: int = 0
     usd: float = 0.0
 
-    def add(self, model, in_tok, out_tok):
-        rate_in, rate_out = PRICES.get(model, PRICES[DEFAULT_MODEL])
+    def add(self, model, in_tok, out_tok, priced=True):
         self.calls += 1
         self.input_tokens += in_tok
         self.output_tokens += out_tok
-        self.usd += (in_tok * rate_in + out_tok * rate_out) / 1_000_000
+        if priced:
+            rate_in, rate_out = PRICES.get(model, PRICES[DEFAULT_MODEL])
+            self.usd += (in_tok * rate_in + out_tok * rate_out) / 1_000_000
 
     @property
     def tokens(self):
         return self.input_tokens + self.output_tokens
 
 
-def log(message: str, path: Path = LOG):
+def log(message: str, path: Path = None):
+    path = path or LOG                       # looked up at call time, so tests can redirect it
     path.parent.mkdir(parents=True, exist_ok=True)
     line = f"{datetime.now(timezone.utc).isoformat(timespec='seconds')} {message}"
     with open(path, "a") as f:
@@ -253,6 +287,8 @@ def check_caps(caps: Caps, spend: Spend, prompt: str):
     if projected_tokens > caps.max_tokens:
         raise CapExceeded(f"token cap: projected {projected_tokens:,} > "
                           f"{caps.max_tokens:,}")
+    if caps.backend == "cli":
+        return                               # subscription: no dollar cost to cap
     rate_in, rate_out = PRICES.get(caps.model, PRICES[DEFAULT_MODEL])
     projected_usd = spend.usd + (projected_in * rate_in
                                  + MAX_OUTPUT_TOKENS * rate_out) / 1_000_000
@@ -261,21 +297,32 @@ def check_caps(caps: Caps, spend: Spend, prompt: str):
                           f"${caps.max_usd:.2f}")
 
 
+SYSTEM_PROMPT = ("You write Python bot files for a game benchmark. Answer with exactly the "
+                 "fenced code blocks requested and nothing else.")
+
+
 def call_model(prompt: str, caps: Caps, spend: Spend, dry_run: bool) -> str:
     check_caps(caps, spend, prompt)          # always, even in dry run
     if dry_run:
-        log("dry-run: skipping the API call, using the canned response")
+        log("dry-run: skipping the model call, using the canned response")
         return CANNED_RESPONSE
+    if caps.backend == "cli":
+        return call_cli(prompt, caps, spend)
+    return call_api(prompt, caps, spend)
+
+
+def call_api(prompt: str, caps: Caps, spend: Spend) -> str:
     try:
         from anthropic import Anthropic
     except ImportError as exc:
-        raise RuntimeError("the anthropic SDK is not installed (pip install anthropic)") from exc
+        raise BackendError("the anthropic SDK is not installed (pip install anthropic)") from exc
 
     client = Anthropic()
     response = client.messages.create(
         model=caps.model,
         max_tokens=MAX_OUTPUT_TOKENS,
         thinking={"type": "adaptive"},
+        system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": prompt}],
     )
     usage = response.usage
@@ -283,6 +330,112 @@ def call_model(prompt: str, caps: Caps, spend: Spend, dry_run: bool) -> str:
     log(f"api call: model={caps.model} in={usage.input_tokens} out={usage.output_tokens} "
         f"night_total=${spend.usd:.4f} ({spend.tokens:,} tokens, {spend.calls} calls)")
     return "".join(b.text for b in response.content if getattr(b, "type", "") == "text")
+
+
+def find_claude(env=None) -> str:
+    """The CLI binary. Cron's PATH is /usr/bin:/bin, so ~/.local/bin is checked explicitly."""
+    env = os.environ if env is None else env
+    if env.get("HOUSE_LEAGUE_CLAUDE_BIN"):
+        return env["HOUSE_LEAGUE_CLAUDE_BIN"]
+    home = env.get("HOME") or str(Path.home())
+    path = os.pathsep.join([env.get("PATH", ""), f"{home}/.local/bin"])
+    found = shutil.which("claude", path=path)
+    if not found:
+        raise BackendError(f"claude CLI not found on PATH or in {home}/.local/bin")
+    return found
+
+
+def cli_env(env=None) -> dict:
+    """A minimal environment for the child: enough to find the login, nothing else.
+
+    ANTHROPIC_API_KEY is deliberately dropped -- if it were passed through, the CLI would
+    bill the key instead of using the subscription. So is everything from any parent
+    Claude Code session (CLAUDECODE, session ids, sockets), so a night started from inside
+    a session behaves the same as one started from cron.
+    """
+    env = os.environ if env is None else env
+    home = env.get("HOME") or str(Path.home())
+    return {
+        "HOME": home,
+        "PATH": os.pathsep.join([f"{home}/.local/bin", "/usr/local/bin", "/usr/bin", "/bin"]),
+        "LANG": env.get("LANG", "C.UTF-8"),
+        # Makes MAX_OUTPUT_TOKENS a real ceiling, so the pre-call token projection holds.
+        "CLAUDE_CODE_MAX_OUTPUT_TOKENS": str(MAX_OUTPUT_TOKENS),
+    }
+
+
+def cli_command(binary: str, caps: Caps) -> list:
+    """Headless, one turn, no tools, no settings, no MCP, no hooks, no plugins, no session file.
+
+    `--bare` would be simpler but it refuses OAuth, i.e. the subscription login. Instead:
+    no setting sources means no user settings, so no plugins and none of their hooks; and
+    the child runs in an empty temp dir so no CLAUDE.md is discovered.
+    """
+    return [binary, "-p", "--output-format", "json", "--model", caps.model,
+            "--tools", "", "--setting-sources", "", "--strict-mcp-config",
+            "--disable-slash-commands", "--no-session-persistence",
+            "--system-prompt", SYSTEM_PROMPT]
+
+
+def run_cli(cmd: list, prompt: str, env: dict, timeout: float) -> subprocess.CompletedProcess:
+    with tempfile.TemporaryDirectory(prefix="house_league_") as cwd:
+        return subprocess.run(cmd, input=prompt, capture_output=True, text=True, cwd=cwd,
+                              env=env, timeout=timeout)
+
+
+def parse_cli_result(stdout: str) -> dict:
+    try:
+        result = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        raise BackendError(f"CLI did not return JSON: {stdout[:200]!r}") from exc
+    if not isinstance(result, dict) or "result" not in result:
+        raise BackendError(f"CLI JSON has no result field: {stdout[:200]!r}")
+    return result
+
+
+def cli_tokens(result: dict):
+    """(input incl. cache reads/writes, output incl. thinking) from the CLI's usage block."""
+    u = result.get("usage") or {}
+    in_tok = sum(int(u.get(k) or 0) for k in
+                 ("input_tokens", "cache_creation_input_tokens", "cache_read_input_tokens"))
+    return in_tok, int(u.get("output_tokens") or 0)
+
+
+def call_cli(prompt: str, caps: Caps, spend: Spend) -> str:
+    binary = find_claude()
+    timeout = float(os.environ.get("HOUSE_LEAGUE_CLI_TIMEOUT", CLI_TIMEOUT_S))
+    try:
+        proc = run_cli(cli_command(binary, caps), prompt, cli_env(), timeout)
+    except FileNotFoundError as exc:
+        raise BackendError(f"claude CLI not runnable: {exc}") from exc
+    except subprocess.TimeoutExpired as exc:
+        raise BackendError(f"claude CLI timed out after {timeout:.0f}s") from exc
+
+    result = None
+    if proc.stdout.strip():
+        try:
+            result = parse_cli_result(proc.stdout)
+        except BackendError:
+            if proc.returncode == 0:
+                raise
+    if result is not None:
+        # Count whatever was used even if the call then failed: it still came off the cap.
+        in_tok, out_tok = cli_tokens(result)
+        if in_tok or out_tok:
+            spend.add(caps.model, in_tok, out_tok, priced=False)
+    if proc.returncode != 0 or result is None or result.get("is_error"):
+        detail = (result or {}).get("result") or proc.stderr.strip()[-300:] or "no output"
+        raise BackendError(f"claude CLI failed (exit {proc.returncode}): {detail}")
+
+    resolved = ",".join(result.get("modelUsage") or {}) or caps.model
+    log(f"cli call: model={resolved} in={in_tok} out={out_tok} "
+        f"secs={result.get('duration_ms', 0) / 1000:.1f} "
+        f"night_total={spend.tokens:,} tokens, {spend.calls} calls "
+        f"(notional list price ${result.get('total_cost_usd', 0):.4f}, not billed)")
+    if spend.tokens > caps.max_tokens:
+        log(f"WARNING: night used {spend.tokens:,} tokens, over the {caps.max_tokens:,} cap "
+            f"the pre-call projection allowed")
+    return result["result"]
 
 
 # --- validation ---------------------------------------------------------------
@@ -393,23 +546,26 @@ def apply_retirement(history: dict, nights: int = 3) -> list:
 
 def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
               seeds: int = 10) -> dict:
-    caps = caps or Caps.from_env()
     spend = Spend()
     when = date.today().isoformat()
     started = time.monotonic()
-    log(f"night {when} starting: model={caps.model} caps=${caps.max_usd:.2f}/"
-        f"{caps.max_tokens:,} tokens/{caps.max_calls} calls dry_run={dry_run}")
+    try:
+        caps = caps or Caps.from_env()
+    except ValueError as exc:
+        log(f"ABORT: bad configuration: {exc}")
+        return dict(status="error", reason=str(exc), spend=vars(spend))
+    log(f"night {when} starting: {caps.describe()} dry_run={dry_run}")
 
     ctx = gather_context(out)
     prompt = build_prompt(ctx)
     try:
         text = call_model(prompt, caps, spend, dry_run)
     except CapExceeded as exc:
-        log(f"ABORT before any API call -- {exc}")
+        log(f"ABORT before any model call -- {exc}")
         return dict(status="aborted", reason=str(exc), spend=vars(spend))
     except Exception as exc:
-        # This runs unattended from cron: a missing key or SDK must leave a log line and
-        # a non-zero exit, not a traceback nobody reads.
+        # This runs unattended from cron: a logged-out CLI, a missing key or SDK, a timeout
+        # must leave a log line and a non-zero exit, not a traceback nobody reads.
         log(f"ABORT: {type(exc).__name__}: {exc}")
         return dict(status="error", reason=f"{type(exc).__name__}: {exc}",
                     spend=vars(spend))
@@ -439,17 +595,25 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
         written.append(path.name)
 
     lb = None
+    tournament_s = None
     if written:
+        t0 = time.monotonic()
         lb, _, results = run_tournament(seeds=seeds, out=out, sandbox=True, quiet=True)
-        history = record_night(load_history(), lb, when)
-        retired = apply_retirement(history)
-        save_history(history)
+        tournament_s = round(time.monotonic() - t0, 1)
+        log(f"tournament: {len(results)} sandboxed matches in {tournament_s}s")
+        if dry_run:
+            retired = []                     # canned bots must not count toward retirement
+        else:
+            history = record_night(load_history(), lb, when)
+            retired = apply_retirement(history)
+            save_history(history)
     else:
         log("no new bots survived validation; tournament not rerun")
         retired = []
 
     summary = dict(status="ok", date=when, written=written, rejected=rejected,
-                   retired=retired, spend=vars(spend),
+                   retired=retired, spend=vars(spend), backend=caps.backend,
+                   tournament_seconds=tournament_s,
                    seconds=round(time.monotonic() - started, 1))
     if lb:
         summary["top_attacker"] = lb["attackers"][0]["name"]
@@ -466,12 +630,19 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--once", action="store_true", help="run one night now")
     ap.add_argument("--dry-run", action="store_true",
-                    help="do everything except call the API")
+                    help="do everything except call the model")
+    ap.add_argument("--backend", choices=BACKENDS, default=None,
+                    help="generator backend (default: $HOUSE_LEAGUE_BACKEND or cli)")
     ap.add_argument("--seeds", type=int, default=10)
     args = ap.parse_args()
     if not args.once:
         ap.error("use --once to run a night (there is no daemon mode)")
-    summary = run_night(dry_run=args.dry_run, seeds=args.seeds)
+    try:
+        caps = Caps.from_env(backend=args.backend)
+    except ValueError as exc:
+        log(f"ABORT: bad configuration: {exc}")
+        return 2
+    summary = run_night(caps=caps, dry_run=args.dry_run, seeds=args.seeds)
     print(json.dumps(summary, indent=2))
     return 0 if summary["status"] == "ok" else 2
 

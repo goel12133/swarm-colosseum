@@ -1,5 +1,6 @@
-"""House league tests: the caps, the validator, the retirement rule, and the dry run."""
+"""House league tests: the caps, the backends, the validator, the retirement rule."""
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -9,10 +10,16 @@ from colosseum import house_league as hl
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.fixture(autouse=True)
+def private_log(tmp_path, monkeypatch):
+    """Tests must not write into the real out/house_league.log."""
+    monkeypatch.setattr(hl, "LOG", tmp_path / "house_league.log")
+
+
 # --- spend caps ---------------------------------------------------------------
 
 def test_a_call_that_would_exceed_the_dollar_cap_aborts_before_spending():
-    caps = hl.Caps(max_usd=0.001, max_tokens=10_000_000, max_calls=99)
+    caps = hl.Caps(max_usd=0.001, max_tokens=10_000_000, max_calls=99, backend="api")
     with pytest.raises(hl.CapExceeded, match="dollar cap"):
         hl.check_caps(caps, hl.Spend(), "a prompt")
 
@@ -32,7 +39,7 @@ def test_the_call_cap_counts_calls_already_made():
 
 def test_dry_run_still_respects_the_caps(monkeypatch):
     """A cap that would be exceeded aborts even when no API call would happen."""
-    caps = hl.Caps(max_usd=0.0001)
+    caps = hl.Caps(max_tokens=100)
     with pytest.raises(hl.CapExceeded):
         hl.call_model("prompt", caps, hl.Spend(), dry_run=True)
 
@@ -51,6 +58,112 @@ def test_caps_come_from_the_environment():
                              "HOUSE_LEAGUE_BOTS": "1"})
     assert (caps.max_usd, caps.max_tokens, caps.max_calls, caps.bots_per_night) == \
            (0.5, 1234, 2, 1)
+
+
+def test_the_cli_backend_has_no_dollar_cap():
+    """Subscription calls cost nothing per call, so only tokens and calls are capped."""
+    caps = hl.Caps(max_usd=0.0, max_tokens=10_000_000, max_calls=99, backend="cli")
+    hl.check_caps(caps, hl.Spend(), "a prompt")
+
+
+def test_cli_is_the_default_backend_and_api_is_behind_a_flag():
+    assert hl.Caps.from_env({}).backend == "cli"
+    assert hl.Caps.from_env({}).model == hl.DEFAULT_CLI_MODEL
+    api = hl.Caps.from_env({}, backend="api")
+    assert api.backend == "api" and api.model == hl.DEFAULT_MODEL
+    assert hl.Caps.from_env({"HOUSE_LEAGUE_BACKEND": "api"}).backend == "api"
+    with pytest.raises(ValueError):
+        hl.Caps.from_env({"HOUSE_LEAGUE_BACKEND": "nonsense"})
+
+
+# --- cli backend --------------------------------------------------------------
+
+CLI_OK = json.dumps({"type": "result", "is_error": False, "result": hl.CANNED_RESPONSE,
+                     "usage": {"input_tokens": 9000, "cache_creation_input_tokens": 0,
+                               "cache_read_input_tokens": 0, "output_tokens": 7000},
+                     "modelUsage": {"claude-opus-5-5": {}}, "duration_ms": 1000,
+                     "total_cost_usd": 0.22})
+CLI_LOGGED_OUT = json.dumps({"type": "result", "is_error": True,
+                             "result": "Not logged in · Please run /login",
+                             "usage": {"input_tokens": 0, "output_tokens": 0}})
+
+
+def fake_cli(monkeypatch, stdout="", returncode=0, stderr="", raises=None):
+    seen = {}
+
+    def run(cmd, prompt, env, timeout):
+        seen.update(cmd=cmd, prompt=prompt, env=env)
+        if raises:
+            raise raises
+        return subprocess.CompletedProcess(cmd, returncode, stdout, stderr)
+    monkeypatch.setattr(hl, "find_claude", lambda env=None: "/fake/claude")
+    monkeypatch.setattr(hl, "run_cli", run)
+    return seen
+
+
+def test_cli_call_returns_the_text_and_counts_tokens_unpriced(monkeypatch):
+    seen = fake_cli(monkeypatch, stdout=CLI_OK)
+    spend = hl.Spend()
+    text = hl.call_model("the prompt", hl.Caps(), spend, dry_run=False)
+    assert text == hl.CANNED_RESPONSE
+    assert (spend.calls, spend.input_tokens, spend.output_tokens, spend.usd) == \
+           (1, 9000, 7000, 0.0)
+    assert seen["prompt"] == "the prompt"
+
+
+def test_cli_child_gets_no_api_key_and_no_parent_session(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-should-not-leak")
+    monkeypatch.setenv("CLAUDECODE", "1")
+    seen = fake_cli(monkeypatch, stdout=CLI_OK)
+    hl.call_model("p", hl.Caps(), hl.Spend(), dry_run=False)
+    assert "ANTHROPIC_API_KEY" not in seen["env"] and "CLAUDECODE" not in seen["env"]
+    assert seen["env"]["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] == str(hl.MAX_OUTPUT_TOKENS)
+
+
+def test_cli_command_is_headless_with_no_tools_or_settings():
+    cmd = hl.cli_command("claude", hl.Caps())
+    assert cmd[:2] == ["claude", "-p"]
+    assert cmd[cmd.index("--tools") + 1] == ""
+    assert cmd[cmd.index("--setting-sources") + 1] == ""
+    for flag in ("--strict-mcp-config", "--no-session-persistence", "--disable-slash-commands"):
+        assert flag in cmd
+    assert "--bare" not in cmd          # --bare refuses the subscription login
+
+
+@pytest.mark.parametrize("kwargs, match", [
+    (dict(stdout=CLI_LOGGED_OUT, returncode=1), "Not logged in"),
+    (dict(stdout="", returncode=1, stderr="boom"), "boom"),
+    (dict(stdout="not json", returncode=0), "did not return JSON"),
+    (dict(raises=subprocess.TimeoutExpired("claude", 900)), "timed out"),
+    (dict(raises=FileNotFoundError("claude")), "not runnable"),
+])
+def test_cli_failures_raise_backend_error(monkeypatch, kwargs, match):
+    fake_cli(monkeypatch, **kwargs)
+    with pytest.raises(hl.BackendError, match=match):
+        hl.call_model("p", hl.Caps(), hl.Spend(), dry_run=False)
+
+
+def test_a_missing_cli_binary_is_a_backend_error(tmp_path):
+    with pytest.raises(hl.BackendError, match="not found"):
+        hl.find_claude({"HOME": str(tmp_path), "PATH": str(tmp_path)})
+
+
+def test_a_backend_failure_ends_the_night_cleanly(monkeypatch, tmp_path):
+    """Logged out at 03:30: a log line, status error, nothing written, no tournament."""
+    fake_cli(monkeypatch, stdout=CLI_LOGGED_OUT, returncode=1)
+    monkeypatch.setattr(hl, "HOUSE", tmp_path / "house")
+    monkeypatch.setattr(hl, "run_tournament",
+                        lambda **kw: pytest.fail("tournament must not run"))
+    summary = hl.run_night(caps=hl.Caps())
+    assert summary["status"] == "error" and "Not logged in" in summary["reason"]
+    assert not (tmp_path / "house").exists()
+    assert "ABORT" in hl.LOG.read_text()
+
+
+def test_main_exits_2_on_a_backend_failure(monkeypatch):
+    fake_cli(monkeypatch, stdout=CLI_LOGGED_OUT, returncode=1)
+    monkeypatch.setattr("sys.argv", ["house_league", "--once"])
+    assert hl.main() == 2
 
 
 # --- validation ---------------------------------------------------------------

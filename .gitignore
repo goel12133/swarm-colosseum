@@ -2,5 +2,7 @@ out/
 __pycache__/
 *.pyc
 .venv/
+# Local env files can hold keys. Only the example is committed.
 .house_league.env
-.venv/
+.house_league.env.*
+!.house_league.env.example
