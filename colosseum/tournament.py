@@ -27,7 +27,7 @@ def discover(folder: Path):
 
 
 def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
-                   quiet=False):
+                   quiet=False, sandbox=False):
     attackers = discover(ROOT / "bots" / "attackers")
     defenders = discover(ROOT / "bots" / "defenders")
     house = discover(ROOT / "bots" / "house")
@@ -46,7 +46,8 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
     for a in attackers:
         for d in defenders:
             for seed in seed_list:
-                res = run_match(a, d, seed, rules=rules, record=write_replays)
+                res = run_match(a, d, seed, rules=rules, record=write_replays,
+                                sandbox=sandbox)
                 meta = res["meta"]
                 results.append(meta)
                 ladders.record(a.stem, d.stem, meta["score_attacker"])
@@ -152,9 +153,12 @@ def main():
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     ap.add_argument("--no-replays", action="store_true")
     ap.add_argument("--quiet", action="store_true")
+    ap.add_argument("--sandbox", action="store_true",
+                    help="run every bot in its own container (see colosseum/sandbox.py)")
     args = ap.parse_args()
     lb, _, results = run_tournament(seeds=args.seeds, out=args.out,
-                                    write_replays=not args.no_replays, quiet=args.quiet)
+                                    write_replays=not args.no_replays, quiet=args.quiet,
+                                    sandbox=args.sandbox)
     print(f"\n{len(results)} matches -> {args.out}")
     print(f"top attacker: {lb['attackers'][0]['name']} ({lb['attackers'][0]['elo']:.0f})")
     print(f"top defender: {lb['defenders'][0]['name']} ({lb['defenders'][0]['elo']:.0f})")

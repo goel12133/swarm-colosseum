@@ -384,8 +384,29 @@ class Match:
         return out
 
 
-def run_match(attacker_path, defender_path, seed, rules=SEASON0, record=True):
-    """Load both bots fresh, run one match, return the replay dict."""
+def run_match(attacker_path, defender_path, seed, rules=SEASON0, record=True,
+              sandbox=False, limits=None):
+    """Load both bots fresh, run one match, return the replay dict.
+
+    With sandbox=True each bot runs in its own container instead of in-process. The engine
+    is unchanged either way: SandboxedPolicy presents the same surface as PolicyRunner, so
+    a bot that behaves differently between the two modes is a bug in the sandbox, which is
+    what the determinism test checks.
+    """
+    if sandbox:
+        from .sandbox import SandboxedPolicy, SandboxLimits
+        lim = limits or SandboxLimits()
+        attacker = SandboxedPolicy(attacker_path, "attacker", lim)
+        try:
+            defender = SandboxedPolicy(defender_path, "defender", lim)
+        except Exception:
+            attacker.close()
+            raise
+        try:
+            return Match(attacker, defender, seed, rules=rules, record=record).run()
+        finally:
+            attacker.close()
+            defender.close()
     attacker = load_policy(attacker_path, "attacker")
     defender = load_policy(defender_path, "defender")
     return Match(attacker, defender, seed, rules=rules, record=record).run()
