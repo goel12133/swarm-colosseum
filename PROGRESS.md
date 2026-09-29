@@ -815,3 +815,25 @@ is 0.13–0.29); on 2026-09-28 it did not exist. `personas.escalation(last two m
   three best pairings and its three closest calls, then the rules and API. The second also
   gets "Tonight two bots are being written against it; take a different approach from the
   most obvious counter."
+
+### S0-2 economy levers on top of A (branch `s2-a-economy`, not merged)
+
+Each lever alone on top of candidate A, full house (7 × 9, 10 seeds, sandboxed), stopping at
+the first value that passes (ring < 90%, defender share 40–60%, no bot > 90%):
+
+```
+lever               smallest tried that moves the ring      result
+A only              ring 98%, defenders 58%                 fail
+gun rate of fire    1.75 rounds/tick: ring 88%, def 58%     PASS  (CER +0.00..0.02; gun_only +0.44)
+gun ammo            400: ring still 98%                     fail  (ammo is never binding)
+striker cost        2.25: ring 82%, but defenders 67%       fail
+interceptor cost    2.0: ring 100%                          fail  (accounting only; stock unchanged)
+interceptor stock   24: ring 87%, but defenders 68%         fail
+```
+
+**Recommend gun rate of fire 1.75** if the watch comes back structural. Caveats: it passes by
+two matches (79 of 90), 10-seed results aren't smooth (1.9 overshoots the role band), and
+the role band was already 58% under A because of the four strong new defenders. Rerun at
+20 seeds on the decision date. Full table: `git show season2-candidates:SEASON2_CANDIDATES.md`.
+The branches are rebased on master: `s2-a-imperfect-id` has 190 tests passing and contains
+`71f427f`.
