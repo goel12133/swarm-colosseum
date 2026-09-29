@@ -52,6 +52,28 @@ RETIRED = HOUSE / "RETIRED"
 LOG = DEFAULT_OUT / "house_league.log"
 HISTORY = DEFAULT_OUT / "house_history.json"
 RAW = DEFAULT_OUT / "house_raw"            # every model response, verbatim, for post-mortems
+# One JSON line per real night (dry runs are not recorded): status, reason, tokens, bots
+# written/rejected/retired, and wall time per phase. The weekly meta report reads this.
+NIGHTS = DEFAULT_OUT / "nights.jsonl"
+
+
+class Phases:
+    """Wall time per phase of a night: `with phases("tournament"): ...`."""
+
+    def __init__(self):
+        self.seconds = {}
+
+    def __call__(self, name):
+        phases = self
+
+        class _Timer:
+            def __enter__(self):
+                self.t0 = time.monotonic()
+
+            def __exit__(self, *exc):
+                phases.seconds[name] = round(
+                    phases.seconds.get(name, 0.0) + time.monotonic() - self.t0, 2)
+        return _Timer()
 
 # $ per million tokens, from the model table cached in the claude-api skill (2026-06-24).
 # If Anthropic's prices move, this table is what needs updating -- the caps are enforced
@@ -576,6 +598,34 @@ def judge(stem: str, meta: dict, lb: dict, matrix: dict) -> dict:
 
 def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
               seeds: int = 10) -> dict:
+    """One night. Never raises: any failure becomes a logged status="error" summary, and
+    every real night (not dry runs) is appended to the NIGHTS ledger."""
+    phases = Phases()
+    started = time.monotonic()
+    try:
+        summary = _run_night(caps, dry_run, out, seeds, phases)
+    except Exception as exc:
+        import traceback
+        tail = traceback.format_exc().strip().splitlines()[-6:]
+        log(f"ABORT: unexpected {type(exc).__name__}: {exc} | " + " / ".join(tail))
+        summary = dict(status="error", reason=f"unexpected {type(exc).__name__}: {exc}",
+                       spend={})
+    summary["phases"] = phases.seconds
+    summary.setdefault("seconds", round(time.monotonic() - started, 1))
+    if not dry_run:
+        record = dict(date=date.today().isoformat(),
+                      finished=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                      **{k: summary.get(k) for k in (
+                          "status", "reason", "backend", "written", "rejected", "retired",
+                          "spend", "phases", "seconds", "tournament_seconds",
+                          "house_positions", "top_attacker", "top_defender")})
+        NIGHTS.parent.mkdir(parents=True, exist_ok=True)
+        with open(NIGHTS, "a") as f:
+            f.write(json.dumps(record) + "\n")
+    return summary
+
+
+def _run_night(caps, dry_run, out, seeds, phases) -> dict:
     spend = Spend()
     when = date.today().isoformat()
     started = time.monotonic()
@@ -605,7 +655,8 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
         log(f"{role}: persona={persona} target={target} prompt={len(prompt):,} chars")
         before = (spend.input_tokens, spend.output_tokens)
         try:
-            text = call_model(prompt, caps, spend, dry_run)
+            with phases("generation"):
+                text = call_model(prompt, caps, spend, dry_run)
         except CapExceeded as exc:
             log(f"ABORT before the {role} call -- {exc}")
             if not written:
@@ -637,7 +688,8 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
             log(f"rejected {role}: model returned no code block")
             rejected.append((role, "model returned no code block"))
             continue
-        ok, name, reason = validate_bot(blocks[0], role)
+        with phases("validation"):
+            ok, name, reason = validate_bot(blocks[0], role)
         if not ok:
             log(f"rejected {role}: {reason}")
             rejected.append((role, reason))
@@ -645,7 +697,8 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
         HOUSE.mkdir(parents=True, exist_ok=True)
         path = HOUSE / f"{when}_{role}_{slug(name)}.py"
         path.write_text(blocks[0] + "\n")
-        ok, detail = smoke_test(path, role)
+        with phases("smoke"):
+            ok, detail = smoke_test(path, role)
         if not ok:
             log(f"rejected {path.name}: {detail}")
             path.unlink()
@@ -665,7 +718,8 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
     tournament_s = None
     if written:
         t0 = time.monotonic()
-        lb, _, results = run_tournament(seeds=seeds, out=out, sandbox=True, quiet=True)
+        with phases("tournament"):
+            lb, _, results = run_tournament(seeds=seeds, out=out, sandbox=True, quiet=True)
         tournament_s = round(time.monotonic() - t0, 1)
         log(f"tournament: {len(results)} sandboxed matches in {tournament_s}s")
         matrix = json.loads((out / "matrix.json").read_text())["matrix"]

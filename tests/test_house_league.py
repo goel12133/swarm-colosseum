@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def private_log(tmp_path, monkeypatch):
     """Tests must not write into the real out/house_league.log."""
     monkeypatch.setattr(hl, "LOG", tmp_path / "house_league.log")
+    monkeypatch.setattr(hl, "NIGHTS", tmp_path / "nights.jsonl")
 
 
 # --- spend caps ---------------------------------------------------------------
@@ -432,3 +433,33 @@ def test_a_night_makes_one_call_per_persona_and_writes_metadata(monkeypatch, tmp
     assert metas["attacker"]["tokens"] == {"input": 100, "output": 50}
     assert metas["attacker"]["result"]["beat_target"] is True      # 1 - 0.4 > 0.5
     assert summary["house_positions"][a]["persona"] == "counter_meta"
+
+
+# --- night ledger and phases ----------------------------------------------------
+
+def test_every_real_night_is_recorded_even_when_it_fails(monkeypatch):
+    fake_cli(monkeypatch, stdout=CLI_LOGGED_OUT, returncode=1)
+    hl.run_night(caps=hl.Caps())
+    rows = [json.loads(l) for l in hl.NIGHTS.read_text().splitlines()]
+    assert len(rows) == 1 and rows[0]["status"] == "error"
+    assert "Not logged in" in rows[0]["reason"]
+    assert "generation" in rows[0]["phases"]
+
+
+def test_an_unexpected_crash_is_a_logged_failure_not_a_traceback(monkeypatch):
+    def boom(out=None):
+        raise KeyError("leaderboard missing a field")
+    monkeypatch.setattr(hl, "gather_context", boom)
+    summary = hl.run_night(caps=hl.Caps())
+    assert summary["status"] == "error" and "KeyError" in summary["reason"]
+    assert "ABORT: unexpected KeyError" in hl.LOG.read_text()
+    assert json.loads(hl.NIGHTS.read_text())["status"] == "error"
+
+
+def test_phases_accumulate():
+    p = hl.Phases()
+    with p("smoke"):
+        pass
+    with p("smoke"):
+        pass
+    assert set(p.seconds) == {"smoke"} and p.seconds["smoke"] >= 0
