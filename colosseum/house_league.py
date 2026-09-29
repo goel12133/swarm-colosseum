@@ -56,6 +56,7 @@ RAW = DEFAULT_OUT / "house_raw"            # every model response, verbatim, for
 # One JSON line per real night (dry runs are not recorded): status, reason, tokens, bots
 # written/rejected/retired, and wall time per phase. The weekly meta report reads this.
 NIGHTS = DEFAULT_OUT / "nights.jsonl"
+ALERT = DEFAULT_OUT / "ALERT.md"
 
 
 class Phases:
@@ -674,6 +675,15 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
         NIGHTS.parent.mkdir(parents=True, exist_ok=True)
         with open(NIGHTS, "a") as f:
             f.write(json.dumps(record) + "\n")
+        # out/ALERT.md: written by a failed night, removed by the next good one.
+        from . import ops
+        try:
+            if summary.get("status") == "ok":
+                ops.clear_alert(ALERT)
+            else:
+                ops.write_alert(summary.get("reason") or summary.get("status"), LOG, ALERT)
+        except OSError as exc:
+            log(f"could not update {ALERT.name}: {exc}")
     return summary
 
 

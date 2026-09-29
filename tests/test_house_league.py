@@ -15,6 +15,7 @@ def private_log(tmp_path, monkeypatch):
     """Tests must not write into the real out/house_league.log."""
     monkeypatch.setattr(hl, "LOG", tmp_path / "house_league.log")
     monkeypatch.setattr(hl, "NIGHTS", tmp_path / "nights.jsonl")
+    monkeypatch.setattr(hl, "ALERT", tmp_path / "ALERT.md")
 
 
 # --- spend caps ---------------------------------------------------------------
@@ -523,3 +524,20 @@ def test_a_defender_that_uniquely_stops_someone_is_exempt(tmp_path, monkeypatch)
     assert hl.apply_retirement(three_bottom_nights("wall", "defender_bottom"),
                                breaches=breaches) == []
     assert "the only live bot that stops rush" in hl.LOG.read_text()
+
+
+def test_a_failed_night_writes_alert_and_a_good_night_clears_it(monkeypatch, tmp_path):
+    fake_cli(monkeypatch, stdout=CLI_LOGGED_OUT, returncode=1)
+    hl.run_night(caps=hl.Caps())
+    alert = hl.ALERT.read_text()
+    assert "Not logged in" in alert and "Last 30 log lines" in alert
+    monkeypatch.setattr(hl, "_run_night", lambda *a: dict(status="ok", spend={}))
+    hl.run_night(caps=hl.Caps())
+    assert not hl.ALERT.exists()
+
+
+def test_a_dry_run_never_touches_the_alert(monkeypatch):
+    hl.ALERT.write_text("from a real failure")
+    monkeypatch.setattr(hl, "_run_night", lambda *a: dict(status="ok", spend={}))
+    hl.run_night(caps=hl.Caps(), dry_run=True)
+    assert hl.ALERT.read_text() == "from a real failure"

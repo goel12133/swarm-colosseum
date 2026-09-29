@@ -411,6 +411,10 @@ def export_clip(week: int, out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "bo
         info = clip.render(replay, dest, speed=4)
     except Exception as exc:
         return f"Clip: render failed ({type(exc).__name__}: {str(exc)[:120]})."
+    clips = out / "meta" / "clips.json"          # rotation keeps these replays for good
+    kept = json.loads(clips.read_text()) if clips.exists() else []
+    if replay.name not in kept:
+        clips.write_text(json.dumps(sorted(kept + [replay.name]), indent=1))
     return (f"Clip: `out/meta/{dest.name}`, its best match against {short(opponent)} "
             f"({replay.stem.rsplit('__', 1)[1]}), {info['bytes'] / 1e6:.2f} MB at 4x.")
 

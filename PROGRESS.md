@@ -651,3 +651,39 @@ out/site: 11 bots, 300 replays, 20.5 MB
 $ python3 -m pytest tests/test_site.py -q     # builds; every link resolves inside the
 5 passed                                      # bundle; index lists every live bot; escaping
 ```
+
+### Section 8 — operations hardening 🚧 (built and tested; nightly.sh wiring after section 1)
+
+- **Alerting.** A failed real night writes `out/ALERT.md` (reason + last 30 log lines); the next
+  successful real night deletes it; dry runs never touch it. This is already live in
+  `run_night`. `nightly.sh` will also write one if Python dies before `run_night` can.
+- **Rotation** (`python -m colosseum.ops rotate [--dry-run]`). Replays younger than 14 days are
+  kept. Older ones are kept only if a weekly report clipped them (recorded in
+  `out/meta/clips.json`) or they are some bot's best or worst match; the rest are deleted.
+  `out/house_raw/` is capped at 30 days. Disk usage is in the meta report and health check.
+- **Backups** (`python -m colosseum.ops backup`). One tar.gz per night in `~/backups/`, last 14
+  kept. It holds `bots/ reports/ out/leaderboard.json out/matrix.json BALANCE.md SEASON.md`;
+  `__pycache__` and anything named `.house_league*` are excluded.
+- **Health** (`python -m colosseum.health`): docker, CLI login (`claude auth status`, reading
+  only `loggedIn` and `authMethod` and never printing the email), cron entry, disk, last
+  night, alert. Exits 1 if any is bad. The meta report includes its output.
+- **Phase times.** The night ledger has generation / validation / smoke / tournament;
+  `ops after-night` adds "reports". The meta report flags any phase that doubled week over
+  week.
+
+```
+$ python -m colosseum.health
+ok  docker     server 29.1.3
+ok  cli-login  logged in via claude.ai
+ok  cron       30 3 * * * /root/swarm-colosseum/scripts/nightly.sh
+ok  disk       162 GB free, out/ is 41 MB
+ok  last-night 2026-09-28: ok
+ok  alert      none
+$ python -m colosseum.ops rotate --dry-run
+{"deleted": 0, "freed_bytes": 0, "kept_old": 0}
+$ python -m colosseum.ops backup && tar -tzf ~/backups/swarm-colosseum-2026-09-29.tar.gz
+bots/... (18 files), out/leaderboard.json, out/matrix.json, BALANCE.md, SEASON.md
+  -- 0 entries matching house_league.env / pycache / credentials
+$ python3 -m pytest tests -q
+157 passed
+```
