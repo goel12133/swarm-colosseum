@@ -585,3 +585,41 @@ a line in the report, never a failed report. `*.mp4` is gitignored.
 $ python3 -m pytest tests -q
 108 passed
 ```
+
+### Section 6 — submission pipeline ✅ (prepared, not opened)
+
+`python -m colosseum.submit <path.py> --side attacker|defender --author <handle>`. Nothing
+listens on the network.
+
+Order: size ≤ 64 KB and UTF-8 → `ast` checks on the host (nothing imported or run) → sha256
+duplicate check (no-op) → one sandboxed match against a baseline (`layered` or `rush`), seed
+0 → copy to `bots/submitted/<side>/<handle>__<NAME>.py` + `.meta.json` (author, UTC time,
+sha256, bytes, replaced sha, validation). A rejection prints a plain-English reason with a
+line number and writes it to `out/submissions/rejected/`. Rejected code is never kept.
+
+- **Allowlist:** `math random itertools functools collections heapq bisect statistics
+  dataclasses typing enum operator`.
+- **Forbidden:** other imports, relative imports, `import *`, private names from allowed
+  modules; `open exec eval compile __import__ globals locals vars getattr setattr delattr
+  input breakpoint help exit quit memoryview`; any dunder name, attribute or dunder-looking
+  string; frame/code-walking attributes (`gi_frame`, `f_globals`, …); private attributes
+  except your own `self._x` / `cls._x` (modules expose `os` as `random._os`); async; any
+  top-level statement other than imports, constants, functions and classes.
+- **`NAME`** must match `^[a-z][a-z0-9_]{1,39}$`: safe in file names and in HTML, which
+  closes the injection route found in section 5 at the source. Handles match
+  `^[a-z0-9][a-z0-9_-]{1,23}$`.
+- **Smoke rejects:** the bot can't start; the sandbox had to restart it (a busy loop hits the
+  2 s per-tick timeout); or it errored on every tick.
+- Submitted bots join the nightly tournament, ladders and retirement rule alongside house
+  bots, and `load_policy` refuses them on the host.
+
+`SUBMITTING.md` is the player guide, and a test checks its example bot passes and its
+allowlist matches the code.
+
+```
+$ python3 -m pytest tests/test_submit.py -q     # 28 forbidden constructs, each with its reason;
+37 passed in 4.6s                               # clean accepted; crash, busy loop rejected;
+                                                # same sha256 is a no-op
+$ python3 -m pytest tests -q
+145 passed
+```
