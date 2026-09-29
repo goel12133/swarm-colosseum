@@ -514,3 +514,36 @@ the imbalance to the attackers and producing a 98% bot. Honest limit on A: with 
 decoys are still not worth buying (the gains don't track decoy use), so its strategic payoff
 depends on bots learning to hedge against labels. Details, tables and the parameter sweep:
 `git show season2-candidates:SEASON2_CANDIDATES.md`.
+
+### Section 3 — weekly meta report 🚧 (built and tested; cron wiring after section 1)
+
+`colosseum/meta_report.py`, `tests/test_meta_report.py`. Supporting pieces on the nightly path,
+each dry-run on a scratch copy before commit (exit 0 each time, 420 sandboxed matches in
+124–142 s):
+- `out/nights.jsonl`: one line per real run (status, reason, tokens, written/rejected/retired,
+  positions, seconds per phase). An unexpected crash inside a night is now a logged
+  `status=error`, not a traceback.
+- `out/breaches.json` from the tournament, and `out/history/<date>/` snapshots per real night.
+- 2026-09-28 backfilled from `out/` and the log (ledger: 2 runs; snapshot + breaches from
+  that night's 300 replays).
+
+Week n = real nights 7(n−1)+1…7n (a failed night counts, a date with no run doesn't).
+`--if-due` fires on the 7th night only and only once; `--commit` is a pathspec commit of
+`reports/WEEK_n.md` under the author "Swarm Colosseum league", so it can't sweep in anything
+else. `SEASON.md`: season one runs 2026-09-28 → 2026-10-25 and ends 2026-10-26 (it's
+`season 0` in code). A preview on real data works; "best new idea" now prefers an `Idea:`
+docstring line, which the prompt will ask for after tonight.
+
+### Section 4 — coverage-aware retirement ✅
+
+A bot at the bottom of its ladder three nights running is retired unless it is the only live
+bot that covers some opponent. An attacker covers a defender if it destroys the asset in ≥ 1
+seed; a defender covers an attacker if it holds the asset in ≥ 1 seed. It's the same bar both
+ways, and "live" means every bot in the last tournament, baselines included. The exemption
+is logged with the opponent's name. Retirement now also handles `bots/submitted/<side>/`
+(each folder gets its own `RETIRED/`). On the current field no bot has unique coverage.
+
+```
+$ python3 -m pytest tests -q
+104 passed
+```

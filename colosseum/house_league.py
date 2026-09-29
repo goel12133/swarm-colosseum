@@ -48,6 +48,7 @@ from .sim import run_match
 from .tournament import DEFAULT_OUT, ROOT, run_tournament
 
 HOUSE = ROOT / "bots" / "house"
+SUBMITTED = ROOT / "bots" / "submitted"
 RETIRED = HOUSE / "RETIRED"
 LOG = DEFAULT_OUT / "house_league.log"
 HISTORY = DEFAULT_OUT / "house_history.json"
@@ -528,36 +529,75 @@ def save_history(history: dict):
     HISTORY.write_text(json.dumps(history, indent=2))
 
 
+def retirable_file(name: str):
+    """The .py of a house or submitted bot by name, or None (baselines never retire)."""
+    for folder in (HOUSE, SUBMITTED / "attacker", SUBMITTED / "defender"):
+        p = folder / f"{name}.py"
+        if p.exists():
+            return p
+    return None
+
+
 def record_night(history: dict, leaderboard: dict, when: str) -> dict:
-    house_names = {p.stem for p in HOUSE.glob("*.py")}
     def bottom(role):
-        # The bottom of the whole ladder, and only if that is a house bot. Not "the lowest
-        # house bot": with one house bot at #1 that would count as a bottom finish.
+        # The bottom of the whole ladder, and only if that is a house or submitted bot.
+        # Not "the lowest house bot": with one house bot at #1 that would count as a
+        # bottom finish.
         rows = leaderboard[role]
-        return rows[-1]["name"] if rows and rows[-1]["name"] in house_names else None
+        return rows[-1]["name"] if rows and retirable_file(rows[-1]["name"]) else None
     history["nights"].append(dict(date=when, attacker_bottom=bottom("attackers"),
                                   defender_bottom=bottom("defenders")))
     return history
 
 
-def apply_retirement(history: dict, nights: int = 3) -> list:
-    """Bottom of its ladder three nights running and a house bot moves to RETIRED/."""
+def unique_coverage(name: str, role: str, breaches: dict):
+    """Opponents that only `name` covers, among every bot in the last tournament.
+
+    An attacker covers a defender if it destroyed the asset in at least one seed; a
+    defender covers an attacker if it kept the asset in at least one seed. Same bar both
+    ways: "can do it at all". breaches = the contents of out/breaches.json.
+    """
+    b, seeds = breaches["breaches"], breaches["seeds"]
+    attackers = sorted(b)
+    defenders = sorted({d for row in b.values() for d in row})
+    if role == "attacker":
+        covers = lambda a, d: b.get(a, {}).get(d, 0) > 0                     # noqa: E731
+        return [d for d in defenders if covers(name, d)
+                and not any(covers(a, d) for a in attackers if a != name)]
+    stops = lambda d, a: b.get(a, {}).get(d, seeds) < seeds                  # noqa: E731
+    return [a for a in attackers if stops(name, a)
+            and not any(stops(d, a) for d in defenders if d != name)]
+
+
+def apply_retirement(history: dict, nights: int = 3, breaches: dict = None) -> list:
+    """Bottom of its ladder three nights running and a bot moves to RETIRED/ -- unless it
+    is the only live bot that covers some opponent (see unique_coverage). The product is a
+    library of tactics, and a mediocre bot that is the only answer to something stays."""
     recent = history["nights"][-nights:]
     if len(recent) < nights:
         return []
     retired = []
-    for key in ("attacker_bottom", "defender_bottom"):
+    for key, role in (("attacker_bottom", "attacker"), ("defender_bottom", "defender")):
         names = [n.get(key) for n in recent]
-        if names[0] and all(n == names[0] for n in names):
-            src = HOUSE / f"{names[0]}.py"
-            if src.exists():
-                RETIRED.mkdir(parents=True, exist_ok=True)
-                shutil.move(str(src), str(RETIRED / src.name))
-                meta = src.with_suffix(".meta.json")
-                if meta.exists():
-                    shutil.move(str(meta), str(RETIRED / meta.name))
-                retired.append(names[0])
-                log(f"retired {names[0]}: bottom of its ladder {nights} nights running")
+        if not (names[0] and all(n == names[0] for n in names)):
+            continue
+        src = retirable_file(names[0])
+        if src is None:
+            continue
+        only = unique_coverage(names[0], role, breaches) if breaches else []
+        if only:
+            verb = "breaches" if role == "attacker" else "stops"
+            log(f"exempt {names[0]} from retirement: bottom {nights} nights running, but "
+                f"the only live bot that {verb} {', '.join(only)}")
+            continue
+        dest = src.parent / "RETIRED"
+        dest.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(src), str(dest / src.name))
+        meta = src.with_suffix(".meta.json")
+        if meta.exists():
+            shutil.move(str(meta), str(dest / meta.name))
+        retired.append(names[0])
+        log(f"retired {names[0]}: bottom of its ladder {nights} nights running")
     return retired
 
 
@@ -746,7 +786,10 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
             retired = []                     # canned bots must not count toward retirement
         else:
             history = record_night(load_history(), lb, when)
-            retired = apply_retirement(history)
+            breaches_path = out / "breaches.json"
+            breaches = (json.loads(breaches_path.read_text())
+                        if breaches_path.exists() else None)
+            retired = apply_retirement(history, breaches=breaches)
             save_history(history)
     else:
         log("no new bots survived validation; tournament not rerun")

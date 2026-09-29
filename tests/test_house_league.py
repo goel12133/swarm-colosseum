@@ -471,3 +471,55 @@ def test_snapshot_keeps_the_nights_ladder(tmp_path):
     hl.snapshot(tmp_path, "2026-10-01")
     assert sorted(p.name for p in (tmp_path / "history" / "2026-10-01").iterdir()) == \
         sorted(hl.SNAPSHOT_FILES)
+
+
+# --- coverage-aware retirement ---------------------------------------------------
+
+def three_bottom_nights(name, key="attacker_bottom"):
+    return {"nights": [{"date": f"d{i}", key: name,
+                        ("defender_bottom" if key == "attacker_bottom" else "attacker_bottom"):
+                        None} for i in range(3)]}
+
+
+def house_with(tmp_path, monkeypatch, name, role):
+    house = tmp_path / "house"
+    house.mkdir(exist_ok=True)
+    (house / f"{name}.py").write_text(f'NAME = "{name}"\nROLE = "{role}"\n')
+    monkeypatch.setattr(hl, "HOUSE", house)
+    monkeypatch.setattr(hl, "SUBMITTED", tmp_path / "submitted")
+    return house
+
+
+def test_a_bottom_bot_that_uniquely_breaches_someone_is_exempt(tmp_path, monkeypatch):
+    house = house_with(tmp_path, monkeypatch, "weird", "attacker")
+    breaches = {"seeds": 10, "breaches": {
+        "weird": {"fortress": 1, "layered": 0},      # the only one through the fortress
+        "rush": {"fortress": 0, "layered": 4},
+        "flanker": {"fortress": 0, "layered": 9}}}
+    assert hl.unique_coverage("weird", "attacker", breaches) == ["fortress"]
+    assert hl.apply_retirement(three_bottom_nights("weird"), breaches=breaches) == []
+    assert (house / "weird.py").exists()
+    assert "exempt weird from retirement" in hl.LOG.read_text()
+    assert "breaches fortress" in hl.LOG.read_text()
+
+
+def test_a_bottom_bot_whose_coverage_is_shared_is_retired(tmp_path, monkeypatch):
+    house = house_with(tmp_path, monkeypatch, "weird", "attacker")
+    breaches = {"seeds": 10, "breaches": {
+        "weird": {"fortress": 1, "layered": 0},
+        "rush": {"fortress": 2, "layered": 4},       # rush gets through the fortress too
+        "flanker": {"fortress": 0, "layered": 9}}}
+    assert hl.unique_coverage("weird", "attacker", breaches) == []
+    assert hl.apply_retirement(three_bottom_nights("weird"), breaches=breaches) == ["weird"]
+    assert (house / "RETIRED" / "weird.py").exists()
+
+
+def test_a_defender_that_uniquely_stops_someone_is_exempt(tmp_path, monkeypatch):
+    house = house_with(tmp_path, monkeypatch, "wall", "defender")
+    breaches = {"seeds": 10, "breaches": {
+        "rush": {"wall": 9, "layered": 10, "gun_only": 10},   # only wall ever holds rush
+        "flanker": {"wall": 10, "layered": 3, "gun_only": 10}}}
+    assert hl.unique_coverage("wall", "defender", breaches) == ["rush"]
+    assert hl.apply_retirement(three_bottom_nights("wall", "defender_bottom"),
+                               breaches=breaches) == []
+    assert "the only live bot that stops rush" in hl.LOG.read_text()
