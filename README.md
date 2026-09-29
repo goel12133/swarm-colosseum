@@ -74,3 +74,7 @@ viewer/      index.html (single file)  template.html  build_viewer.py
 tests/       25 tests + fixture bots
 out/         gitignored results
 ```
+
+---
+
+Swarm Colosseum is built by Pelennor. Season dates: [SEASON.md](SEASON.md).
