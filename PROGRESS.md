@@ -487,3 +487,30 @@ reappears in `bots/house/` after a full run.
   Pulling that image is the only new network use.
 - *Hard rule 7.* In Session 4 I read `.house_league.env` (key redacted) and rewrote it. From
   now on I don't touch it or `.house_league.env.save`.
+
+### Section 2 — season-two candidates ✅ (branch only, not merged)
+
+Worktree `../swarm-colosseum-s2`. Branches: `season2-candidates` (measurement script +
+`SEASON2_CANDIDATES.md`), `s2-a-imperfect-id`, `s2-b-score-reweight`, each cut from the base
+and tested alone. (`season2-candidates/a` style names are impossible alongside a
+`season2-candidates` branch in git, hence the `s2-` prefix.)
+
+Every run: full house, `--seeds 10`, sandboxed, 300 matches, `scripts/s2_measure.py`. The
+season-one rerun reproduces main exactly (Elo 1109 / 1195).
+
+```
+                         S1            A (dwell 8, err 8%)   B (hp × CER/(CER+0.5))
+defender share of wins   50%           47%                   39%
+flags                    ledger 100%   none                  staggered_trickle 98%
+#1 defender win rate     100%          90%                   78%
+Elo spread att / def     63 / 118      76 / 88               61 / 148
+interaction share        0.315         0.303                 0.269
+tests on branch          —             91 passed             92 passed
+```
+
+**Recommend A.** It hits S0-1's cause (identification that is instant and certain) without
+breaking role balance or creating a new dominant bot. B addresses the CER symptom by moving
+the imbalance to the attackers and producing a 98% bot. Honest limit on A: with today's field
+decoys are still not worth buying (the gains don't track decoy use), so its strategic payoff
+depends on bots learning to hedge against labels. Details, tables and the parameter sweep:
+`git show season2-candidates:SEASON2_CANDIDATES.md`.
