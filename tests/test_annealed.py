@@ -10,7 +10,7 @@ import pytest
 from colosseum.sim import replay_json, run_match
 
 ROOT = Path(__file__).resolve().parents[1]
-FAMILY = ["annealed_assignment", "annealed_assignment_eager"]
+FAMILY = ["annealed_assignment", "annealed_assignment_eager", "greedy_value_model"]
 
 
 def module(name):
@@ -83,3 +83,22 @@ def test_no_forbidden_word_anywhere_in_the_repo():
     hits = [f for f in files + [f"bots/defenders/{n}.py" for n in FAMILY]
             if (ROOT / f).is_file() and word in (ROOT / f).read_text(errors="ignore").lower()]
     assert hits == []
+
+
+def test_the_greedy_variant_shares_the_value_model_exactly():
+    """Same build(), energy() and knobs as annealed_assignment; only the picker differs."""
+    import ast
+
+    def parts(name):
+        tree = ast.parse((ROOT / "bots" / "defenders" / f"{name}.py").read_text())
+        funcs = {n.name: ast.dump(n) for n in tree.body if isinstance(n, ast.FunctionDef)}
+        knobs = {t.id: ast.dump(n.value) for n in tree.body if isinstance(n, ast.Assign)
+                 for t in n.targets if isinstance(t, ast.Name) and t.id.isupper()
+                 and t.id not in ("NAME", "ROLE")}
+        return funcs, knobs
+    af, ak = parts("annealed_assignment")
+    gf, gk = parts("greedy_value_model")
+    for fn in ("build", "energy", "_tti", "_p_striker", "_learn", "reset"):
+        assert af[fn] == gf[fn], fn
+    assert ak == gk
+    assert "greedy" in gf and "anneal" not in gf["_act"]

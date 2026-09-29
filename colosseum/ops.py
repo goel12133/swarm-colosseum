@@ -131,6 +131,69 @@ def backup(dest: Path = None, root: Path = ROOT, keep: int = BACKUP_KEEP, today:
     return name
 
 
+# --- the watch ---------------------------------------------------------------------
+# Founder's decision, 2026-09-29: S0-2 is deferred a week. Each night, does any defender
+# hold synchronized_ring under a 90% win rate? None after seven nights -> structural, and
+# season two fixes the economy. One does -> it was a meta and the rules were fine.
+
+WATCH_BOT = "2026-09-29_attacker_synchronized_ring"
+WATCH_FROM = "2026-09-30"            # first night after the decision
+WATCH_NIGHTS = 7
+WATCH_BAR = 0.90
+
+
+def watch_row(out: Path = DEFAULT_OUT, when: str = None):
+    """This night's numbers for WATCH_BOT from breaches.json and leaderboard.json."""
+    b = json.loads((out / "breaches.json").read_text())
+    lb = json.loads((out / "leaderboard.json").read_text())
+    row = b["breaches"].get(WATCH_BOT)
+    if row is None:
+        return None
+    seeds = b["seeds"]
+    per = {d: n / seeds for d, n in row.items()}
+    best = min(per, key=lambda d: (per[d], d))
+    overall = next((r["win_rate"] for r in lb["attackers"] if r["name"] == WATCH_BOT), None)
+    return dict(date=when or date.today().isoformat(), overall=overall,
+                best_defender=best, best_rate=per[best],
+                under=sorted(d for d, r in per.items() if r < WATCH_BAR), per=per)
+
+
+def update_watch(out: Path = DEFAULT_OUT, when: str = None):
+    row = watch_row(out, when)
+    path = out / "watch.jsonl"
+    rows = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
+    if row:
+        rows = [r for r in rows if r["date"] != row["date"]] + [row]
+        path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    (out / "WATCH.md").write_text(watch_text(rows))
+    return row
+
+
+def watch_text(rows):
+    counted = [r for r in rows if r["date"] >= WATCH_FROM][:WATCH_NIGHTS]
+    lines = [f"# Watch: {WATCH_BOT}", "",
+             f"Does any defender hold it under {WATCH_BAR:.0%}? Nights from {WATCH_FROM}, "
+             f"{WATCH_NIGHTS} to decide.", "",
+             "| night | its win rate | best defender against it | its rate there | under 90%? |",
+             "|---|---|---|---|---|"]
+    for r in rows:
+        mark = "" if r["date"] >= WATCH_FROM else " (before)"
+        lines.append(f"| {r['date']}{mark} | {r['overall']:.0%} | {r['best_defender']} | "
+                     f"{r['best_rate']:.0%} | {', '.join(r['under']) or 'no'} |")
+    found = [r for r in counted if r["under"]]
+    lines.append("")
+    if found:
+        lines.append(f"**Verdict: a meta.** {found[0]['under'][0]} held it under "
+                     f"{WATCH_BAR:.0%} on {found[0]['date']}.")
+    elif len(counted) >= WATCH_NIGHTS:
+        lines.append(f"**Verdict: structural.** No defender held it under {WATCH_BAR:.0%} in "
+                     f"{WATCH_NIGHTS} nights.")
+    else:
+        lines.append(f"Undecided: {len(counted)} of {WATCH_NIGHTS} nights so far, none under "
+                     f"{WATCH_BAR:.0%}.")
+    return "\n".join(lines) + "\n"
+
+
 # --- after the night ----------------------------------------------------------------
 
 def record_phase(seconds: float, nights: Path = None):
@@ -161,7 +224,8 @@ def after_night(commit: bool = True):
         from . import site
         return site.build()
 
-    for label, fn in (("meta report", meta_report), ("site", site_bundle),
+    for label, fn in (("watch", update_watch), ("meta report", meta_report),
+                      ("site", site_bundle),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):
         try:
             results[label] = fn()

@@ -278,6 +278,22 @@ def findings_section(balance: Path, dates):
     return lines + [f"- {t}" for t in new] + ["", "Details in root BALANCE.md.", ""]
 
 
+def watch_section(out: Path):
+    """The founder's seven-night watch (see ops.py), if one is running."""
+    path = out / "WATCH.md"
+    if not path.exists():
+        return []
+    body = path.read_text().splitlines()
+    verdict = [l for l in body if l.startswith("**Verdict") or l.startswith("Undecided")]
+    rows = [l for l in body if l.startswith("| 20")]
+    lines = ["## Watch", "", body[0].lstrip("# ") + ".", ""]
+    for r in rows:
+        cells = [c.strip() for c in r.strip("|").split("|")]
+        lines.append(f"- {cells[0]}: it won {cells[1]} of its matches; best defender "
+                     f"{short(cells[2])} at {cells[3]}.")
+    return lines + [""] + verdict + [""]
+
+
 def phase_means(nights, dates):
     per = defaultdict(list)
     for d, runs in nights:
@@ -369,6 +385,7 @@ def build_report(week: int, out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "b
     lines += best_idea_section(metas, dates, end, clip_note)
     lines += coverage_section(end)
     lines += findings_section(balance, dates)
+    lines += watch_section(out)
     lines += health_section(nights, dates, prev, out, health_text)
     return "\n".join(lines).rstrip() + "\n"
 

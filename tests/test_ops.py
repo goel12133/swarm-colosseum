@@ -101,3 +101,18 @@ def test_health_last_night_and_alert(tmp_path):
     assert not health.check_alert(tmp_path)[0]
     text = health.report_text([("docker", True, "fine"), ("cron", False, "missing")])
     assert text.splitlines() == ["ok  docker     fine", "BAD cron       missing"]
+
+
+def test_watch_verdicts():
+    def row(d, rate):
+        return dict(date=d, overall=0.95, best_defender="x", best_rate=rate,
+                    under=["x"] if rate < 0.9 else [], per={"x": rate})
+    before = [row("2026-09-29", 0.8)]                  # before the watch: does not count
+    nights = [row(f"2026-10-0{i}", 1.0) for i in range(1, 7)]
+    assert "Undecided: 0 of 7" in ops.watch_text(before)
+    assert "Undecided: 6 of 7" in ops.watch_text(before + [row("2026-09-30", 0.9)]
+                                                 + nights[:5])
+    seven = [row("2026-09-30", 0.9)] + nights
+    assert "Verdict: structural" in ops.watch_text(before + seven)
+    seven[3] = row(seven[3]["date"], 0.8)
+    assert "Verdict: a meta" in ops.watch_text(before + seven)
