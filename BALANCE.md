@@ -37,3 +37,23 @@ gift. Each is a rules change for the whole field and needs its own balance pass.
 
 **Reproduce:** `python3 -m pytest tests/test_leakage.py -q` and
 `python3 scripts/audit_defender.py bots/house/2026-09-28_defender_discriminating_ledger.py`.
+
+## S0-2 — A spaced, synchronised all-striker wave beats every defender (2026-09-29)
+
+**Finding.** `2026-09-29_attacker_synchronized_ring` (counter-meta, written against
+discriminating_ledger) breaches every defender on the ladder in 9–10 of 10 seeds: ledger
+10/10, identify_then_engage 9/10, layered, nearest_first, gun_only and the new
+miss_budget_scheduler 10/10, and both annealed-assignment defenders 10/10. Win rate 98%.
+
+**Why.** It spends the whole budget on 30 strikers (no decoys), spaces them 12° apart so no
+blast kills two, parks them outside identification range, and releases them on one tick.
+Once splash is denied the defender needs one interceptor per striker, and the stock is 20.
+About 10 survivors arrive within a few ticks of each other, and one gun with a 5–45% kill
+chance cannot stop three of them. So the rules allow 30 affordable strikers against 20
+interceptors, and the only thing that bridged the gap was blast splash on bunched
+attackers, which S0-1 found to be what made defenders look strong.
+
+**Options for the next season, not decided:** interceptor stock ≥ the attacker's affordable
+strikers (or budget ≤ 2 × stock), a second gun channel, or a cap on how long drones may
+loiter outside radar/ID range. Candidate A (imperfect ID) does not address this; it was
+measured before this bot existed.

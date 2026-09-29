@@ -731,3 +731,60 @@ against a 2 s limit.
 Tests (`tests/test_annealed.py`): the annealer hits the brute-force optimum on 20 random
 QUBOs of 4–10 bits; the launch cap holds; matches are byte-deterministic; each variant beats
 `layered` on a quick two-seed check; and no tracked file uses the word the brief rules out.
+
+### Section 1 — the first unaided-discovery test ✅ found it
+
+Night 2026-09-29 (cron, 03:30 UTC). The counter-meta attacker was given
+discriminating_ledger's source and its closest calls; it was not told the diagnosis.
+
+`2026-09-29_attacker_synchronized_ring`, from its docstring:
+> "Its closest calls were all multi_axis (asset hp 10). Stock hit 0 and strikers leaked at
+> ticks 165 and 166, arriving at nearly the same time from different axes … multi_axis did
+> that partly by accident and wasted budget on decoys. We do it on purpose, with all strikers
+> and no decoys."
+
+Plan, in its own words: hold 30 strikers on a ring at 190 u, outside ledger's id gate
+(`unknown and range < 135`, found by reading the source), then release them on one tick.
+The 20 interceptors are spent, and about 10 survivors overlap on the one gun. It also spaced
+the ring 12° apart to deny blast splash, the effect behind yesterday's flanker result, which
+it read off the rush replay ("the ledger killed all 30 with only 20 interceptors").
+
+That is the stock-exhaustion counter: a synchronised wave rather than a held-back reserve,
+equivalent in effect. The raw response (`out/house_raw/2026-09-29T033135_cli_attacker_counter_meta.md`)
+is only the code block; the CLI returns no reasoning text, so whether it weighed a reserve
+wave specifically can't be seen.
+
+```
+.meta.json: persona counter_meta, target discriminating_ledger, tokens 5,816 in / 8,791 out
+result:     score vs target 0.861, field mean 0.833, rank #1 attacker, beat_target true
+breaches:   ledger 10/10 -- the only attacker that breaches it at all
+ladder:     #1 attacker, Elo 1261, 98% win rate (over the 90% flag) -> BALANCE.md S0-2
+```
+
+The defender, `miss_budget_scheduler` (contrarian vs staggered_screen_trickle), plans
+re-tries against a 0.85 kill chance and launches pairs when only one try fits. It beat its
+target (0.735) and ties ledger at #1 defender (Elo 1113). Night: 23,672 tokens, 2 calls,
+tournament 420 matches in 135 s. Season so far: 44,681 tokens, 3 real runs.
+
+### After the night: staged changes merged, sections 3 and 8 wired ✅
+
+Master was fast-forwarded to `post-night` (prepared and dry-run on a scratch copy before
+03:30, so cron ran the old path untouched):
+- **Prompt change** (`colosseum/prompts/generator.py`, PROMPT_VERSION `2026-09-29.1`):
+  docstrings must start with `Idea: <one sentence>`, and there's a second-of-two note for
+  escalation nights. Otherwise it's a verbatim move. The version is recorded in every bot's
+  metadata.
+- **Personas:** counter_meta in the rotation with no threshold; escalation after two
+  unbeaten nights. Tomorrow: generalist attacker; contrarian defender vs synchronized_ring.
+- **`nightly.sh`:** runs `ops after-night` (report if due, site, rotation, backup) and
+  writes `ALERT.md` if Python dies early. The whole pipeline was dry-run on a scratch copy
+  under a cron-like `env -i`: exit 0, 560 matches in 172 s.
+- Tonight's after-night step was run by hand (the old wrapper didn't have it): site 13 bots
+  and 420 replays, backup written, reports phase 1.8 s. `colosseum.health`: all six ok.
+- The annealed defenders join tomorrow. Against synchronized_ring they are breached 10/10
+  as well (mean 0.14).
+
+```
+$ python3 -m pytest tests -q
+185 passed
+```
