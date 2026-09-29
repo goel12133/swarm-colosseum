@@ -16,6 +16,17 @@ from pathlib import Path
 
 _COUNTER = itertools.count()
 
+# Bots from these folders are untrusted (written by the house league or submitted from
+# outside). They run only inside the sandbox container, never through load_policy on the
+# host. Module-level so tests can point it at a scratch folder.
+_ROOT = Path(__file__).resolve().parents[1]
+UNTRUSTED_DIRS = [_ROOT / "bots" / "house", _ROOT / "bots" / "submitted"]
+
+
+def is_untrusted(path) -> bool:
+    p = Path(path).resolve()
+    return any(p.is_relative_to(d.resolve()) for d in UNTRUSTED_DIRS)
+
 ATTACKER = "attacker"
 DEFENDER = "defender"
 
@@ -28,6 +39,9 @@ def load_policy(path, expected_role: str = None) -> "PolicyRunner":
     path = Path(path)
     if not path.exists():
         raise PolicyError(f"no such policy file: {path}")
+    if is_untrusted(path):
+        raise PolicyError(f"{path} is untrusted and runs only in the sandbox, "
+                          "never in-process on the host")
     # A unique module name per load is what makes this a fresh instance rather than the
     # cached one; sys.modules is deliberately not touched.
     mod_name = f"_colosseum_bot_{path.stem}_{next(_COUNTER)}"

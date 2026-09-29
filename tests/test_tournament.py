@@ -66,3 +66,42 @@ def test_tournament_is_deterministic(tmp_path):
     second, _, _ = run_tournament(seeds=2, out=tmp_path / "b", write_replays=False,
                                   quiet=True)
     assert json.dumps(first, sort_keys=True) == json.dumps(second, sort_keys=True)
+
+
+# --- untrusted bots never run on the host ------------------------------------
+
+TRAP = '''import pathlib
+pathlib.Path({marker!r}).write_text("executed on the host")
+NAME = "trap"
+ROLE = "{role}"
+def act(obs):
+    return {{}}
+'''
+
+
+def test_untrusted_bots_never_load_in_process(tmp_path, monkeypatch):
+    """Regression: test_tournament used to import house bots on the host (2026-09-28)."""
+    from colosseum import policy, tournament
+    house = tmp_path / "house"
+    house.mkdir()
+    marker = tmp_path / "executed"
+    bot = house / "trap.py"
+    bot.write_text(TRAP.format(marker=str(marker), role="attacker"))
+    monkeypatch.setattr(policy, "UNTRUSTED_DIRS", [house])
+    monkeypatch.setattr(tournament, "UNTRUSTED_FOLDERS", [house])
+
+    with pytest.raises(policy.PolicyError, match="untrusted"):
+        policy.load_policy(bot, "attacker")
+    lb, _, _ = run_tournament(seeds=1, out=tmp_path / "out", write_replays=False,
+                              quiet=True, sandbox=False, workers=1)
+    assert "trap" not in {r["name"] for r in lb["attackers"]}
+    assert not marker.exists()
+
+
+def test_real_house_and_submitted_folders_are_untrusted():
+    from colosseum import policy
+    root = Path(__file__).resolve().parents[1]
+    assert policy.is_untrusted(root / "bots" / "house" / "x.py")
+    assert policy.is_untrusted(root / "bots" / "house" / "RETIRED" / "x.py")
+    assert policy.is_untrusted(root / "bots" / "submitted" / "attacker" / "x.py")
+    assert not policy.is_untrusted(root / "bots" / "defenders" / "layered.py")

@@ -11,6 +11,7 @@ Writes out/leaderboard.json, out/matrix.json, out/replays/ and out/BALANCE.md.
 """
 import argparse
 import json
+import sys
 import os
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -22,6 +23,15 @@ from .sim import replay_json, run_match
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUT = ROOT / "out"
+
+
+# House bots, plus outside submissions (bots/submitted/<side>/). RETIRED/ is not searched.
+UNTRUSTED_FOLDERS = [ROOT / "bots" / "house", ROOT / "bots" / "submitted" / "attacker",
+                     ROOT / "bots" / "submitted" / "defender"]
+
+
+def untrusted_bots():
+    return [p for folder in UNTRUSTED_FOLDERS for p in discover(folder)]
 
 
 def discover(folder: Path):
@@ -59,7 +69,13 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
                    quiet=False, sandbox=False, workers=None):
     attackers = discover(ROOT / "bots" / "attackers")
     defenders = discover(ROOT / "bots" / "defenders")
-    for p in discover(ROOT / "bots" / "house"):
+    untrusted = untrusted_bots()
+    if untrusted and not sandbox:
+        # Untrusted bots never run on the host. An in-process tournament is baselines only.
+        print(f"in-process run: leaving out {len(untrusted)} untrusted bot(s); "
+              "use --sandbox to include them", file=sys.stderr)
+        untrusted = []
+    for p in untrusted:
         role = _role_of(p)
         if role == "attacker":
             attackers.append(p)
