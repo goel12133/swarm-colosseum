@@ -16,3 +16,12 @@ season.
 
 Season-two rule candidates are tested on the `season2-candidates` branches and are never
 merged during season one. See `SEASON2_CANDIDATES.md` on that branch.
+
+## Approved for season two
+
+| | branch | merge on |
+|---|---|---|
+| candidate A, imperfect identification (dwell 8 ticks, 8% sticky error) | `s2-a-imperfect-id`, kept rebased on master | **2026-10-26**, not before |
+
+Decided 2026-09-29. The S0-2 economy fix is deferred until the seven-night watch on
+`synchronized_ring` ends (nights 2026-09-30 to 2026-10-06, `out/WATCH.md`).

@@ -788,3 +788,30 @@ Master was fast-forwarded to `post-night` (prepared and dry-run on a scratch cop
 $ python3 -m pytest tests -q
 185 passed
 ```
+
+## Session 7 — decisions of 2026-09-29
+
+- **Candidate A approved** for season two. `s2-a-imperfect-id` is rebased on master (clean;
+  190 tests pass on it) and recorded in `SEASON.md` to merge on 2026-10-26, not before.
+- **S0-2 deferred a week.** New `ops` watch: after each night, `out/watch.jsonl` and
+  `out/WATCH.md` record synchronized_ring's win rate overall and against each defender.
+  "Under 90%" means it breaches that defender in ≤ 8 of 10 seeds. Nights 2026-09-30 to
+  10-06; the verdict is written into the file and the weekly report. Baseline, night
+  2026-09-29: 98% overall; best defender identify_then_engage, which it still beats 90%.
+- **greedy_value_model** (in `bots/defenders/`, from tonight): annealed_assignment's value
+  model with a greedy picker. A test keeps the two files' model code identical, so the
+  ladder shows what the optimiser is worth.
+
+**Escalation does not fire tomorrow.** The rule needs a bot unbeaten on *two* consecutive
+nights. synchronized_ring is unbeaten on 2026-09-29 (every defender's mean score against it
+is 0.13–0.29); on 2026-09-28 it did not exist. `personas.escalation(last two matrices)` → `{}`.
+- **Night 09-30** (plan, checked by dry run): attacker generalist vs the field; defender
+  **contrarian vs synchronized_ring**. The contrarian sees the standings plus the docstring of
+  every existing defender, as approaches it must not reuse, then the rules and API. It is
+  *not* shown synchronized_ring's source or replays.
+- **Night 10-01**, if synchronized_ring is still unbeaten after 09-30: escalation, with **two
+  counter_meta defenders** against it. Each sees the standings, synchronized_ring's full
+  source (its docstring spells out its plan), its mean score against each defender, its
+  three best pairings and its three closest calls, then the rules and API. The second also
+  gets "Tonight two bots are being written against it; take a different approach from the
+  most obvious counter."
