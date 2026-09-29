@@ -687,3 +687,47 @@ bots/... (18 files), out/leaderboard.json, out/matrix.json, BALANCE.md, SEASON.m
 $ python3 -m pytest tests -q
 157 passed
 ```
+
+### Section 9 — annealed-assignment defender family ✅ (joins the ladder after tonight)
+
+`bots/defenders/annealed_assignment.py` and `annealed_assignment_eager.py`. Each tick's
+launch and gun decisions are one small QUBO:
+- **Variables:** `x_t` launch at a track, `y_t` fire the gun at it, plus slack bits.
+- **Value:** P(striker | label) × damage × urgency, plus 0.7 × the same for neighbours inside
+  the blast radius. P(striker | unknown) is learned in-match from the labels seen.
+- **Cost:** the interceptor price, scaled up when stock is short of live threats.
+- **Penalties:** the launch cap and stock (equality with slack), gun one-hot, two
+  interceptors into one cluster, and gun plus interceptor on one target.
+- **Solver:** simulated annealing in the standard library, 60 sweeps, seeded by (match seed,
+  tick), keeping the best state seen.
+
+The eager variant differs only in its knobs: horizon 60, interceptor price × 0.8 and an
+unknown-prior floor of 0.4.
+
+Measured sandboxed with `scripts/audit_defender.py`, 6 attackers × 10 seeds, same field as
+`layered`:
+
+| attacker | annealed | eager | same model, greedy picker | layered |
+|---|---|---|---|---|
+| staggered_screen_trickle | 0.721 | 0.744 | 0.722 | 0.128 |
+| decoy_screen | 0.788 | 0.780 | 0.771 | 0.805 |
+| flanker | 0.799 | 0.787 | 0.788 | 0.344 |
+| multi_axis | 0.704 | 0.662 | 0.682 | 0.272 |
+| rush | 0.800 | 0.809 | 0.796 | 0.807 |
+| trickle | 0.747 | 0.747 | 0.645 | 0.435 |
+| **mean score_defender** | **0.760** | **0.755** | **0.734** | **0.465** |
+
+Both variants held the asset in 60 of 60 matches. **Honest reading:** it beats `layered`
+by a wide margin, but most of that comes from the *value model*, not the optimiser. The
+ablation (same model, greedy top-k picker) already scores 0.734. Annealing adds +0.026 on
+average, almost all of it against trickle (0.747 vs 0.645), where choosing jointly across
+many simultaneous small threats matters. Against discriminating_ledger's ~0.74 it's slightly
+ahead, and it trades better against saturation (CER ≈ 1.0 against flanker and rush, vs 0.75)
+because it values blast clusters.
+
+Time: median 0.7 ms per tick, p99 2 ms, worst 37 ms including the sandbox round trip,
+against a 2 s limit.
+
+Tests (`tests/test_annealed.py`): the annealer hits the brute-force optimum on 20 random
+QUBOs of 4–10 bits; the launch cap holds; matches are byte-deterministic; each variant beats
+`layered` on a quick two-seed check; and no tracked file uses the word the brief rules out.
