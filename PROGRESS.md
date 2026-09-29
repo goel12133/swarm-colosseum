@@ -442,3 +442,48 @@ staggered_screen_trickle (76% < 90%, so rotation). Projected worst case ≈ 78k 
 $ python3 -m pytest tests -q
 88 passed
 ```
+
+## Session 6 plan (Stage 2, second half)
+
+(The brief calls this "Session 5 plan"; Session 5 is already taken above, so it is Session 6.)
+
+**Done first, before the plan: a hard-rule-2 violation, fixed.** `bots/house/__pycache__`
+showed host Python had compiled both house bots (2026-09-28 04:51). `tests/test_tournament.py`
+runs the tournament in-process, and discovery included `bots/house/`, so every test run since
+the first real night executed house-bot module code on the host. Fixed in `00257fb`: an
+in-process tournament now leaves untrusted bots out, and `load_policy` refuses anything under
+`bots/house/` or `bots/submitted/`. Regression test: a trap bot whose module body writes a
+marker file never executes. `python3 -m pytest tests -q` → 90 passed, and no `__pycache__`
+reappears in `bots/house/` after a full run.
+
+**Order**
+1. Section 1 after tonight's 03:30 UTC night. Nothing on the nightly path changes before
+   then, so the discovery test runs on exactly the prompt described in Session 5.
+2. Right after section 1, on main: the two persona decisions (below), the prompt moved into
+   `colosseum/prompts/`, `SEASON.md` and the README attribution. `--once --dry-run` on a
+   scratch copy before committing.
+3. Section 2 in a separate `git worktree` (`../swarm-colosseum-s2`), so cron keeps running
+   main from `/root/swarm-colosseum` and never sees season-two code. The branch is never merged.
+4. Sections 3 → 9 in order, and I stop cleanly after whichever section completes last.
+
+**Where I read the brief differently, and why**
+- *Counter-meta, no threshold.* Counter-meta already always targets the opposing #1; what
+  changes is my 90% trigger for *choosing* it. That trigger goes. counter_meta joins the
+  rotation as a fourth persona, and the brief's escalation rule takes over the dominance case.
+- *Escalation, "both opposite-side slots".* A night has one attacker slot and one defender
+  slot. I read it as: if a bot has been unbeaten by every opponent for two consecutive nights,
+  both of that night's bots are written for the opposite side, as counter_meta against it
+  (e.g. two attackers, no defender). It stays within the two-bot cap. "Unbeaten" means no
+  opponent scores above 0.5 against it in the matrix, not just "never breached".
+- *Section 1 isn't fully unaided.* The counter-meta prompt includes the target's closest calls,
+  and those are the multi_axis matches where stock hits zero (`stock_left: 0`, impact ticks
+  165–166). It is not told the diagnosis. The section 1 report says so.
+- *Section 3, "commits a copy to reports/".* Cron would make git commits in the repo I work in.
+  I'll make that commit touch only `reports/` and skip it if the tree has other staged
+  changes, so it can never sweep in half-finished work.
+- *Section 5.* No Chromium, ffmpeg or Pillow on the host. Rather than install system
+  packages, the renderer runs in a Docker image (headless Chromium + ffmpeg) driving
+  `viewer/index.html`, so the viewer stays the single source of truth for how a match looks.
+  Pulling that image is the only new network use.
+- *Hard rule 7.* In Session 4 I read `.house_league.env` (key redacted) and rewrote it. From
+  now on I don't touch it or `.house_league.env.save`.
