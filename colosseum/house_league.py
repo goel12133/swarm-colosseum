@@ -563,6 +563,18 @@ def apply_retirement(history: dict, nights: int = 3) -> list:
 
 # --- bot metadata -------------------------------------------------------------
 
+SNAPSHOT_FILES = ("leaderboard.json", "matrix.json", "breaches.json")
+
+
+def snapshot(out: Path, when: str):
+    """Keep this night's ladder: out/history/<date>/. The meta report diffs these."""
+    dest = out / "history" / when
+    dest.mkdir(parents=True, exist_ok=True)
+    for name in SNAPSHOT_FILES:
+        if (out / name).exists():
+            shutil.copy2(out / name, dest / name)
+
+
 def rel(path: Path) -> str:
     """Repo-relative when inside the repo (readable in logs), absolute otherwise."""
     try:
@@ -720,6 +732,8 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
         t0 = time.monotonic()
         with phases("tournament"):
             lb, _, results = run_tournament(seeds=seeds, out=out, sandbox=True, quiet=True)
+        if not dry_run:
+            snapshot(out, when)
         tournament_s = round(time.monotonic() - t0, 1)
         log(f"tournament: {len(results)} sandboxed matches in {tournament_s}s")
         matrix = json.loads((out / "matrix.json").read_text())["matrix"]

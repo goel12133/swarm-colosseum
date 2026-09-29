@@ -463,3 +463,11 @@ def test_phases_accumulate():
     with p("smoke"):
         pass
     assert set(p.seconds) == {"smoke"} and p.seconds["smoke"] >= 0
+
+
+def test_snapshot_keeps_the_nights_ladder(tmp_path):
+    for name in hl.SNAPSHOT_FILES:
+        (tmp_path / name).write_text("{}")
+    hl.snapshot(tmp_path, "2026-10-01")
+    assert sorted(p.name for p in (tmp_path / "history" / "2026-10-01").iterdir()) == \
+        sorted(hl.SNAPSHOT_FILES)

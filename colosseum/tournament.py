@@ -7,7 +7,8 @@ Match order is fixed (attacker, defender, seed, all sorted) so the Elo ladders a
 reproducible -- Elo is path dependent, and an unordered run would give a different ladder
 from the same matches.
 
-Writes out/leaderboard.json, out/matrix.json, out/replays/ and out/BALANCE.md.
+Writes out/leaderboard.json, out/matrix.json, out/breaches.json, out/replays/ and
+out/BALANCE.md.
 """
 import argparse
 import json
@@ -91,6 +92,7 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
     stats = defaultdict(lambda: dict(matches=0, score=0.0, wins=0, cer=0.0, cer_n=0))
     matrix = defaultdict(dict)
     pair_scores = defaultdict(list)
+    breaches = defaultdict(dict)      # attacker -> defender -> seeds in which the asset fell
     ladders = Ladders([p.stem for p in attackers], [p.stem for p in defenders])
     results = []
 
@@ -117,6 +119,8 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
         sd["matches"] += 1
         sa["score"] += meta["score_attacker"]
         sd["score"] += meta["score_defender"]
+        breaches[a_stem][d_stem] = breaches[a_stem].get(d_stem, 0) + (
+            1 if meta["asset_hp"] <= 0 else 0)
         sa["wins"] += 1 if meta["outcome"] == "breached" else 0
         sd["wins"] += 1 if meta["outcome"] == "defended" else 0
         if meta["defender_spent"] > 0:
@@ -155,6 +159,10 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
     (out / "matrix.json").write_text(json.dumps(
         dict(note="mean score_defender for each attacker x defender pair",
              matrix={a: matrix[a] for a in sorted(matrix)}),
+        indent=2, sort_keys=True))
+    (out / "breaches.json").write_text(json.dumps(
+        dict(note="seeds in which the attacker destroyed the asset, per pairing",
+             seeds=len(seed_list), breaches={a: breaches[a] for a in sorted(breaches)}),
         indent=2, sort_keys=True))
     report = balance_report(leaderboard, matrix, results)
     findings = ROOT / "BALANCE.md"          # hand-written rules findings, committed

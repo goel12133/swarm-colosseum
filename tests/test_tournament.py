@@ -105,3 +105,11 @@ def test_real_house_and_submitted_folders_are_untrusted():
     assert policy.is_untrusted(root / "bots" / "house" / "RETIRED" / "x.py")
     assert policy.is_untrusted(root / "bots" / "submitted" / "attacker" / "x.py")
     assert not policy.is_untrusted(root / "bots" / "defenders" / "layered.py")
+
+
+def test_tournament_writes_breach_counts(tmp_path):
+    run_tournament(seeds=2, out=tmp_path, write_replays=False, quiet=True)
+    b = json.loads((tmp_path / "breaches.json").read_text())
+    assert b["seeds"] == 2
+    assert b["breaches"]["rush"]["gun_only"] == 2           # gun_only never stops rush
+    assert all(0 <= n <= 2 for row in b["breaches"].values() for n in row.values())
