@@ -623,3 +623,31 @@ $ python3 -m pytest tests/test_submit.py -q     # 28 forbidden constructs, each 
 $ python3 -m pytest tests -q
 145 passed
 ```
+
+### Section 7 — static site bundle ✅ (prepared, not served)
+
+`python -m colosseum.site` writes `out/site/`: `index.html` (both ladders, latest meta
+report), `bots/<name>.html` (docstring, origin/persona/author, every `.meta.json` field, mean
+score against each opponent, ten most recent matches with replay links),
+`replays.html` (a plain-link picker), `replays/<match>.html` (the viewer with that replay
+embedded by the same `page_with()`), `submitting.html`, and `style.css`.
+
+- **No JavaScript except the viewer's.** The picker is a list of links, one viewer page per
+  replay (300 now, 20.5 MB in all, builds in 0.9 s).
+- **No external requests.** External markdown links are dropped, and a test fails on any
+  `http(s):` or `//` href or src.
+- **Untrusted text escaped everywhere.** A small standard-library markdown renderer escapes
+  before formatting. Bot files are read with `ast`, never imported.
+- **Phone and dark mode, checked by eye**, from headless-Chromium screenshots at 390 px in
+  both themes. First pass: long house names pushed Elo off-screen and ragged docstrings.
+  Fixed with short display names plus a house/baseline tag, the full id on the bot page,
+  docstrings reflowed as markdown, and the mean-score column hidden under 480 px.
+- **"Ten most recent results":** only the latest tournament's replays exist, so each bot
+  page shows ten matches from that night plus a per-opponent summary from the matrix.
+
+```
+$ python -m colosseum.site
+out/site: 11 bots, 300 replays, 20.5 MB
+$ python3 -m pytest tests/test_site.py -q     # builds; every link resolves inside the
+5 passed                                      # bundle; index lists every live bot; escaping
+```

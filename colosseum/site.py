@@ -1,0 +1,385 @@
+"""Static site bundle: prepared, not served.
+
+    python -m colosseum.site            # writes out/site/
+
+Everything is a local file, with no external requests, no fonts or scripts from elsewhere,
+and no JavaScript except the replay viewer's own. Nothing serves it; the founder decides
+where it goes.
+
+    index.html              both ladders, the latest meta report, links
+    bots/<name>.html        docstring, persona, author, metadata, recent results
+    replays.html            a picker (plain links) over every current replay
+    replays/<stem>.html     the viewer with that replay embedded (viewer/build_viewer.page_with)
+    submitting.html         SUBMITTING.md
+    style.css               one stylesheet, light and dark
+
+Bot names, docstrings, authors and metadata come from untrusted files, so every string is
+HTML-escaped before it reaches a page, and bot files are read with `ast`, never imported.
+"""
+import argparse
+import ast
+import html
+import importlib.util
+import json
+import re
+import shutil
+import sys
+from pathlib import Path
+
+from .tournament import DEFAULT_OUT, ROOT
+
+SITE = DEFAULT_OUT / "site"
+BOT_DIRS = ("attackers", "defenders", "house", "submitted/attacker", "submitted/defender")
+
+CSS = """:root{--bg:#f4f6f8;--panel:#fff;--ink:#131a20;--soft:#5e6d79;--rule:#d4dce3;
+--link:#1f5f9e;--good:#2f6f4f;--bad:#b23a2c;--code:#eef1f4}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1216;--panel:#151d23;--ink:#e6edf3;
+--soft:#93a4b1;--rule:#25313a;--link:#7cb8f0;--good:#4fbd88;--bad:#ff7a66;--code:#1b252d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+nav{display:flex;flex-wrap:wrap;gap:12px;padding:12px 16px;border-bottom:1px solid var(--rule);
+background:var(--panel)}
+nav a{font-weight:600}
+a{color:var(--link)}
+h1{font-size:1.5rem;margin:.6em 0 .2em;overflow-wrap:anywhere}h2{font-size:1.2rem;margin:1.4em 0 .5em}
+h3{font-size:1.05rem}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:12px 16px;
+margin:12px 0}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td.name{white-space:normal;overflow-wrap:anywhere;min-width:9.5em}
+.tag{white-space:nowrap}
+@media (max-width:480px){.wide{display:none}}
+.doc p,.doc li{overflow-wrap:anywhere}
+th{color:var(--soft);font-weight:600}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;
+background:var(--code);border-radius:4px}
+code{padding:1px 4px}pre{padding:10px 12px;overflow-x:auto;white-space:pre-wrap}
+.soft{color:var(--soft)}.good{color:var(--good)}.bad{color:var(--bad)}
+.tag{display:inline-block;font-size:.8rem;padding:1px 8px;border-radius:99px;
+border:1px solid var(--rule);color:var(--soft);margin-left:6px}
+ul.picks{list-style:none;padding:0;margin:0}ul.picks li{padding:6px 0;
+border-bottom:1px solid var(--rule)}
+blockquote{margin:12px 0;padding:8px 12px;border-left:3px solid var(--rule);color:var(--soft)}
+"""
+
+e = html.escape
+
+
+# --- a small, safe markdown renderer -----------------------------------------------
+
+def _inline(text: str, link_map: dict = None) -> str:
+    """Escape first, then turn `code`, **bold**, *em* and [links](x) into tags."""
+    parts = re.split(r"(`[^`]+`)", text)
+    out = []
+    for part in parts:
+        if part.startswith("`") and part.endswith("`") and len(part) > 1:
+            out.append(f"<code>{e(part[1:-1])}</code>")
+            continue
+        s = e(part, quote=False)
+        s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
+        s = re.sub(r"(?<![\w*\\])\*(?!\s)(.+?)(?<!\s)\*(?!\w)", r"<em>\1</em>", s)
+        s = s.replace("\\*", "*")
+
+        def link(m):
+            label, target = m.group(1), m.group(2)
+            target = (link_map or {}).get(target, target)
+            if re.match(r"^[a-z]+:", target):          # no external links in the bundle
+                return label
+            return f'<a href="{e(target)}">{label}</a>'
+        s = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link, s)
+        out.append(s)
+    return "".join(out)
+
+
+def md_to_html(text: str, link_map: dict = None) -> str:
+    lines = text.splitlines()
+    out, i = [], 0
+    while i < len(lines):
+        line = lines[i]
+        if line.startswith("```"):
+            j = i + 1
+            code = []
+            while j < len(lines) and not lines[j].startswith("```"):
+                code.append(lines[j])
+                j += 1
+            out.append(f"<pre><code>{e(chr(10).join(code))}</code></pre>")
+            i = j + 1
+            continue
+        m = re.match(r"^(#{1,4})\s+(.*)$", line)
+        if m:
+            n = len(m.group(1))
+            out.append(f"<h{n}>{_inline(m.group(2), link_map)}</h{n}>")
+            i += 1
+            continue
+        if line.startswith("|"):
+            rows = []
+            while i < len(lines) and lines[i].startswith("|"):
+                rows.append([c.strip() for c in lines[i].strip().strip("|").split("|")])
+                i += 1
+            body = [r for r in rows if not all(re.fullmatch(r":?-{2,}:?", c) for c in r)]
+            head, rest = body[0], body[1:]
+            t = ["<div class=\"scroll\"><table><thead><tr>"]
+            t += [f"<th>{_inline(c, link_map)}</th>" for c in head]
+            t.append("</tr></thead><tbody>")
+            for r in rest:
+                t.append("<tr>" + "".join(f"<td>{_inline(c, link_map)}</td>" for c in r)
+                         + "</tr>")
+            t.append("</tbody></table></div>")
+            out.append("".join(t))
+            continue
+        if re.match(r"^\s*([-*]|\d+\.)\s+", line):
+            ordered = bool(re.match(r"^\s*\d+\.", line))
+            items = []
+            while i < len(lines) and (re.match(r"^\s*([-*]|\d+\.)\s+", lines[i]) or
+                                      (lines[i].startswith("  ") and items)):
+                if re.match(r"^\s*([-*]|\d+\.)\s+", lines[i]):
+                    items.append(re.sub(r"^\s*([-*]|\d+\.)\s+", "", lines[i]))
+                else:
+                    items[-1] += " " + lines[i].strip()
+                i += 1
+            tag = "ol" if ordered else "ul"
+            out.append(f"<{tag}>" + "".join(f"<li>{_inline(x, link_map)}</li>" for x in items)
+                       + f"</{tag}>")
+            continue
+        if line.startswith(">"):
+            quote = []
+            while i < len(lines) and lines[i].startswith(">"):
+                quote.append(lines[i].lstrip("> ").rstrip())
+                i += 1
+            out.append(f"<blockquote>{_inline(' '.join(quote), link_map)}</blockquote>")
+            continue
+        if line.startswith("    ") and line.strip():
+            code = []
+            while i < len(lines) and (lines[i].startswith("    ") or not lines[i].strip()):
+                code.append(lines[i][4:])
+                i += 1
+            out.append(f"<pre>{e(chr(10).join(code).rstrip())}</pre>")
+            continue
+        if not line.strip() or line.strip() == "---":
+            i += 1
+            continue
+        para = []
+        while i < len(lines) and lines[i].strip() and not re.match(
+                r"^(#{1,4}\s|```|\||>|\s*([-*]|\d+\.)\s)", lines[i]):
+            para.append(lines[i].strip())
+            i += 1
+        out.append(f"<p>{_inline(' '.join(para), link_map)}</p>")
+    return "\n".join(out)
+
+
+# --- data -----------------------------------------------------------------------
+
+def bot_file(name: str):
+    for d in BOT_DIRS:
+        p = ROOT / "bots" / d / f"{name}.py"
+        if p.exists():
+            return p
+    return None
+
+
+def docstring(path: Path) -> str:
+    try:
+        return ast.get_docstring(ast.parse(path.read_text())) or ""
+    except (SyntaxError, OSError):
+        return ""
+
+
+def read_meta(path):
+    if not path:
+        return {}
+    m = path.with_suffix(".meta.json")
+    return json.loads(m.read_text()) if m.exists() else {}
+
+
+def origin(path: Path, meta: dict) -> str:
+    if path and "submitted" in path.parts:
+        return f"submitted by {meta.get('author', '?')}"
+    if path and "house" in path.parts:
+        persona = meta.get("persona")
+        return "house league" + (f", persona {persona}" if persona else "")
+    return "baseline"
+
+
+def display(name: str) -> str:
+    """Short name for pages: date/role prefix and submitter handle dropped."""
+    m = re.match(r"\d{4}-\d{2}-\d{2}_(attacker|defender)_(.+)", name)
+    if m:
+        return m.group(2)
+    return name.split("__", 1)[1] if "__" in name else name
+
+
+def slugify(name: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9_.-]", "_", name)
+
+
+def page(title: str, body: str, depth: int = 0) -> str:
+    up = "../" * depth
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{e(title)} · Swarm Colosseum</title>
+<link rel="stylesheet" href="{up}style.css"></head>
+<body><nav><a href="{up}index.html">Ladders</a><a href="{up}replays.html">Replays</a>
+<a href="{up}submitting.html">Submit a bot</a></nav>
+<main>{body}</main></body></html>
+"""
+
+
+# --- build ----------------------------------------------------------------------
+
+def build(site: Path = SITE, out: Path = DEFAULT_OUT) -> dict:
+    lb = json.loads((out / "leaderboard.json").read_text())
+    matrix = json.loads((out / "matrix.json").read_text())["matrix"]
+    if site.exists():
+        shutil.rmtree(site)
+    (site / "bots").mkdir(parents=True)
+    (site / "replays").mkdir()
+    (site / "style.css").write_text(CSS)
+
+    replays = sorted((out / "replays").glob("*__*__s*.json"))
+    live = {r["name"] for role in ("attackers", "defenders") for r in lb[role]}
+    current = [p for p in replays if p.stem.split("__")[0] in live
+               and p.stem.split("__")[1] in live]
+
+    # replay pages, via the viewer's own page builder
+    spec = importlib.util.spec_from_file_location("build_viewer",
+                                                  ROOT / "viewer" / "build_viewer.py")
+    viewer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(viewer)
+    metas = {}
+    for p in current:
+        rep = json.loads(p.read_text())
+        rep["meta"]["rules"] = {}
+        metas[p.stem] = rep["meta"]
+        (site / "replays" / f"{slugify(p.stem)}.html").write_text(viewer.page_with(rep))
+
+    # index
+    body = ["<h1>Swarm Colosseum</h1>",
+            "<p class=\"soft\">An abstract strategy benchmark: AI attackers against AI "
+            "defenders, every match public and reproducible.</p>"]
+    for role in ("attackers", "defenders"):
+        body.append(f"<h2>{role.capitalize()}</h2><div class=\"card scroll\"><table>"
+                    "<thead><tr><th class=num>#</th><th>bot</th><th class=num>Elo</th>"
+                    "<th class=num>wins</th><th class=\"num wide\">mean score</th></tr>"
+                    "</thead>"
+                    "<tbody>")
+        for i, r in enumerate(lb[role], 1):
+            path = bot_file(r["name"])
+            tag = origin(path, read_meta(path)).split(",")[0].split(" ")[0]
+            tag = {"house": "house", "submitted": "submitted"}.get(tag, "baseline")
+            body.append(f"<tr><td class=num>{i}</td><td class=name><a href=\"bots/"
+                        f"{e(slugify(r['name']))}.html\">{e(display(r['name']))}</a>"
+                        f"<span class=tag>{e(tag)}</span></td>"
+                        f"<td class=num>{r['elo']:.0f}</td>"
+                        f"<td class=num>{r['win_rate']:.0%}</td>"
+                        f"<td class=\"num wide\">{r['mean_score']:.3f}</td></tr>")
+        body.append("</tbody></table></div>")
+    reports = sorted((out / "meta").glob("WEEK_*.md"),
+                     key=lambda p: int(re.search(r"\d+", p.stem).group()))
+    body.append("<h2>Latest meta report</h2>")
+    if reports:
+        body.append(f"<div class=card>{md_to_html(reports[-1].read_text())}</div>")
+    else:
+        body.append("<p class=soft>No weekly report yet: the first is written after the "
+                    "seventh night.</p>")
+    (site / "index.html").write_text(page("Ladders", "\n".join(body)))
+
+    # bot pages
+    for role in ("attackers", "defenders"):
+        for r in lb[role]:
+            write_bot_page(site, r, role, matrix, current, metas)
+
+    # replay picker
+    items = []
+    for p in current:
+        m = metas[p.stem]
+        items.append(f"<li><a href=\"replays/{e(slugify(p.stem))}.html\">"
+                     f"{e(display(p.stem.split('__')[0]))} vs "
+                     f"{e(display(p.stem.split('__')[1]))}</a> <span class=soft>seed {m['seed']} · "
+                     f"{e(m['outcome'])} · {m['ticks']} ticks</span></li>")
+    (site / "replays.html").write_text(page("Replays", (
+        f"<h1>Replays</h1><p class=soft>{len(current)} matches from the latest nightly "
+        f"tournament. Each opens in the replay viewer.</p>"
+        f"<div class=card><ul class=picks>{''.join(items)}</ul></div>")))
+
+    sub = (ROOT / "SUBMITTING.md").read_text()
+    (site / "submitting.html").write_text(page("Submit a bot", md_to_html(
+        sub, link_map={"SEASON.md": "index.html"})))
+    return dict(site=str(site), bots=len(live), replays=len(current))
+
+
+def write_bot_page(site, row, role, matrix, current, metas):
+    name = row["name"]
+    path = bot_file(name)
+    meta = read_meta(path)
+    doc = docstring(path) if path else ""
+    me = "attacker" if role == "attackers" else "defender"
+    body = [f"<h1>{e(display(name))}</h1>",
+            f"<p class=soft>{e(me)} · {e(origin(path, meta))} · Elo {row['elo']:.0f} · "
+            f"wins {row['win_rate']:.0%}<br><code>{e(name)}</code></p>",
+            "<h2>What it says it does</h2>",
+            f"<div class=\"card doc\">{md_to_html(doc) if doc else '<p>No docstring.</p>'}"
+            "</div>"]
+    if meta:
+        body.append("<h2>Record</h2><div class=\"card scroll\"><table><tbody>")
+        for k in sorted(meta):
+            v = meta[k]
+            if isinstance(v, dict):
+                v = ", ".join(f"{a}: {b}" for a, b in v.items())
+            elif isinstance(v, list):
+                v = ", ".join(map(str, v))
+            body.append(f"<tr><th>{e(str(k))}</th><td style=\"white-space:normal\">"
+                        f"{e(str(v))}</td></tr>")
+        body.append("</tbody></table></div>")
+
+    # its own side's mean score against each opponent
+    if me == "attacker":
+        per = {d: 1 - s for d, s in matrix.get(name, {}).items()}
+    else:
+        per = {a: r[name] for a, r in matrix.items() if name in r}
+    body.append("<h2>Against each opponent</h2><div class=\"card scroll\"><table><thead>"
+                "<tr><th>opponent</th><th class=num>its mean score</th></tr></thead><tbody>")
+    for opp, s in sorted(per.items(), key=lambda kv: -kv[1]):
+        body.append(f"<tr><td class=name><a href=\"{e(slugify(opp))}.html\">"
+                    f"{e(display(opp))}</a></td>"
+                    f"<td class=num>{s:.3f}</td></tr>")
+    body.append("</tbody></table></div>")
+
+    mine = [p for p in current if p.stem.split("__")[0 if me == "attacker" else 1] == name]
+    mine.sort(key=lambda p: (-int(p.stem.rsplit("__s", 1)[1]), p.stem))
+    body.append("<h2>Ten most recent matches</h2><p class=soft>From the latest nightly "
+                "tournament.</p><div class=\"card scroll\"><table><thead><tr>"
+                "<th>opponent</th><th class=num>seed</th><th>outcome</th>"
+                "<th class=num>its score</th><th>replay</th></tr></thead><tbody>")
+    for p in mine[:10]:
+        m = metas[p.stem]
+        opp = m["defender"] if me == "attacker" else m["attacker"]
+        score = m["score_attacker"] if me == "attacker" else m["score_defender"]
+        won = (m["outcome"] == "breached") == (me == "attacker")
+        body.append(f"<tr><td class=name>{e(display(opp))}</td><td class=num>{m['seed']}</td>"
+                    f"<td class=\"{'good' if won else 'bad'}\">{e(m['outcome'])}</td>"
+                    f"<td class=num>{score:.3f}</td><td><a href=\"../replays/"
+                    f"{e(slugify(p.stem))}.html\">watch</a></td></tr>")
+    body.append("</tbody></table></div>")
+    (site / "bots" / f"{slugify(name)}.html").write_text(page(name, "\n".join(body), 1))
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--out", type=Path, default=SITE)
+    args = ap.parse_args()
+    info = build(args.out)
+    size = sum(f.stat().st_size for f in Path(info["site"]).rglob("*") if f.is_file())
+    print(f"{info['site']}: {info['bots']} bots, {info['replays']} replays, "
+          f"{size / 1e6:.1f} MB")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
