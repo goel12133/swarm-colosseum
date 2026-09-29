@@ -137,8 +137,7 @@ function showMeta(){
     ['ticks', m.ticks], ['ended', m.end_reason.replace(/_/g,' ')],
     ['asset HP', m.asset_hp + ' / ' + m.asset_hp_max],
   ];
-  document.getElementById('meta').innerHTML =
-    rows.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  fillDl(document.getElementById('meta'), rows);
   const econ = [
     ['cost exchange', m.cost_exchange_ratio.toFixed(2)],
     ['value destroyed', m.value_destroyed.toFixed(1)],
@@ -147,8 +146,16 @@ function showMeta(){
     ['score (def)', m.score_defender.toFixed(3)],
     ['score (atk)', m.score_attacker.toFixed(3)],
   ];
-  document.getElementById('econ').innerHTML =
-    econ.map(([k,v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  fillDl(document.getElementById('econ'), econ);
+}
+
+// Bot names come from untrusted bot files, so they are only ever set as text, never HTML.
+function fillDl(dl, rows){
+  dl.replaceChildren(...rows.flatMap(([k,v]) => {
+    const dt = document.createElement('dt'), dd = document.createElement('dd');
+    dt.textContent = k; dd.textContent = String(v);
+    return [dt, dd];
+  }));
 }
 
 function draw(){
@@ -261,7 +268,45 @@ drop.addEventListener('drop', e => {
   e.preventDefault(); drop.classList.remove('over');
   if(e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
 });
-load(SAMPLE); fit();
+// Clip export (python -m colosseum.clip). #clip=<from tick>,<to tick>,<speed> renders the
+// frames with the same draw() the viewer uses, adds a caption strip, and leaves them as
+// PNG data URLs in <textarea id="clipframes"> for the headless browser to dump. Speed means
+// the same as the buttons above: frames advanced per 60 ms step.
+function renderClip(fromTick, toTick, spd){
+  const size = 720, strip = 56;
+  cv.style.width = size + 'px'; cv.style.maxWidth = 'none';
+  cv.width = size; cv.height = size; ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const out = document.createElement('canvas'); out.width = size; out.height = size + strip;
+  const o = out.getContext('2d'), m = replay.meta, frames = [];
+  const picks = [];
+  replay.frames.forEach((f, i) => { if(f.t >= fromTick && f.t <= toTick) picks.push(i); });
+  const chosen = picks.filter((_, k) => k % spd === 0);
+  if(picks.length && chosen[chosen.length - 1] !== picks[picks.length - 1])
+    chosen.push(picks[picks.length - 1]);        // always end on the last frame asked for
+  trails.clear();
+  const fit_ = (text, max) => { let t = text;
+    while(o.measureText(t).width > max && t.length > 4) t = t.slice(0, -2);
+    return t === text ? t : t.slice(0, -1) + '…'; };
+  for(const i of chosen){
+    idx = i; draw();
+    const f = replay.frames[i];
+    o.fillStyle = css('--bg'); o.fillRect(0, 0, size, size + strip);
+    o.drawImage(cv, 0, 0);
+    o.fillStyle = css('--ink'); o.font = '600 20px DejaVu Sans, sans-serif';
+    o.fillText(fit_(`${m.attacker} vs ${m.defender}`, size - 24), 12, size + 24);
+    o.fillStyle = css('--soft'); o.font = '16px DejaVu Sans, sans-serif';
+    o.fillText(`t ${f.t}   HP ${f.hp}/${m.asset_hp_max}   ${spd}×   seed ${m.seed}`, 12, size + 46);
+    frames.push(out.toDataURL('image/png'));
+  }
+  const ta = document.createElement('textarea');
+  ta.id = 'clipframes'; ta.textContent = frames.join('\n');
+  document.body.appendChild(ta);
+}
+
+const clipArgs = location.hash.match(/clip=(\d+),(\d+),(\d+)/);
+load(SAMPLE);
+if(clipArgs) renderClip(+clipArgs[1], +clipArgs[2], Math.max(1, +clipArgs[3]));
+else fit();
 </script>
 </body>
 </html>

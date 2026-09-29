@@ -152,3 +152,16 @@ def test_best_idea_prefers_an_explicit_idea_line(tmp_path):
     assert mr.docstring_line(py) == "fire the gun at close decoys in case the label is wrong."
     py.write_text('"""NAME: b\n\nTarget: layered.\n\nThis bot waits. Then it strikes.\n"""\n')
     assert mr.docstring_line(py) == "This bot waits."
+
+
+def test_best_match_replay_prefers_the_target(tmp_path):
+    rep = tmp_path / "replays"
+    rep.mkdir()
+    for a, d, seed, score in [("hb", "layered", 0, 0.1), ("hb", "rush_d", 1, 0.0),
+                              ("hb", "layered", 2, 0.3)]:
+        (rep / f"{a}__{d}__s{seed}.json").write_text(json.dumps(
+            {"meta": {"score_defender": score}}))
+    p, opp = mr.best_match_replay(tmp_path, "hb", "attacker", target="layered")
+    assert opp == "layered" and p.name == "hb__layered__s0.json"
+    p, opp = mr.best_match_replay(tmp_path, "hb", "attacker", target=None)
+    assert opp == "rush_d"

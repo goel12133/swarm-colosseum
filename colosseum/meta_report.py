@@ -188,28 +188,54 @@ def persona_section(metas, dates, snapshots):
     return lines + [""]
 
 
-def best_idea_section(metas, dates, end):
-    lines = ["## Best new idea", ""]
+def pick_best_idea(metas, dates, end):
+    """The week's new bot that stands highest by Elo on the last night: (name, row, role)."""
     week = {n: m for n, m in metas.items() if m[0].get("date") in dates}
     if not week or not end:
-        return lines + ["None this week.", ""]
+        return None
     elo = {r["name"]: (r, role) for role in ("attackers", "defenders")
            for r in end["leaderboard"][role]}
     scored = [(elo[n][0]["elo"], n) for n in week if n in elo]
     if not scored:
-        return lines + ["No bot written this week is still on the ladder.", ""]
+        return None
     _, name = max(scored)
-    row, role = elo[name]
+    return name, elo[name][0], elo[name][1]
+
+
+def best_idea_section(metas, dates, end, clip_note=None):
+    lines = ["## Best new idea", ""]
+    best = pick_best_idea(metas, dates, end)
+    if not best:
+        return lines + ["None this week.", ""]
+    name, row, role = best
     rank = [r["name"] for r in end["leaderboard"][role]].index(name) + 1
-    meta, py, _ = week[name]
+    meta, py, _ = metas[name]
     line = docstring_line(py) or "(no docstring)"
     result = meta.get("result") or {}
     beat = {True: "beat its target", False: "did not beat its target"}.get(
         result.get("beat_target"), "target not judged")
-    return lines + [f"**{short(name)}** ({meta.get('persona', '?')}, {role[:-1]}): "
-                    f"“{line}”", "",
-                    f"Result: #{rank} {role[:-1]}, Elo {row['elo']:.0f}, wins "
-                    f"{row['win_rate']:.0%} of its matches, {beat}.", ""]
+    lines += [f"**{short(name)}** ({meta.get('persona', '?')}, {role[:-1]}): “{line}”", "",
+              f"Result: #{rank} {role[:-1]}, Elo {row['elo']:.0f}, wins "
+              f"{row['win_rate']:.0%} of its matches, {beat}.", ""]
+    if clip_note:
+        lines += [clip_note, ""]
+    return lines
+
+
+def best_match_replay(out: Path, name: str, role: str, target: str = None):
+    """Replay of the bot's strongest match: against its target if that pairing exists,
+    otherwise against anyone. Strongest = best score from the bot's side."""
+    pattern = f"{name}__*__s*.json" if role == "attacker" else f"*__{name}__s*.json"
+    best = None
+    for p in (out / "replays").glob(pattern):
+        a, d, _ = p.stem.split("__")
+        opponent = d if role == "attacker" else a
+        meta = json.loads(p.read_text())["meta"]
+        mine = 1 - meta["score_defender"] if role == "attacker" else meta["score_defender"]
+        key = (opponent == target, mine)
+        if best is None or key > best[0]:
+            best = (key, p, opponent)
+    return (best[1], best[2]) if best else (None, None)
 
 
 def coverage_section(end):
@@ -316,7 +342,8 @@ def health_section(nights, dates, prev_dates, out: Path, health_text=None):
 # --- the report ---------------------------------------------------------------
 
 def build_report(week: int, out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "bots",
-                 balance: Path = ROOT / "BALANCE.md", health_text: str = None) -> str:
+                 balance: Path = ROOT / "BALANCE.md", health_text: str = None,
+                 clip_note: str = None) -> str:
     nights = load_nights(out)
     dates = week_dates(nights, week)
     prev = week_dates(nights, week - 1) if week > 1 else []
@@ -339,7 +366,7 @@ def build_report(week: int, out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "b
              f"{7 * (week - 1) + len(dates)}.{partial}", ""]
     lines += ladder_section(start, end, start_label)
     lines += persona_section(metas, dates, snaps)
-    lines += best_idea_section(metas, dates, end)
+    lines += best_idea_section(metas, dates, end, clip_note)
     lines += coverage_section(end)
     lines += findings_section(balance, dates)
     lines += health_section(nights, dates, prev, out, health_text)
@@ -364,9 +391,35 @@ def health_output():
         return f"health check failed to run: {type(exc).__name__}: {exc}"
 
 
-def write(week: int, out: Path = DEFAULT_OUT, reports: Path = REPORTS, commit=False):
-    text = build_report(week, out, health_text=health_output())
+def export_clip(week: int, out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "bots"):
+    """Render the best new idea's strongest match to out/meta/. Never raises: a failed
+    render becomes a line in the report. Videos are not committed (*.mp4 is gitignored)."""
+    nights = load_nights(out)
+    dates = week_dates(nights, week)
+    snaps = [s for s in (load_snapshot(out, d) for d in dates) if s]
+    metas = load_metas(bots_root)
+    best = pick_best_idea(metas, dates, snaps[-1] if snaps else None)
+    if not best:
+        return None
+    name, _, role = best
+    replay, opponent = best_match_replay(out, name, role[:-1], metas[name][0].get("target"))
+    if replay is None:
+        return f"Clip: no replay found for {short(name)}."
+    dest = out / "meta" / f"WEEK_{week}_{name}.mp4"
+    try:
+        from . import clip
+        info = clip.render(replay, dest, speed=4)
+    except Exception as exc:
+        return f"Clip: render failed ({type(exc).__name__}: {str(exc)[:120]})."
+    return (f"Clip: `out/meta/{dest.name}`, its best match against {short(opponent)} "
+            f"({replay.stem.rsplit('__', 1)[1]}), {info['bytes'] / 1e6:.2f} MB at 4x.")
+
+
+def write(week: int, out: Path = DEFAULT_OUT, reports: Path = REPORTS, commit=False,
+          with_clip=True):
     (out / "meta").mkdir(parents=True, exist_ok=True)
+    note = export_clip(week, out) if with_clip else None
+    text = build_report(week, out, health_text=health_output(), clip_note=note)
     path = out / "meta" / f"WEEK_{week}.md"
     path.write_text(text)
     reports.mkdir(parents=True, exist_ok=True)

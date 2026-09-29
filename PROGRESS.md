@@ -547,3 +547,41 @@ is logged with the opponent's name. Retirement now also handles `bots/submitted/
 $ python3 -m pytest tests -q
 104 passed
 ```
+
+### Section 5 — replay clip export ✅
+
+`python -m colosseum.clip <replay.json> [--from T] [--to T] [--speed 4] [--out clip.mp4]`.
+
+**Single source of truth: the viewer.** The replay is embedded in `viewer/template.html` by
+the same `page_with()` that builds `viewer/index.html`. Headless Chromium then runs the
+viewer's own `draw()` for each frame (new `#clip=from,to,speed` hook) and ffmpeg encodes.
+A Python port of the canvas code would have been simpler to run but would drift the first
+time either was edited. Both tools run in a container (`docker/clip`, `colosseum-clip:1`,
+1.45 GB, built on first use) with `--network none`, non-root, memory/CPU/pid limits. Nothing
+is installed on the host.
+
+```
+$ python -m colosseum.clip full600.json            # 600-tick match, sandboxed scratch attacker
+full600.mp4: 0.08 MB, 75 frames, ticks 0-600 at 4x
+$ python -m colosseum.clip full600.json --speed 1
+full600_1x.mp4: 0.17 MB, 300 frames, ticks 0-600 at 1x
+$ ffprobe full600.mp4
+h264 High, 720x776, yuv420p, 30 fps, 4.5 s  (faststart: plays inline on phones)
+```
+
+The weekly meta report renders the best new idea's strongest match (against its target if
+that pairing exists) into `out/meta/WEEK_n_<bot>.mp4` and links it. A failed render becomes
+a line in the report, never a failed report. `*.mp4` is gitignored.
+
+**Found and fixed on the way: two injection paths from untrusted bot names.**
+1. The viewer set `meta.attacker` and `meta.defender` (the bots' own `NAME` strings) with
+   `innerHTML`, so a bot named `<img src=x onerror=…>` would run script in the viewer.
+   They're now text nodes, and a test asserts the template has no `innerHTML`.
+2. Replays were embedded in `<script>` with plain `json.dumps`, so a `NAME` containing
+   `</script>` would end the script. `embed_json()` now escapes `<`, `>` and `&`, and a test
+   asserts a hostile name produces exactly one `</script>` in the page.
+
+```
+$ python3 -m pytest tests -q
+108 passed
+```
