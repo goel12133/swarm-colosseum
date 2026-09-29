@@ -34,6 +34,8 @@ tick 124 and got past the gun.
 than an interceptor can react; make decoys cost the defender something it cannot refuse
 (radar track capacity, say); or cap blast kills per interceptor so bunching stops being a
 gift. Each is a rules change for the whole field and needs its own balance pass.
+*2026-09-29: the id-range shrink and the blast-kill cap were rejected as season-two levers;
+imperfect identification (candidate A) is the one under test.*
 
 **Reproduce:** `python3 -m pytest tests/test_leakage.py -q` and
 `python3 scripts/audit_defender.py bots/house/2026-09-28_defender_discriminating_ledger.py`.
