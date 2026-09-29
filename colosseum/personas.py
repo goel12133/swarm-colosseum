@@ -7,19 +7,22 @@ model, and the bot (or field) the new bot is judged against. Four of them:
                 Must beat: the opposing bot with the single worst result in the matrix.
   counter_meta  the opposing #1's full source, its matrix row, replays of its best
                 pairings and of its closest calls.
-                Must beat: the opposing #1.
+                Must beat: the opposing #1. No threshold: it always targets the current #1.
   generalist    the full matrix and every opposing bot's docstring.
                 Must beat: the field -- judged on mean score across all opponents.
   contrarian    the docstrings of every bot in its own role, as approaches to avoid.
                 Must beat: the opposing #1, with an idea none of those bots use.
 
-Choice, per role, logged and stored in the bot's metadata:
-  1. HOUSE_LEAGUE_PERSONAS="attacker=counter_meta,defender=generalist" overrides.
-  2. If the opposing #1 wins >= 90% of its matches, counter_meta: a dominant bot gets
-     answered before anything else happens.
-  3. Otherwise rotate exploiter -> generalist -> contrarian by night number (the defender
-     is offset by one so the two bots of a night differ).
+A night's plan (plan_night), logged and stored in each bot's metadata:
+  1. Escalation: a bot unbeaten by every opponent on each of the last two nights (every
+     opponent's mean score against it below 0.5) gets both of the night's slots -- two
+     counter_meta bots for the opposite side, aimed at it. (Only one side can have one:
+     an attacker that beats every defender rules out a defender that beats every attacker.)
+  2. HOUSE_LEAGUE_PERSONAS="attacker=counter_meta,defender=generalist" overrides.
+  3. Otherwise one attacker and one defender, rotating through all four personas by night
+     number (the defender offset by one so the two bots of a night differ).
 
+All prompt wording lives in colosseum/prompts/generator.py; this module supplies the data.
 Host safety: other bots' source is read as text and pasted into the prompt. Nothing here
 imports or executes a bot.
 """
@@ -27,11 +30,11 @@ import ast
 import json
 from pathlib import Path
 
+from .prompts import generator as P
 from .tournament import ROOT
 
 PERSONAS = ("exploiter", "counter_meta", "generalist", "contrarian")
-ROTATION = ("exploiter", "generalist", "contrarian")
-DOMINANT_WIN_RATE = 0.90
+ROTATION = PERSONAS
 # house/RETIRED last: retirement runs after the tournament, so the leaderboard a night reads
 # can still list a bot that was retired at the end of the previous night.
 BOT_DIRS = ("attackers", "defenders", "house", "house/RETIRED")
@@ -84,10 +87,46 @@ def choose(role, ctx, nights: int, override: str = "") -> str:
         if wanted[role] not in PERSONAS:
             raise ValueError(f"unknown persona {wanted[role]!r}; choose from {PERSONAS}")
         return wanted[role]
-    top = ctx["leaderboard"][opposing(role) + "s"][0]
-    if top["win_rate"] >= DOMINANT_WIN_RATE:
-        return "counter_meta"
     return ROTATION[(nights + (1 if role == "defender" else 0)) % len(ROTATION)]
+
+
+def unbeaten(matrix: dict):
+    """{role: [names]} of bots no opponent beat on this night's matrix (mean < 0.5)."""
+    attackers = sorted(matrix)
+    defenders = sorted({d for row in matrix.values() for d in row})
+    return dict(
+        attacker=[a for a in attackers if all(matrix[a][d] < 0.5 for d in matrix[a])],
+        defender=[d for d in defenders if all(matrix[a][d] > 0.5 for a in attackers
+                                              if d in matrix[a])])
+
+
+def escalation(last_two):
+    """Bots unbeaten on both of the last two nights' matrices: {role: name}."""
+    if len(last_two) < 2:
+        return {}
+    first, second = (unbeaten(m) for m in last_two)
+    found = {}
+    for role in ("attacker", "defender"):
+        both = [n for n in second[role] if n in first[role]]
+        if both:
+            found[role] = both[0]
+    return found
+
+
+def plan_night(ctx, nights: int, last_two_matrices=(), override: str = "",
+               slots: int = 2):
+    """[(role, persona, target, note)] for tonight. note is "" or "escalation"."""
+    esc = escalation(list(last_two_matrices))
+    if esc and not override:
+        # At most one side can have an unbeaten bot: if an attacker beats every defender,
+        # no defender beats every attacker on the same matrix.
+        (bot_role, bot), = esc.items()
+        return [(opposing(bot_role), "counter_meta", bot, "escalation")] * min(2, slots)
+    plan = []
+    for role in ["attacker", "defender"][:max(1, min(2, slots))]:
+        persona = choose(role, ctx, nights, override)
+        plan.append((role, persona, target_for(persona, role, ctx), ""))
+    return plan
 
 
 # --- evidence -------------------------------------------------------------------
@@ -140,83 +179,34 @@ def standings(lb):
 
 def evidence(persona, role, target, ctx, out: Path) -> str:
     lb, matrix = ctx["leaderboard"], ctx["matrix"]
-    base = f"## Current standings\n\n{standings(lb)}\n"
+    base = P.STANDINGS.substitute(standings=standings(lb))
     if persona == "exploiter":
-        return base + f"""
-## Mean score_defender per pairing (high = defender did well)
-
-{json.dumps(matrix, indent=2)}
-
-## The most lopsided pairings, with one match each
-
-{json.dumps(ctx['lopsided'], indent=2)}
-"""
+        return base + P.EVIDENCE["exploiter"].substitute(
+            matrix=json.dumps(matrix, indent=2), lopsided=json.dumps(ctx["lopsided"], indent=2))
     if persona == "counter_meta":
         trole = opposing(role)
         row = {a: matrix[a][target] for a in matrix} if trole == "defender" else matrix[target]
         reps = target_replays(out, target, trole, matrix)
-        return base + f"""
-## The bot you must beat: {target} ({trole})
-
-Its full source:
-
-```python
-{bot_path(target).read_text()}
-```
-
-Its mean score_defender against each opponent (high = defender did well):
-
-{json.dumps(row, indent=2)}
-
-Its best pairings, one match each:
-
-{json.dumps(reps['best_pairings'], indent=2)}
-
-Its closest calls -- the matches where it came nearest to losing:
-
-{json.dumps(reps['closest_calls'], indent=2)}
-"""
+        return base + P.EVIDENCE["counter_meta"].substitute(
+            target=target, target_role=trole, source=bot_path(target).read_text(),
+            row=json.dumps(row, indent=2), best=json.dumps(reps["best_pairings"], indent=2),
+            closest=json.dumps(reps["closest_calls"], indent=2))
     if persona == "generalist":
         docs = "\n\n".join(f"### {r['name']}\n{docstring(bot_path(r['name']))}"
-                           for r in lb[opposing(role) + "s"])
-        return base + f"""
-## Mean score_defender per pairing (high = defender did well)
-
-{json.dumps(matrix, indent=2)}
-
-## Every {opposing(role)} you will face, by its own description
-
-{docs}
-"""
+                            for r in lb[opposing(role) + "s"])
+        return base + P.EVIDENCE["generalist"].substitute(
+            matrix=json.dumps(matrix, indent=2), opponent_role=opposing(role), docs=docs)
     if persona == "contrarian":
         docs = "\n\n".join(f"### {r['name']}\n{docstring(bot_path(r['name']))}"
-                           for r in lb[role + "s"])
-        return base + f"""
-## Every existing {role}, by its own description -- approaches you must NOT reuse
-
-{docs}
-"""
+                            for r in lb[role + "s"])
+        return base + P.EVIDENCE["contrarian"].substitute(role=role, docs=docs)
     raise ValueError(f"unknown persona {persona!r}")
 
 
-def task(persona, role, target) -> str:
-    article = "an" if role == "attacker" else "a"
-    one = (f"Write exactly ONE bot: {article} {role}. Return exactly one fenced Python code "
-           "block and nothing else.")
-    goal = {
-        "exploiter": f"It must beat {target}, the {opposing(role)} with the single worst "
-                     "result in the matrix. The docstring must name the weakness and the "
-                     "pairing that shows it.",
-        "counter_meta": f"It must beat {target}, the current #1 {opposing(role)}, "
-                        "specifically. You have its source: find what it cannot handle. "
-                        "The docstring must say which part of its logic you are attacking "
-                        "and what in the replays shows that is where it breaks.",
-        "generalist": f"It must do well against the whole field of {opposing(role)}s, "
-                      "judged on mean score across all of them, not by beating one. The "
-                      "docstring must say why the approach holds up against every opponent "
-                      "described above.",
-        "contrarian": f"It must beat {target}, the current #1 {opposing(role)}, with a "
-                      f"core idea that none of the existing {role}s described above use. "
-                      "The docstring must name the idea and say how it differs from each.",
-    }[persona]
-    return f"## Your task\n\n{one}\n\n{goal}\n"
+def task(persona, role, target, second_of_two=False) -> str:
+    fill = dict(article="an" if role == "attacker" else "a", role=role, target=target,
+                opponent_role=opposing(role))
+    extra = P.SECOND_OF_TWO.substitute(target=target) if second_of_two else ""
+    return P.TASK.substitute(one=P.ONE_BOT.substitute(fill),
+                             goal=P.GOALS[persona].substitute(fill),
+                             idea=P.IDEA_LINE, extra=extra)

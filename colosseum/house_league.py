@@ -43,6 +43,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from . import personas
+from .prompts import generator as prompt_text
 from .rules import SEASON0
 from .sim import run_match
 from .tournament import DEFAULT_OUT, ROOT, run_tournament
@@ -197,51 +198,16 @@ def gather_context(out: Path = DEFAULT_OUT, n_replays: int = 3) -> dict:
                 lopsided=samples, rules=SEASON0.as_dict())
 
 
-INTRO = """You are writing a bot for Swarm Colosseum, an abstract strategy benchmark on a
-blank 2D plane with made-up units. It is a game, not a model of anything real.
-
-A protected asset sits at the origin. An attacker launches cheap drones from a ring; a
-defender has a limited magazine of interceptors, a short-range gun, and a radar that sees
-position but only reveals a drone's type inside a close range. Everything is made-up units.
-"""
-
-API = """## The policy API
-
-A bot is one Python file with module-level `NAME` (str), `ROLE` ("attacker" or
-"defender"), `act(obs) -> dict`, and optionally `reset(seed)`. Standard library only.
-It is loaded fresh for every match, so module state does not leak between matches.
-
-Attacker obs: tick, budget, asset{pos,hp,radius}, drones[{id,type,pos,vel,waypoint}],
-interceptors[[x,y]], rules.
-Attacker action: {"launch": [{"type": "striker"|"decoy", "bearing": float}],
-                  "steer": {drone_id: [x,y] or None}}
-A drone flies to its waypoint if it has one, then heads for the asset.
-
-Defender obs: tick, asset, tracks[{id,pos,vel,range,cls}] where cls is
-"unknown"/"striker"/"decoy", interceptors[{id,target,pos,age}], stock, ammo, rules.
-Defender action: {"intercept": [track_id], "retarget": {interceptor_id: track_id},
-                  "gun": track_id or None}
-
-Launch caps are per tick and enforced by the engine; exceeding them wastes the request.
-
-Requirements:
-- Standard library only. No file, network or subprocess access.
-- Fast: `act` is called up to 600 times per match, with a per-tick timeout.
-- Deterministic given the same observations. If you need randomness, seed it in `reset`.
-- Do not raise. Return a well-formed action every tick.
-"""
-
-
 def build_prompt(ctx: dict, role: str = "attacker", persona: str = "exploiter",
-                 target: str = None, out: Path = DEFAULT_OUT) -> str:
-    """One bot, one persona: shared intro, rules and API, plus the persona's evidence/task."""
+                 target: str = None, out: Path = DEFAULT_OUT, second_of_two=False) -> str:
+    """One bot, one persona. All wording is in colosseum/prompts/generator.py."""
     target = target or personas.target_for(persona, role, ctx)
     return "\n".join([
-        INTRO,
+        prompt_text.INTRO,
         personas.evidence(persona, role, target, ctx, out),
-        f"## Current rules\n\n{json.dumps(ctx['rules'], indent=2)}\n",
-        API,
-        personas.task(persona, role, target),
+        prompt_text.RULES.substitute(rules=json.dumps(ctx["rules"], indent=2)),
+        prompt_text.API,
+        personas.task(persona, role, target, second_of_two),
     ])
 
 
@@ -312,8 +278,7 @@ def check_caps(caps: Caps, spend: Spend, prompt: str):
                           f"${caps.max_usd:.2f}")
 
 
-SYSTEM_PROMPT = ("You write Python bot files for a game benchmark. Answer with exactly the "
-                 "fenced code blocks requested and nothing else.")
+SYSTEM_PROMPT = prompt_text.SYSTEM
 
 
 def call_model(prompt: str, caps: Caps, spend: Spend, dry_run: bool) -> str:
@@ -607,6 +572,12 @@ def apply_retirement(history: dict, nights: int = 3, breaches: dict = None) -> l
 SNAPSHOT_FILES = ("leaderboard.json", "matrix.json", "breaches.json")
 
 
+def last_matrices(out: Path, n: int = 2):
+    """The matrices of the last n real nights, oldest first, from out/history/."""
+    days = sorted(p for p in (out / "history").glob("*") if (p / "matrix.json").exists())
+    return [json.loads((d / "matrix.json").read_text())["matrix"] for d in days[-n:]]
+
+
 def snapshot(out: Path, when: str):
     """Keep this night's ladder: out/history/<date>/. The meta report diffs these."""
     dest = out / "history" / when
@@ -700,14 +671,22 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
 
     ctx = gather_context(out)
     nights = len(load_history()["nights"])
-    roles = ["attacker", "defender"][:max(1, min(2, caps.bots_per_night))]
+    try:
+        plan = personas.plan_night(ctx, nights, last_matrices(out, 2),
+                                   os.environ.get("HOUSE_LEAGUE_PERSONAS", ""),
+                                   slots=caps.bots_per_night)
+    except (ValueError, KeyError) as exc:
+        log(f"ABORT: persona setup failed: {type(exc).__name__}: {exc}")
+        return dict(status="error", reason=str(exc), spend=vars(spend))
+    log("plan: " + "; ".join(f"{r} {p} vs {t}" + (f" ({n})" if n else "")
+                             for r, p, t, n in plan))
     written, rejected, metas = [], [], {}
-    for index, role in enumerate(roles):
+    seen_targets = set()
+    for role, persona, target, note in plan:
+        second = (role, target) in seen_targets
+        seen_targets.add((role, target))
         try:
-            persona = personas.choose(role, ctx, nights,
-                                      os.environ.get("HOUSE_LEAGUE_PERSONAS", ""))
-            target = personas.target_for(persona, role, ctx)
-            prompt = build_prompt(ctx, role, persona, target, out)
+            prompt = build_prompt(ctx, role, persona, target, out, second_of_two=second)
         except (ValueError, KeyError, OSError) as exc:
             log(f"ABORT: persona setup failed for {role}: {type(exc).__name__}: {exc}")
             if not written:
@@ -745,7 +724,8 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
 
         blocks = extract_bots(text)
         if dry_run:                          # the canned response holds both roles
-            blocks = blocks[index:index + 1]
+            i = 0 if role == "attacker" else 1
+            blocks = blocks[i:i + 1]
         if not blocks:
             log(f"rejected {role}: model returned no code block")
             rejected.append((role, "model returned no code block"))
@@ -758,6 +738,10 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
             continue
         HOUSE.mkdir(parents=True, exist_ok=True)
         path = HOUSE / f"{when}_{role}_{slug(name)}.py"
+        n = 2
+        while path.exists():                 # two bots in one night may pick one NAME
+            path = HOUSE / f"{when}_{role}_{slug(name)}_{n}.py"
+            n += 1
         path.write_text(blocks[0] + "\n")
         with phases("smoke"):
             ok, detail = smoke_test(path, role)
@@ -770,6 +754,7 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
         written.append(path.name)
         metas[path.stem] = dict(
             name=path.stem, role=role, date=when, persona=persona, target=target,
+            escalation=note == "escalation", prompt_version=prompt_text.PROMPT_VERSION,
             backend=caps.backend, model=caps.model, dry_run=dry_run,
             tokens=dict(input=spend.input_tokens - before[0],
                         output=spend.output_tokens - before[1]),

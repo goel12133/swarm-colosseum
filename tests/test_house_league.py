@@ -308,17 +308,43 @@ def toy_ctx(top_def_win=1.0, top_att_win=0.5):
     return dict(leaderboard=lb, matrix=matrix, lopsided=[], rules={})
 
 
-def test_a_dominant_opponent_gets_the_counter_meta_persona():
-    ctx = toy_ctx(top_def_win=0.95, top_att_win=0.5)
-    assert P.choose("attacker", ctx, nights=7) == "counter_meta"
+def test_counter_meta_has_no_threshold_and_always_targets_the_number_one():
+    """Decided 2026-09-29: no win-rate trigger; counter_meta is in the rotation."""
+    ctx = toy_ctx(top_def_win=0.5, top_att_win=0.5)
+    assert "counter_meta" in P.ROTATION
+    night = next(n for n in range(4) if P.choose("attacker", ctx, n) == "counter_meta")
     assert P.target_for("counter_meta", "attacker", ctx) == "d_top"
-    assert P.choose("defender", ctx, nights=7) != "counter_meta"
+    assert P.choose("defender", ctx, night) != "counter_meta"
+
+
+def test_escalation_after_two_unbeaten_nights_takes_both_slots():
+    ctx = toy_ctx()
+    # d_top: every attacker scores below 0.5 against it (score_defender > 0.5) on two nights
+    night = {"a_top": {"d_top": 0.7, "d_low": 0.1}, "a_low": {"d_top": 0.9, "d_low": 0.4}}
+    assert P.unbeaten(night)["defender"] == ["d_top"]
+    plan = P.plan_night(ctx, nights=5, last_two_matrices=[night, night])
+    assert plan == [("attacker", "counter_meta", "d_top", "escalation")] * 2
+    # one unbeaten night is not enough
+    plan = P.plan_night(ctx, nights=5, last_two_matrices=[
+        {"a_top": {"d_top": 0.3, "d_low": 0.1}, "a_low": {"d_top": 0.9, "d_low": 0.4}}, night])
+    assert [p[3] for p in plan] == ["", ""] and [p[0] for p in plan] == ["attacker", "defender"]
+
+
+def test_only_one_side_can_be_unbeaten_on_a_night():
+    import itertools
+    import random as _r
+    rng = _r.Random(0)
+    for _ in range(2000):
+        m = {f"a{i}": {f"d{j}": rng.choice([0.2, 0.4, 0.6, 0.8]) for j in range(3)}
+             for i in range(3)}
+        u = P.unbeaten(m)
+        assert not (u["attacker"] and u["defender"])
 
 
 def test_without_a_dominant_opponent_personas_rotate_and_differ_within_a_night():
     ctx = toy_ctx(top_def_win=0.5, top_att_win=0.5)
     seen = set()
-    for n in range(3):
+    for n in range(4):
         a, d = P.choose("attacker", ctx, n), P.choose("defender", ctx, n)
         assert a != d
         seen.add(a)
