@@ -837,3 +837,13 @@ the role band was already 58% under A because of the four strong new defenders. 
 20 seeds on the decision date. Full table: `git show season2-candidates:SEASON2_CANDIDATES.md`.
 The branches are rebased on master: `s2-a-imperfect-id` has 190 tests passing and contains
 `71f427f`.
+
+### Watch log (synchronized_ring, a defender under 90%?)
+
+- **2026-09-30 (night 1/7): no.** It won 99%; best defender identify_then_engage (still
+  beaten 90%). The contrarian `reveal_timed_prelaunch` scored 0.136 against it and ranks #2
+  defender. The generalist attacker `phase_locked_ring` also wins 98%. Escalation confirmed
+  for 10-01: both defender slots are counter_meta vs synchronized_ring. Optimiser vs model
+  on the ladder: annealed_assignment mean score 0.608 (the best defender) vs
+  greedy_value_model 0.582, but Elo 976 vs 1004 because Elo depends on match order. 26,357
+  tokens; tournament 800 matches in 261 s.

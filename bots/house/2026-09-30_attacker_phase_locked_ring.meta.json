@@ -1,0 +1,22 @@
+{
+  "backend": "cli",
+  "date": "2026-09-30",
+  "dry_run": false,
+  "escalation": false,
+  "model": "opus",
+  "name": "2026-09-30_attacker_phase_locked_ring",
+  "persona": "generalist",
+  "prompt_version": "2026-09-29.1",
+  "raw_response": "out/house_raw/2026-09-30T033207_cli_attacker_generalist.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.851,
+    "rank": 2
+  },
+  "role": "attacker",
+  "target": "field",
+  "tokens": {
+    "input": 4766,
+    "output": 11532
+  }
+}
