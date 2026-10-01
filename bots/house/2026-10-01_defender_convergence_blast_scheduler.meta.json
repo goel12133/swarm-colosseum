@@ -1,0 +1,23 @@
+{
+  "backend": "cli",
+  "date": "2026-10-01",
+  "dry_run": false,
+  "escalation": true,
+  "model": "opus",
+  "name": "2026-10-01_defender_convergence_blast_scheduler",
+  "persona": "counter_meta",
+  "prompt_version": "2026-09-29.1",
+  "raw_response": "out/house_raw/2026-10-01T033424_cli_defender_counter_meta.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.748,
+    "rank": 1,
+    "score_vs_target": 0.402
+  },
+  "role": "defender",
+  "target": "2026-09-29_attacker_synchronized_ring",
+  "tokens": {
+    "input": 7912,
+    "output": 24243
+  }
+}

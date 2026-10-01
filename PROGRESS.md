@@ -847,3 +847,19 @@ The branches are rebased on master: `s2-a-imperfect-id` has 190 tests passing an
   on the ladder: annealed_assignment mean score 0.608 (the best defender) vs
   greedy_value_model 0.582, but Elo 976 vs 1004 because Elo depends on match order. 26,357
   tokens; tournament 800 matches in 261 s.
+- **2026-10-01 (night 2/7): yes, so a meta by the founder's rule.** Escalation ran as
+  planned (two counter_meta defenders vs synchronized_ring). The first,
+  `convergence_blast_scheduler`, holds it to a 40% win rate (4 breaches in 10 seeds; no other
+  attacker breaches it at all). Its idea: wait until the synchronized ring has converged
+  inside one blast radius, then fire on an earliest-deadline schedule for two or three kills
+  per interceptor. It works inside the current rules, so the economy fix isn't needed on
+  this evidence. It loses on mean score against the ring (0.402), so its `beat_target` is
+  false; the watch criterion is win rate. synchronized_ring overall: 94%.
+- **The second escalation slot was refused by the generator**
+  (`out/house_raw/2026-10-01T033605_cli_defender_counter_meta.md`, 440 chars): it says an
+  earlier attempt was stopped by a safety classifier, and that tuning interceptor allocation,
+  gun targeting and timing against a synchronised saturation attack "maps closely onto real
+  counter-drone engagement tactics". Input was 15,999 tokens against 7,912 for the same-size
+  first prompt, consistent with a retry inside the call. The pipeline treated it as a
+  rejection; the night completed. **Not worked around: a founder decision** (hard rule 1).
+  56,669 tokens; tournament 880 matches in 280 s.
