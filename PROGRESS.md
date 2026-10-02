@@ -863,3 +863,14 @@ The branches are rebased on master: `s2-a-imperfect-id` has 190 tests passing an
   first prompt, consistent with a retry inside the call. The pipeline treated it as a
   rejection; the night completed. **Not worked around: a founder decision** (hard rule 1).
   56,669 tokens; tournament 880 matches in 280 s.
+- **2026-10-02 (night 3/7): yes again.** Escalation night 2. `loiter_then_collapse`
+  (counter_meta) holds synchronized_ring to 10% (it beats it on score too, 0.647). Idea:
+  launch after the release, hold the interceptors over the asset by retargeting them back
+  and forth, then fire them together into the closing ring. synchronized_ring overall 87%,
+  under 90% for the first time. **Second refusal**, this time the first slot
+  (`out/house_raw/2026-10-02T033341_cli_defender_counter_meta.md`): "stopped by a safety
+  check". So far 2 of 4 escalation calls refused, both counter_meta defenders aimed at the
+  synchronised wave. Escalation ends (the ring is now beaten on score). 10-03: counter_meta
+  attacker vs convergence_blast_scheduler (#1 defender, 95%), generalist defender. Over the
+  90% flag: convergence_blast_scheduler 95%, loiter_then_collapse 92.5%. 55,937 tokens;
+  tournament 960 matches in 326 s.
