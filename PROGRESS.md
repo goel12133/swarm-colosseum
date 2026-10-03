@@ -1102,3 +1102,51 @@ per the charter. Last cold run was 372 s.
   **3.8:** held; it runs only interactively, with the founder.
 - Tests: an out-of-scope session is never merged; an item with two unmerged sessions in a
   row is frozen; the prompt names the scope. `python3 -m pytest tests -q` → 261 passed.
+
+### 2026-10-03 build session: 3.10 site bundle kept current + about page
+
+**Alert from the previous session:** the 09:00 build session was refused
+(`out-of-scope -- SESSION_ITEM is None`). It never wrote `SESSION_ITEM`, so the wrapper
+correctly declined to merge. The cause was the prompt, and 94fea0b already fixed it (write
+`SESSION_ITEM` with the Write tool, and how to run allowed commands). This session wrote
+`SESSION_ITEM` = `3.10` first. Nothing else to fix. `out/ALERT.md` is the snapshot's copy;
+the live one clears on the next successful night.
+
+**3.10, done:**
+- `ops after-night` now builds the tactic library (`library.build()`) after the meta
+  report and before the site, so the bundle is current every night. A "no ladder" exit
+  from the library becomes an alert, and the later steps (fuzz, rotation, backup) still run.
+- `colosseum/site.py` adds:
+  - `library/index.html` and `library/cards/<bot>.html`, rendered from `out/library/`.
+    Replay links in the cards point at the bundle's viewer pages. If a replay is missing
+    the link goes to the picker. A live bot's card links to its ladder page.
+  - `seasons.html`: SEASON.md, then every archived season under `seasons/<S>/`. Each
+    markdown file gets a page, links between archive pages are kept, and every other
+    link is dropped. No season is archived yet, and the page says so.
+  - `about.html` from the new `ABOUT.md`, plain language for a sixteen-year-old: what it
+    is, why it exists, how a match works, how to read the ladder, how to submit (closed for
+    now), and the abstract-only rule stated honestly.
+  - The nav on every page links to Tactic library, Seasons and About.
+- Renderer fixes that the library needed. Backslash escapes and `&amp; &lt; &gt;` (what
+  `library.md_safe` writes) now render as literal text, escaped once for HTML. Before,
+  they would have shown up as `\[` and `&amp;lt;`. An escaped `|` stays inside its table
+  cell. A long code fence only closes on a run of backticks at least as long, so bot
+  source with ``` inside stays code.
+- Still unserved. Nothing was opened or published.
+
+```
+python3 -m colosseum.library -> /srv/swarm-daily/out/library: 20 tactic cards, as of 2026-10-03
+python3 -m colosseum.site    -> /srv/swarm-daily/out/site: 22 bots, 1170 replays, 20 tactic cards,
+                                0 archived seasons, 76.4 MB
+grep of out/site/library for &amp;lt; / &amp;amp; / \[ / \| / href="*.json" -> no matches
+python3 -m pytest tests/test_site.py tests/test_library.py -q -> 23 passed
+python3 -m pytest tests -q -> 270 passed in 47.27s
+```
+
+New tests (`tests/test_site.py`): the bundle has the library, seasons and about pages. Every
+non-viewer page links all three. The library index links every card, and cards link replay
+pages with no raw `.json`. Archive links are kept or dropped correctly, including the
+stylesheet path two levels deep. The about page has its six sections and the abstract-only
+line. A missing library gives a placeholder page. Library escapes render once and never as
+markup. Escaped pipes and long fences render correctly. The existing link test now covers
+every new page.
