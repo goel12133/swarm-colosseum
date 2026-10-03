@@ -20,7 +20,8 @@ Backups.   One tar.gz a night in ~/backups/: bots/, reports/, out/leaderboard.js
            season. The last BACKUP_KEEP are kept. No secrets: .house_league.env* is outside
            every path in the list and is excluded by name anyway.
 
-after-night runs the weekly report (if due), the site bundle, 500 engine fuzz trajectories
+after-night runs the weekly report (if due), the tactic library, the site bundle (which
+links the library and the season archive), 500 engine fuzz trajectories
 (3.9; out/fuzz.jsonl), rotation and the backup, times
 them, and records the total as the "reports" phase on the night's ledger line. A failure in
 any of them writes ALERT.md but never touches the league's own result.
@@ -243,7 +244,8 @@ def nightly_fuzz(out: Path = DEFAULT_OUT, when: str = None, n: int = FUZZ_NIGHTL
 
 
 def after_night(commit: bool = True):
-    """Weekly report if due, site bundle, rotation, backup. Returns (problems, results)."""
+    """Weekly report if due, tactic library, site bundle, fuzz, rotation, backup.
+    Returns (problems, results)."""
     problems, results = [], {}
     t0 = time.monotonic()
 
@@ -252,12 +254,20 @@ def after_night(commit: bool = True):
         week = mr.due_week()
         return str(mr.write(week, commit=commit)) if week else "not due"
 
+    def tactic_library():
+        from . import library
+        try:
+            return library.build()
+        except SystemExit as exc:          # "no ladder": an alert, not the end of the steps
+            raise RuntimeError(str(exc)) from None
+
     def site_bundle():
         from . import site
         return site.build()
 
     for label, fn in (("watch", update_watch), ("meta report", meta_report),
-                      ("site", site_bundle), ("fuzz", nightly_fuzz),
+                      ("library", tactic_library), ("site", site_bundle),
+                      ("fuzz", nightly_fuzz),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):
         try:
             results[label] = fn()

@@ -10,21 +10,30 @@ where it goes.
     bots/<name>.html        docstring, persona, author, metadata, recent results
     replays.html            a picker (plain links) over every current replay
     replays/<stem>.html     the viewer with that replay embedded (viewer/build_viewer.page_with)
+    library/index.html      the tactic library's INDEX.md (python -m colosseum.library)
+    library/cards/<n>.html  one tactic card each, replay links pointing at replays/<stem>.html
+    seasons.html            SEASON.md, then every archived season under seasons/
+    seasons/<S>/<f>.html    each markdown file of an archived season
+    about.html              ABOUT.md, the plain-language introduction
     submitting.html         SUBMITTING.md
     style.css               one stylesheet, light and dark
 
 Bot names, docstrings, authors and metadata come from untrusted files, so every string is
 HTML-escaped before it reaches a page, and bot files are read with `ast`, never imported.
+The library's cards are already markdown-escaped (library.md_safe); the renderer here
+honours those escapes and still HTML-escapes the result.
 """
 import argparse
 import ast
 import html
 import importlib.util
 import json
+import os
 import re
 import shutil
 import sys
 from pathlib import Path
+from urllib.parse import unquote
 
 from .tournament import DEFAULT_OUT, ROOT
 
@@ -72,8 +81,25 @@ e = html.escape
 
 # --- a small, safe markdown renderer -----------------------------------------------
 
-def _inline(text: str, link_map: dict = None) -> str:
-    """Escape first, then turn `code`, **bold**, *em* and [links](x) into tags."""
+ENTITIES = {"&amp;": "&", "&lt;": "<", "&gt;": ">"}
+
+
+def _inline(text: str, link_map=None) -> str:
+    """Escape first, then turn `code`, **bold**, *em* and [links](x) into tags.
+
+    Backslash-escaped punctuation and the entities &amp; &lt; &gt; (what library.md_safe
+    writes) are held aside as placeholders, so they never form markup, and come back as
+    the literal character, HTML-escaped. `link_map` is a dict, or a function from target
+    to target where None means "drop the link, keep the label"."""
+    text = re.sub("[\ue000\ue001]", "", text)
+    held = []
+
+    def hold(ch):
+        held.append(ch)
+        return f"\ue000{len(held) - 1}\ue001"
+    text = re.sub(r"&(?:amp|lt|gt);", lambda m: hold(ENTITIES[m.group(0)]), text)
+    text = re.sub(r"\\([!-/:-@\[-`{-~])", lambda m: hold(m.group(1)), text)
+
     parts = re.split(r"(`[^`]+`)", text)
     out = []
     for part in parts:
@@ -83,28 +109,39 @@ def _inline(text: str, link_map: dict = None) -> str:
         s = e(part, quote=False)
         s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
         s = re.sub(r"(?<![\w*\\])\*(?!\s)(.+?)(?<!\s)\*(?!\w)", r"<em>\1</em>", s)
-        s = s.replace("\\*", "*")
 
         def link(m):
             label, target = m.group(1), m.group(2)
-            target = (link_map or {}).get(target, target)
-            if re.match(r"^[a-z]+:", target):          # no external links in the bundle
+            if callable(link_map):
+                target = link_map(target)
+            else:
+                target = (link_map or {}).get(target, target)
+            if target is None or re.match(r"^[a-z]+:", target):   # no external links
                 return label
             return f'<a href="{e(target)}">{label}</a>'
         s = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link, s)
         out.append(s)
-    return "".join(out)
+    return re.sub("\ue000(\\d+)\ue001", lambda m: e(held[int(m.group(1))]), "".join(out))
 
 
-def md_to_html(text: str, link_map: dict = None) -> str:
+def table_cells(line: str):
+    """Cells of a markdown table row; a backslash-escaped pipe stays inside its cell."""
+    row = line.strip()[1:]
+    if row.endswith("|") and not row.endswith("\\|"):
+        row = row[:-1]
+    return [c.strip() for c in re.split(r"(?<!\\)\|", row)]
+
+
+def md_to_html(text: str, link_map=None) -> str:
     lines = text.splitlines()
     out, i = [], 0
     while i < len(lines):
         line = lines[i]
         if line.startswith("```"):
+            fence = re.match(r"`+", line).group()     # closes only on a run this long
             j = i + 1
             code = []
-            while j < len(lines) and not lines[j].startswith("```"):
+            while j < len(lines) and not re.fullmatch(re.escape(fence) + r"`*\s*", lines[j]):
                 code.append(lines[j])
                 j += 1
             out.append(f"<pre><code>{e(chr(10).join(code))}</code></pre>")
@@ -119,7 +156,7 @@ def md_to_html(text: str, link_map: dict = None) -> str:
         if line.startswith("|"):
             rows = []
             while i < len(lines) and lines[i].startswith("|"):
-                rows.append([c.strip() for c in lines[i].strip().strip("|").split("|")])
+                rows.append(table_cells(lines[i]))
                 i += 1
             body = [r for r in rows if not all(re.fullmatch(r":?-{2,}:?", c) for c in r)]
             head, rest = body[0], body[1:]
@@ -226,14 +263,17 @@ def page(title: str, body: str, depth: int = 0) -> str:
 <title>{e(title)} · Swarm Colosseum</title>
 <link rel="stylesheet" href="{up}style.css"></head>
 <body><nav><a href="{up}index.html">Ladders</a><a href="{up}replays.html">Replays</a>
-<a href="{up}submitting.html">Submit a bot</a></nav>
+<a href="{up}library/index.html">Tactic library</a><a href="{up}seasons.html">Seasons</a>
+<a href="{up}submitting.html">Submit a bot</a><a href="{up}about.html">About</a></nav>
 <main>{body}</main></body></html>
 """
 
 
 # --- build ----------------------------------------------------------------------
 
-def build(site: Path = SITE, out: Path = DEFAULT_OUT) -> dict:
+def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
+          seasons: Path = ROOT / "seasons") -> dict:
+    library = library or out / "library"
     lb = json.loads((out / "leaderboard.json").read_text())
     matrix = json.loads((out / "matrix.json").read_text())["matrix"]
     if site.exists():
@@ -262,7 +302,8 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT) -> dict:
     # index
     body = ["<h1>Swarm Colosseum</h1>",
             "<p class=\"soft\">An abstract strategy benchmark: AI attackers against AI "
-            "defenders, every match public and reproducible.</p>"]
+            "defenders, every match public and reproducible. New here? Start with "
+            "<a href=\"about.html\">what this is</a>.</p>"]
     for role in ("attackers", "defenders"):
         body.append(f"<h2>{role.capitalize()}</h2><div class=\"card scroll\"><table>"
                     "<thead><tr><th class=num>#</th><th>bot</th><th class=num>Elo</th>"
@@ -310,8 +351,96 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT) -> dict:
 
     sub = (ROOT / "SUBMITTING.md").read_text()
     (site / "submitting.html").write_text(page("Submit a bot", md_to_html(
-        sub, link_map={"SEASON.md": "index.html"})))
-    return dict(site=str(site), bots=len(live), replays=len(current))
+        sub, link_map={"SEASON.md": "seasons.html"})))
+    (site / "about.html").write_text(page("About", md_to_html(
+        (ROOT / "ABOUT.md").read_text(),
+        link_map={"SUBMITTING.md": "submitting.html", "SEASON.md": "seasons.html"})))
+    cards = write_library(site, library)
+    archived = write_seasons(site, seasons)
+    return dict(site=str(site), bots=len(live), replays=len(current), cards=cards,
+                seasons=archived)
+
+
+def write_library(site: Path, library: Path) -> int:
+    """The tactic library (python -m colosseum.library) as pages. Cards are rendered from
+    their markdown; replay links become the bundle's viewer pages. Returns the card count."""
+    dest = site / "library"
+    (dest / "cards").mkdir(parents=True)
+    index = library / "INDEX.md"
+    entries = []
+    if (library / "library.json").exists() and index.exists():
+        entries = json.loads((library / "library.json").read_text())["cards"]
+    if not entries:
+        (dest / "index.html").write_text(page("Tactic library", (
+            "<h1>Tactic library</h1><p class=soft>Not built yet. It appears after the next "
+            "night, once <code>python -m colosseum.library</code> has run.</p>"), 1))
+        return 0
+
+    def card_link(target):
+        m = re.search(r"(?:^|/)replays/([^/]+)\.json$", target)
+        if not m:
+            return None
+        stem = slugify(unquote(m.group(1)))
+        if (site / "replays" / f"{stem}.html").exists():
+            return f"../../replays/{stem}.html"
+        return "../../replays.html"
+
+    pages = {}
+    for entry in entries:
+        stem = slugify(Path(entry["card"]).stem)
+        md = library / "cards" / f"{stem}.md"
+        if not md.exists():
+            continue
+        pages[entry["card"]] = f"cards/{stem}.html"
+        body = []
+        if (site / "bots" / f"{slugify(entry['name'])}.html").exists():
+            body.append(f"<p class=soft><a href=\"../../bots/{slugify(entry['name'])}.html\">"
+                        "On the ladder now</a></p>")
+        body.append(md_to_html(md.read_text(), card_link))
+        (dest / "cards" / f"{stem}.html").write_text(
+            page(display(entry["name"]), "\n".join(body), 2))
+    (dest / "index.html").write_text(page("Tactic library", md_to_html(
+        index.read_text(), pages.get), 1))
+    return len(pages)
+
+
+def write_seasons(site: Path, seasons: Path) -> int:
+    """seasons.html: SEASON.md, then every archived season's markdown as pages, links
+    between them kept and any other link dropped. Returns the number of archived seasons."""
+    body = [md_to_html((ROOT / "SEASON.md").read_text(), lambda t: None),
+            "<h2>Archive</h2>"]
+    seasons = seasons.resolve()
+    archived = sorted(d for d in seasons.glob("*") if d.is_dir()) if seasons.is_dir() else []
+    if not archived:
+        body.append("<p class=soft>No season has finished yet. When one ends, its ladders, "
+                    "bots and season report are archived here.</p>")
+
+    def html_path(md: Path) -> Path:
+        rel = md.relative_to(seasons)
+        return site / "seasons" / Path(*(slugify(x) for x in rel.with_suffix(".html").parts))
+
+    for d in archived:
+        docs = sorted(p for p in d.rglob("*.md") if p.is_file())
+        known = {p.resolve() for p in docs}
+        items = []
+        for p in docs:
+            target = html_path(p)
+
+            def link(t, p=p, target=target):
+                ref = (p.parent / unquote(t.split("#")[0])).resolve()
+                if ref not in known:
+                    return None
+                return Path(os.path.relpath(html_path(ref), target.parent)).as_posix()
+            target.parent.mkdir(parents=True, exist_ok=True)
+            depth = len(target.relative_to(site).parts) - 1
+            target.write_text(page(f"{d.name}: {p.stem}", md_to_html(p.read_text(), link),
+                                   depth))
+            items.append(f"<li><a href=\"{e(target.relative_to(site).as_posix())}\">"
+                         f"{e(p.relative_to(d).as_posix())}</a></li>")
+        body.append(f"<h3>{e(d.name)}</h3><div class=card><ul class=picks>{''.join(items)}"
+                    "</ul></div>")
+    (site / "seasons.html").write_text(page("Seasons", "\n".join(body)))
+    return len(archived)
 
 
 def write_bot_page(site, row, role, matrix, current, metas):
@@ -377,6 +506,7 @@ def main():
     info = build(args.out)
     size = sum(f.stat().st_size for f in Path(info["site"]).rglob("*") if f.is_file())
     print(f"{info['site']}: {info['bots']} bots, {info['replays']} replays, "
+          f"{info['cards']} tactic cards, {info['seasons']} archived seasons, "
           f"{size / 1e6:.1f} MB")
     return 0
 
