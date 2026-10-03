@@ -879,3 +879,25 @@ The branches are rebased on master: `s2-a-imperfect-id` has 190 tests passing an
   `backscheduled_blast_packer`); it is at 86% overall. No refusals. The counter_meta attacker
   `depth_shell_saturation` beat convergence_blast_scheduler (0.585, #3 attacker). 54,667
   tokens; tournament 1,170 matches in 353 s, growing by roughly 100–200 matches a night.
+
+## Session 8 — operating charter
+
+Started from the charter. `BACKLOG.md`, `DAILY.md` and `DECISIONS.local.md` are written.
+Where I've read the charter differently, and why:
+
+1. **3.12 Stage 3 scoping is blocked, not deferred.** It asks what fidelity would let an
+   arena result "predict anything about their defence logic", with a sensor model, 2.5D
+   physics, and transfer experiments for the tactic library. That pulls directly against
+   hard rule 1. On 2026-10-01 and 10-02 the generator itself refused two counter-meta
+   defender prompts as mapping "closely onto real counter-drone engagement tactics". A
+   roadmap whose explicit goal is real-world predictiveness is a decision for the founder
+   to make with that in view. I won't write it on my own judgement. Everything else on the
+   backlog stays abstract and proceeds.
+2. **The daily session can't hold a hard per-call token cap.** `claude -p` has no token limit
+   for an agentic session. `daily.sh` gets a 2-hour wall clock, records the session's tokens
+   from the CLI's JSON output, and refuses to start the next day's session if the last one
+   went over 200k. It's a cap by consequence, not by pre-check like the league's.
+3. **No raw `docker` in the daily session's allow-list** (`docker run -v /:/host` is root).
+   The project's own commands still run the sandbox. See DECISIONS.local.md.
+4. **The cache key hashes the Rules object in force**, not `rules.py`'s bytes, so season-two
+   candidate runs can't be served season-one results. See DECISIONS.local.md.
