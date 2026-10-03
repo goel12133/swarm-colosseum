@@ -1,10 +1,14 @@
-# Daily — 2026-10-03 (daily session)
+# Daily — 2026-10-03 (daily session, second run)
 
-**Night:** ok, no alert. 1,170 matches in 353 s; 54.7k tokens. Watch 4/7.
-Tops: synchronized_ring (attacker), convergence_blast_scheduler (defender).
-**Done:** 3.7 tactic library. `python -m colosseum.library` writes out/library/: 20 cards
-in 9 families (saturation, synchronised arrival, decoy screening, trickle; identify first,
-patient defence, budgeted, value model, controls). 226 tests pass.
-**Next:** 3.8 sandbox red team + SECURITY.md. 3.5 opens after night 10-05.
-**Open stops:** 3.12 blocked on a founder decision (PROGRESS session 8). The generator
-refusals on 10-01 and 10-02 are still unanswered. 3.3 cron still waits on the lead engineer.
+**SECURITY:** a bot returning `Infinity` or a huge integer could crash a match from inside
+the sandbox, and probably the whole night (no per-match error handling). Fixed and tested,
+including through a real container. No night was hit; no replay on disk has NaN.
+
+**Night:** ok, no alert. Tops: synchronized_ring (attacker), convergence_blast_scheduler
+(defender). Watch 4/7.
+**Done:** 3.9 engine fuzzing. `python -m colosseum.fuzz`: FUZZ_10K_SHORT. Found the
+crash above. 500 new trajectories a night after the league. 258 tests pass.
+**Heads-up:** the engine changed, so tonight's tournament runs cold (all pairs, ~6+ min).
+**Next:** 3.10 site bundle kept current + about page. 3.5 opens after night 10-05.
+**Open stops:** 3.8 (red team) and 3.12 (Stage 3 scoping) wait on founder decisions.
+Generator refusals on 10-01 and 10-02 still unanswered.
