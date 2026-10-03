@@ -958,3 +958,40 @@ guard is raised (CLI overhead 4,000 → 12,000) because the retried calls used 1
 tokens on prompts it had estimated at ~9,500. A test checks every logged call's (chars,
 actual) pair. Dry run on a scratch copy: exit 0, 230 played / 1,170 cached, 66 s.
 `python3 -m pytest tests -q` → 207 passed.
+
+## Daily session 2026-10-03
+
+Night 2026-10-03 ok, no `out/ALERT.md`, no WIP.md. 3.3 is lead-engineer only; 3.4–3.6 are
+waiting for their dates; 3.12 is blocked. Next unblocked item: 3.7.
+
+### 3.7 Tactic library export ✅
+
+`python -m colosseum.library` writes `out/library/`: `INDEX.md` (families, one line per card,
+written for an outside reader), `cards/<name>.md`, and `library.json` (for the site bundle
+in 3.10). Each card gives name, side, family, persona, author, live/retired, the idea in one
+sentence, a one-paragraph description from the docstring, best finish, nights in the top
+five, the target it was written against, its unique coverage, what it beats and what beats
+it (seeds won, mean score, last night it played), its best and worst replay, and its full
+source. Selection rules and families: DECISIONS.local.md.
+
+Bot files are parsed with `ast` and never imported. Every untrusted string is escaped:
+no HTML, no links, no code spans, no table cells. The source sits in a fence longer than
+any backtick run inside it, so a bot can't close the fence and inject markdown. That's
+groundwork for the 3.8 red team (cards are one of its injection targets).
+
+```
+python3 -m colosseum.library     (on the out/ snapshot, 6 nights)
+  -> out/library: 20 tactic cards, as of 2026-10-03
+     attackers 8 (saturation 1, synchronised arrival 3, decoy screening 2, trickle 2),
+     defenders 12 (identify first 3, patient 3, budgeted 2, value model 2, controls 2);
+     none unsorted; rush and annealed_assignment get no card (never top five, no unique
+     coverage)
+python3 -m pytest tests/test_library.py -q -> 10 passed
+  (selection, retired bot keeps its card, beats/beaten from breaches, replays only from the
+   current roster, hostile docstring stays inert, never imported, byte-identical rebuild,
+   unsorted family, every family member real and on its side)
+python3 -m pytest tests -q -> 226 passed in 39 s
+```
+
+Not done here: it isn't in the nightly cron yet. Rebuilding it nightly and linking it from
+the site is item 3.10.
