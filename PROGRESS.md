@@ -1205,3 +1205,37 @@ inputs are inert one-liners, and none of them is ever loaded.
 Not verified here: an actual run on Python 3.11 or Windows (this host's Python ran the
 tests). The facilitator guide says to run `make workshop` / `python workshop/check.py` on
 one laptop before the day.
+
+## Build session 2026-10-03 — 3.12 engine scoping, for the game ✅
+
+There was no ALERT. Night 10-03 was ok. 3.12 was the next unblocked item in scope. Session 8
+had blocked it because the old text was about real-world predictiveness. On 2026-10-03 the
+founder rewrote it to cover the game only ("no goal of predicting real defence
+performance"). So it's now within the charter, and I wrote it.
+
+`ENGINE_SCOPING.md` (two pages). It works from `sim.py` and `rules.py` as they are and
+finds three thin spots: one noise σ at every range, a classification cliff at 150 u with no
+mislabels, and instant turns (which is why `flanker` wins 0%). It scopes four features as
+Rules fields, each with a neutral default that reproduces today's engine:
+1. sensor noise growth, dropouts and phantom tracks
+2. classification confusion with a `cls_conf` key
+3. turn rates for drones and interceptors
+4. altitude bands
+
+For each one it covers the texture it adds, the change to the bot API, size and risk.
+Constraints: no new RNG draws at neutral defaults, plus a byte-identical replay test against
+today's engine; additions to observations only; fuzzer coverage; abstract names and
+defaults only. Success is measured in the game: occupied library families, unique
+coverage, no bot over 90%, roles 40–60. Proposed order: confusion → turn rates → sensors,
+on a later-season candidate branch. Bands only with a founder decision. No transfer claims,
+and real systems are out of scope.
+
+Raised with the founder under the scope rule: `ROADMAP.md` Stage 3 still lists "a paid API
+for a company to test its own defence logic". That points away from the stated scope. I
+haven't changed ROADMAP. It's a yes/no for the founder.
+
+No code changed.
+
+```
+python3 -m pytest tests -q -> 293 passed in 55.72s
+```
