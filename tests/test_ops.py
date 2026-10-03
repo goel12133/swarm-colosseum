@@ -120,6 +120,18 @@ def test_health_last_night_and_alert(tmp_path):
     assert text.splitlines() == ["ok  docker     fine", "BAD cron       missing"]
 
 
+def test_health_disk_fails_at_70_percent_used(tmp_path, monkeypatch):
+    from types import SimpleNamespace as usage
+    monkeypatch.setattr(health.shutil, "disk_usage",
+                        lambda p: usage(total=100e9, used=69e9, free=31e9))
+    ok, detail = health.check_disk(tmp_path)
+    assert ok and detail.startswith("69% used, 31 GB free")
+    monkeypatch.setattr(health.shutil, "disk_usage",
+                        lambda p: usage(total=100e9, used=70e9, free=30e9))
+    ok, detail = health.check_disk(tmp_path)
+    assert not ok and detail.startswith("70% used")
+
+
 def test_watch_verdicts():
     def row(d, rate):
         return dict(date=d, overall=0.95, best_defender="x", best_rate=rate,

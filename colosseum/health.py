@@ -6,7 +6,8 @@
     cli-login   `claude auth status` says logged in (only loggedIn/authMethod are read;
                 nothing under ~/.claude is opened, and the account email is never printed)
     cron        the nightly entry is in root's crontab
-    disk        free space on the filesystem holding out/, and the size of out/
+    disk        % used and free space on the filesystem holding out/ (bad at 70% or more),
+                and the size of out/
     last-night  the newest line of out/nights.jsonl: status, and whether it is recent
     alert       out/ALERT.md is absent
 """
@@ -22,6 +23,7 @@ from .tournament import DEFAULT_OUT, ROOT
 
 MIN_FREE_GB = 5.0
 MAX_OUT_GB = 20.0
+MAX_USED_PCT = 70.0     # charter section 4: disk under 70%
 
 
 def _run(cmd, timeout=30):
@@ -64,10 +66,12 @@ def _size(path: Path):
 
 
 def check_disk(out: Path = DEFAULT_OUT):
-    free = shutil.disk_usage(out if out.exists() else ROOT).free / 1e9
+    usage = shutil.disk_usage(out if out.exists() else ROOT)
+    free = usage.free / 1e9
+    pct = 100 * usage.used / usage.total
     used = _size(out) / 1e9
-    ok = free >= MIN_FREE_GB and used <= MAX_OUT_GB
-    return ok, f"{free:.0f} GB free, out/ is {used * 1000:.0f} MB"
+    ok = free >= MIN_FREE_GB and used <= MAX_OUT_GB and pct < MAX_USED_PCT
+    return ok, f"{pct:.0f}% used, {free:.0f} GB free, out/ is {used * 1000:.0f} MB"
 
 
 def check_last_night(out: Path = DEFAULT_OUT, today: date = None):
