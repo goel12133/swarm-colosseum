@@ -169,38 +169,93 @@ def target_replays(out: Path, target: str, target_role: str, matrix, seeds=10, k
                 closest_calls=closest)
 
 
-def standings(lb):
+TOP_STANDINGS = 5
+
+
+def standings(lb, keep=()):
+    """Top TOP_STANDINGS per side, plus any bot named in `keep` (the target)."""
     def fmt(r):
         return (f"  {r['name']}: elo {r['elo']:.0f}, win rate {r['win_rate']:.0%}, "
                 f"mean CER {r['mean_cer']}")
-    return ("Attackers:\n" + "\n".join(map(fmt, lb["attackers"]))
-            + "\n\nDefenders:\n" + "\n".join(map(fmt, lb["defenders"])))
+
+    def side(rows):
+        shown = [r for i, r in enumerate(rows) if i < TOP_STANDINGS or r["name"] in keep]
+        more = len(rows) - len(shown)
+        return "\n".join(map(fmt, shown)) + (f"\n  ... and {more} more" if more else "")
+    return "Attackers:\n" + side(lb["attackers"]) + "\n\nDefenders:\n" + side(lb["defenders"])
+
+
+def est_tokens(text: str) -> int:
+    """Same deliberately crude estimate the league's pre-call cap uses (3.5 chars/token)."""
+    return int(len(text) / 3.5) + 1
+
+
+def _item(name, persona, role, target, ctx, out):
+    lb, matrix = ctx["leaderboard"], ctx["matrix"]
+    trole = opposing(role)
+    if name == "source":
+        return P.ITEMS["source"].substitute(target=target, target_role=trole,
+                                            source=bot_path(target).read_text())
+    if name == "closest":
+        reps = target_replays(out, target, trole, matrix, k=2)
+        return P.ITEMS["closest"].substitute(closest=json.dumps(reps["closest_calls"]))
+    if name == "row":
+        row = {a: matrix[a][target] for a in matrix} if trole == "defender" else matrix[target]
+        return P.ITEMS["row"].substitute(row=json.dumps({k: round(v, 2) for k, v in row.items()}))
+    if name == "lopsided":
+        if role == "attacker":                    # the target defender's worst pairing
+            a = min(matrix, key=lambda x: matrix[x][target])
+            d = target
+        else:                                     # the target attacker's best pairing
+            a = target
+            d = min(matrix[target], key=lambda x: matrix[target][x])
+        rep = replay_summary(out, a, d, 0)
+        return P.ITEMS["lopsided"].substitute(attacker=a, defender=d,
+                                              score=round(matrix[a][d], 3),
+                                              match=json.dumps(rep))
+    if name == "target_doc":
+        return P.ITEMS["target_doc"].substitute(target=target, doc=docstring(bot_path(target)))
+    if name == "matrix":
+        compact = {a: {d: round(v, 2) for d, v in row.items()} for a, row in matrix.items()}
+        return P.ITEMS["matrix"].substitute(matrix=json.dumps(compact))
+    if name == "top_three":
+        def head(name, n=600):            # the Idea line and the gist, not the essay
+            d = docstring(bot_path(name))
+            return d if len(d) <= n else d[:n].rsplit(" ", 1)[0] + " ..."
+        docs = "\n\n".join(f"### {r['name']}\n{head(r['name'])}"
+                            for r in lb[trole + "s"][:3])
+        return P.ITEMS["top_three"].substitute(opponent_role=trole, docs=docs)
+    raise ValueError(f"unknown evidence item {name!r}")
+
+
+def evidence_with_budget(persona, role, target, ctx, out: Path):
+    """(text, info). Items go in, most informative first, until the persona's budget is used.
+    The first item always goes in, cut at the budget if it has to be."""
+    budget, order = P.BUDGETS[persona]
+    keep = () if target == "field" else (target,)
+    parts = [P.STANDINGS.substitute(standings=standings(ctx["leaderboard"], keep))]
+    used, included, dropped = 0, [], []
+    for name in order:
+        if target == "field" and name in ("source", "closest", "row", "target_doc"):
+            continue
+        text = _item(name, persona, role, target, ctx, out)
+        cost = est_tokens(text)
+        if used + cost <= budget:
+            parts.append(text)
+            used += cost
+            included.append(name)
+        elif not included:
+            cut = int((budget - used) * 3.5)
+            parts.append(text[:cut] + "\n[... cut to fit the evidence budget]\n")
+            used = budget
+            included.append(name + " (cut)")
+        else:
+            dropped.append(name)
+    return "".join(parts), dict(budget=budget, used=used, included=included, dropped=dropped)
 
 
 def evidence(persona, role, target, ctx, out: Path) -> str:
-    lb, matrix = ctx["leaderboard"], ctx["matrix"]
-    base = P.STANDINGS.substitute(standings=standings(lb))
-    if persona == "exploiter":
-        return base + P.EVIDENCE["exploiter"].substitute(
-            matrix=json.dumps(matrix, indent=2), lopsided=json.dumps(ctx["lopsided"], indent=2))
-    if persona == "counter_meta":
-        trole = opposing(role)
-        row = {a: matrix[a][target] for a in matrix} if trole == "defender" else matrix[target]
-        reps = target_replays(out, target, trole, matrix)
-        return base + P.EVIDENCE["counter_meta"].substitute(
-            target=target, target_role=trole, source=bot_path(target).read_text(),
-            row=json.dumps(row, indent=2), best=json.dumps(reps["best_pairings"], indent=2),
-            closest=json.dumps(reps["closest_calls"], indent=2))
-    if persona == "generalist":
-        docs = "\n\n".join(f"### {r['name']}\n{docstring(bot_path(r['name']))}"
-                            for r in lb[opposing(role) + "s"])
-        return base + P.EVIDENCE["generalist"].substitute(
-            matrix=json.dumps(matrix, indent=2), opponent_role=opposing(role), docs=docs)
-    if persona == "contrarian":
-        docs = "\n\n".join(f"### {r['name']}\n{docstring(bot_path(r['name']))}"
-                            for r in lb[role + "s"])
-        return base + P.EVIDENCE["contrarian"].substitute(role=role, docs=docs)
-    raise ValueError(f"unknown persona {persona!r}")
+    return evidence_with_budget(persona, role, target, ctx, out)[0]
 
 
 def task(persona, role, target, second_of_two=False) -> str:

@@ -273,9 +273,12 @@ def test_code_fence_variants_are_all_extracted(fence):
 
 
 def test_cli_input_estimate_covers_the_observed_real_calls():
-    """Real nights on 2026-09-28 used 2,929 and 5,927 input tokens; the guard must not be lower."""
-    prompt = hl.build_prompt(hl.gather_context())
-    assert hl.estimate_input_tokens(prompt, "cli") >= 5927
+    """(prompt chars, actual input tokens) of real calls from the log, 2026-09-29..10-03,
+    including the two that retried after a safety check. The guard must never be lower."""
+    observed = [(12332, 5816), (6335, 2965), (10618, 4766), (8811, 3856), (17363, 7912),
+                (17526, 15999), (17157, 15819), (17320, 7929), (20668, 9445), (18820, 8215)]
+    for chars, actual in observed:
+        assert hl.estimate_input_tokens("x" * chars, "cli") >= actual, (chars, actual)
 
 
 def test_a_house_bot_at_the_top_is_not_recorded_as_bottom(tmp_path, monkeypatch):
@@ -567,3 +570,57 @@ def test_a_dry_run_never_touches_the_alert(monkeypatch):
     monkeypatch.setattr(hl, "_run_night", lambda *a: dict(status="ok", spend={}))
     hl.run_night(caps=hl.Caps(), dry_run=True)
     assert hl.ALERT.read_text() == "from a real failure"
+
+
+# --- evidence budgets (charter 3.2) ----------------------------------------------
+
+@pytest.mark.parametrize("persona", P.PERSONAS)
+@pytest.mark.parametrize("role", ["attacker", "defender"])
+def test_evidence_stays_inside_the_persona_budget(persona, role):
+    from colosseum.prompts import generator as G
+    ctx = hl.gather_context()
+    target = P.target_for(persona, role, ctx)
+    text, info = P.evidence_with_budget(persona, role, target, ctx, hl.DEFAULT_OUT)
+    budget, order = G.BUDGETS[persona]
+    assert info["budget"] == budget and info["used"] <= budget
+    assert info["included"], "the most informative item always goes in"
+    assert info["included"][0].split(" ")[0] == next(
+        n for n in order if not (target == "field" and n in ("source", "closest", "row",
+                                                             "target_doc")))
+
+
+def test_counter_meta_gets_the_source_first_and_two_closest_calls():
+    ctx = hl.gather_context()
+    target = ctx["leaderboard"]["defenders"][0]["name"]
+    text, info = P.evidence_with_budget("counter_meta", "attacker", target, ctx,
+                                        hl.DEFAULT_OUT)
+    assert info["included"][:2] == ["source", "closest"]
+    assert P.bot_path(target).read_text().strip()[:200] in text
+
+
+def test_standings_are_capped_but_keep_the_target():
+    lb = {"attackers": [dict(name=f"a{i}", elo=1000 - i, win_rate=0.5, mean_cer=1.0)
+                        for i in range(9)],
+          "defenders": [dict(name="d0", elo=1, win_rate=0.5, mean_cer=1.0)]}
+    s = P.standings(lb, keep=("a8",))
+    assert "a4" in s and "a5" not in s and "a8" in s and "... and 3 more" in s
+
+
+def test_the_budget_is_recorded_in_bot_metadata(monkeypatch, tmp_path):
+    out = tmp_path / "out"
+    out.mkdir()
+    for f in ("leaderboard.json", "matrix.json", "BALANCE.md"):
+        (out / f).write_text((hl.DEFAULT_OUT / f).read_text())
+    for name, val in [("HOUSE", tmp_path / "house"), ("RAW", tmp_path / "raw"),
+                      ("HISTORY", tmp_path / "history.json")]:
+        monkeypatch.setattr(hl, name, val)
+    monkeypatch.setattr(hl, "smoke_test", lambda path, role: (True, "ok"))
+    monkeypatch.setattr(hl, "call_model", lambda *a: ONE_ATTACKER)
+    monkeypatch.setattr(hl, "run_tournament", lambda **kw: pytest.skip("not needed"))
+    monkeypatch.setenv("HOUSE_LEAGUE_PERSONAS", "attacker=counter_meta,defender=generalist")
+    try:
+        hl.run_night(caps=hl.Caps(bots_per_night=1), out=out)
+    except pytest.skip.Exception:
+        pass
+    meta = json.loads(next((tmp_path / "house").glob("*.meta.json")).read_text())
+    assert meta["evidence"]["budget"] == 4000 and meta["prompt_version"] == "2026-10-03.1"

@@ -11,3 +11,4 @@
 - **2026-10-03 — rotation keeps every replay of the current roster.** With a cache, a pairing
   that doesn't rerun never rewrites its replay, so a 14-day mtime rule would delete the only
   replay of a live matchup.
+- **2026-10-03 — contrarian's "number one" is its target, the opposing #1.** Charter 3.2 says the contrarian sees "the number one's source and nothing else"; its target was already the opposing #1, so that's the source it gets. Its goal no longer says "unlike the bots described above", since it sees none.

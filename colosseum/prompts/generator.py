@@ -11,10 +11,14 @@ History
   2026-09-28.1  first persona prompts (moved here verbatim from house_league.py/personas.py)
   2026-09-29.1  docstring must start with "Idea: <one sentence>" (quoted in the weekly
                 report); second-of-two note for escalation nights
+  2026-10-03.1  fixed evidence budgets per persona (tokens, most informative first; charter
+                3.2); standings capped at the top five per side; contrarian is shown its
+                target's source instead of every same-side docstring, and its goal no longer
+                refers to bots it can't see
 """
 from string import Template
 
-PROMPT_VERSION = "2026-09-29.1"
+PROMPT_VERSION = "2026-10-03.1"
 
 SYSTEM = ("You write Python bot files for a game benchmark. Answer with exactly the "
           "fenced code blocks requested and nothing else.")
@@ -57,17 +61,9 @@ RULES = Template("## Current rules\n\n$rules\n")
 
 STANDINGS = Template("## Current standings\n\n$standings\n")
 
-EVIDENCE = {
-    "exploiter": Template("""
-## Mean score_defender per pairing (high = defender did well)
-
-$matrix
-
-## The most lopsided pairings, with one match each
-
-$lopsided
-"""),
-    "counter_meta": Template("""
+# Evidence items. Each persona's items are added in this order until its budget is used.
+ITEMS = {
+    "source": Template("""
 ## The bot you must beat: $target ($target_role)
 
 Its full source:
@@ -75,33 +71,47 @@ Its full source:
 ```python
 $source
 ```
-
-Its mean score_defender against each opponent (high = defender did well):
-
-$row
-
-Its best pairings, one match each:
-
-$best
-
+"""),
+    "closest": Template("""
 Its closest calls -- the matches where it came nearest to losing:
 
 $closest
 """),
-    "generalist": Template("""
-## Mean score_defender per pairing (high = defender did well)
+    "row": Template("""
+Its mean score_defender against each opponent (high = defender did well):
+
+$row
+"""),
+    "lopsided": Template("""
+## The most lopsided matchup, with one match
+
+Pairing $attacker vs $defender, mean score_defender $score:
+
+$match
+"""),
+    "target_doc": Template("""
+## $target, by its own description
+
+$doc
+"""),
+    "matrix": Template("""
+## Mean score_defender per pairing (high = defender did well; rows attackers)
 
 $matrix
-
-## Every $opponent_role you will face, by its own description
+"""),
+    "top_three": Template("""
+## The top three ${opponent_role}s, by their own description
 
 $docs
 """),
-    "contrarian": Template("""
-## Every existing $role, by its own description -- approaches you must NOT reuse
+}
 
-$docs
-"""),
+# token budget per persona, and the order its evidence is added in
+BUDGETS = {
+    "counter_meta": (4000, ("source", "closest", "row")),
+    "exploiter": (1500, ("lopsided", "target_doc")),
+    "generalist": (3000, ("matrix", "top_three")),
+    "contrarian": (3500, ("source",)),
 }
 
 ONE_BOT = Template("Write exactly ONE bot: $article $role. Return exactly one fenced Python "
@@ -121,8 +131,10 @@ GOALS = {
                            "docstring must say why the approach holds up against every "
                            "opponent described above."),
     "contrarian": Template("It must beat $target, the current #1 $opponent_role, with a core "
-                           "idea that none of the existing ${role}s described above use. The "
-                           "docstring must name the idea and say how it differs from each."),
+                           "idea that is not the obvious counter to the source above -- "
+                           "something no ${role} on the ladder is likely to be doing. The "
+                           "docstring must name the idea and say why it is not the obvious "
+                           "counter."),
 }
 
 IDEA_LINE = ("The docstring's first line must be `Idea: <one sentence>` saying what this bot "

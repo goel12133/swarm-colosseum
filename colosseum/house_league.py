@@ -198,13 +198,19 @@ def gather_context(out: Path = DEFAULT_OUT, n_replays: int = 3) -> dict:
                 lopsided=samples, rules=SEASON0.as_dict())
 
 
+LAST_EVIDENCE = {}          # the budget record of the last prompt built (goes in .meta.json)
+
+
 def build_prompt(ctx: dict, role: str = "attacker", persona: str = "exploiter",
                  target: str = None, out: Path = DEFAULT_OUT, second_of_two=False) -> str:
     """One bot, one persona. All wording is in colosseum/prompts/generator.py."""
     target = target or personas.target_for(persona, role, ctx)
+    text, info = personas.evidence_with_budget(persona, role, target, ctx, out)
+    LAST_EVIDENCE.clear()
+    LAST_EVIDENCE.update(info)
     return "\n".join([
         prompt_text.INTRO,
-        personas.evidence(persona, role, target, ctx, out),
+        text,
         prompt_text.RULES.substitute(rules=json.dumps(ctx["rules"], indent=2)),
         prompt_text.API,
         personas.task(persona, role, target, second_of_two),
@@ -243,9 +249,10 @@ def act(obs):
 ```'''
 
 
-# What `claude -p` sends on top of our prompt (its own system prompt, tool-less). Observed
-# on 2026-09-28: 2,929 and 5,927 input tokens for a prompt this module estimates at ~2,300.
-CLI_INPUT_OVERHEAD = 4000
+# What `claude -p` sends on top of our prompt, plus retries inside one call. Worst observed:
+# 2026-10-01/02, 15,999 input tokens for a 17,526-char prompt (a call that hit a safety
+# check and retried internally); this module estimates that prompt at ~5,500 on its own.
+CLI_INPUT_OVERHEAD = 12000
 
 
 def estimate_input_tokens(prompt: str, backend: str = "api") -> int:
@@ -693,7 +700,10 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
                 return dict(status="error", reason=str(exc), spend=vars(spend))
             rejected.append((role, f"persona setup: {exc}"))
             break
-        log(f"{role}: persona={persona} target={target} prompt={len(prompt):,} chars")
+        evidence_info = dict(LAST_EVIDENCE)
+        log(f"{role}: persona={persona} target={target} prompt={len(prompt):,} chars "
+            f"evidence {evidence_info.get('used')}/{evidence_info.get('budget')} tokens "
+            f"{evidence_info.get('included')}")
         before = (spend.input_tokens, spend.output_tokens)
         try:
             with phases("generation"):
@@ -755,6 +765,7 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
         metas[path.stem] = dict(
             name=path.stem, role=role, date=when, persona=persona, target=target,
             escalation=note == "escalation", prompt_version=prompt_text.PROMPT_VERSION,
+            evidence=evidence_info,
             backend=caps.backend, model=caps.model, dry_run=dry_run,
             tokens=dict(input=spend.input_tokens - before[0],
                         output=spend.output_tokens - before[1]),

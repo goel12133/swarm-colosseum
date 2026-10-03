@@ -927,3 +927,34 @@ Live `out/cache/` was pre-warmed from that run (the 230 dry-run rows removed): 0
 1,170 matches are missing. Rotation now keeps every current-roster replay, because a cached
 pairing never rewrites its replay. Cache size and hit rate are in the ledger and the meta
 report.
+
+### 3.2 Generator token discipline ✅ — **prompt change: PROMPT_VERSION 2026-10-03.1**
+
+**What grew, 8.7k → ~55k a night** (per call, from the log):
+1. One call per persona from 09-29, instead of one call for both bots: about 2×.
+2. **Output** (thinking plus code) went from 6k to 8–28k a call, about 65% of all tokens.
+   Nothing in the evidence controls it; the 32k output ceiling per call stays.
+3. Input prompts went from 6k to 21k chars. The generalist pasted the whole N×M matrix (now
+   9 × 13) plus every opponent's docstring; counter_meta pasted 8–11 KB house-bot sources plus
+   six indented JSON match summaries; the standings listed every bot.
+4. Two calls that hit the safety check and retried internally used ~16k input each.
+
+**Now:** a fixed evidence budget per persona, items added most informative first, with the
+first item always included:
+
+```
+counter_meta 4000: target source, its 2 closest calls, its per-opponent row
+exploiter    1500: the single most lopsided matchup (one match), the target's docstring
+generalist   3000: compact matrix (2 dp), the top three opponents (first 600 chars each)
+contrarian   3500: its target's source, nothing else
+standings: top 5 per side (+ the target)
+input tokens, live ladder, before -> after:
+  attacker exploiter 3261->1345  counter_meta 6030->4583  generalist 8965->~2600  contrarian 4870->4155
+  defender exploiter 3258->1323  counter_meta 4990->3952  generalist 6437->~2600  contrarian 7394->3514
+```
+
+`.meta.json` now records `evidence: {budget, used, included, dropped}`. The pre-call input
+guard is raised (CLI overhead 4,000 → 12,000) because the retried calls used 15,999 input
+tokens on prompts it had estimated at ~9,500. A test checks every logged call's (chars,
+actual) pair. Dry run on a scratch copy: exit 0, 230 played / 1,170 cached, 66 s.
+`python3 -m pytest tests -q` → 207 passed.
