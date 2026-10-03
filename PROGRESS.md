@@ -1087,3 +1087,18 @@ version changed (policy.py), so tonight's tournament runs cold, all pairs.** Tha
 per the charter. Last cold run was 372 s.
 
 `python3 -m pytest tests -q` → 258 passed in 46 s (227 + 31 new).
+
+### Founder steer 2026-10-03: build session every 3 hours, build items only
+
+- `colosseum/daily.py` is scoped: the session may work only on **3.10, 3.11, 3.12 and
+  standing hygiene**. It must declare its item in `SESSION_ITEM` before starting; the wrapper
+  refuses to merge (status `out-of-scope`, with an alert) if the item is missing, gated
+  (G, 3.8) or frozen.
+- **No looping:** an item whose last two sessions both ended without a merge is frozen.
+  The prompt lists frozen items to be written up, not worked on.
+- **Cron:** `0 0,6,9,12,15,18,21 * * *` replaces the 05:00 entry. That's every three hours
+  except 03:00, which would overlap the 03:30 league. The lock stops two sessions overlapping.
+- **G (generator prompts and content check):** untouched, waiting for the founder's text.
+  **3.8:** held; it runs only interactively, with the founder.
+- Tests: an out-of-scope session is never merged; an item with two unmerged sessions in a
+  row is frozen; the prompt names the scope. `python3 -m pytest tests -q` → 261 passed.

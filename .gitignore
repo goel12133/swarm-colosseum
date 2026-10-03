@@ -8,3 +8,5 @@ __pycache__/
 !.house_league.env.example
 # Clips are reproducible from replays; never committed.
 *.mp4
+# The build session's declared item (colosseum/daily.py); never committed.
+SESSION_ITEM

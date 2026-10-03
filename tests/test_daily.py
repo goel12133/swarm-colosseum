@@ -39,14 +39,18 @@ def repo(tmp_path):
 
 SCENARIOS = {
     # what the fake session does inside the worktree
-    "commit": "echo work > feature.txt && git add feature.txt && "
+    "commit": "echo 3.10 > SESSION_ITEM && echo work > feature.txt && git add feature.txt && "
               "git -c user.name=s -c user.email=s@s commit -q -m feature && "
               "echo 'today: did the feature' > DAILY.md && git add DAILY.md && "
               "git -c user.name=s -c user.email=s@s commit -q -m daily",
-    "wip": "echo half > half.txt && echo 'state: halfway' > WIP.md && git add -A && "
+    "wip": "echo 3.11 > SESSION_ITEM && echo half > half.txt && echo 'state: halfway' > WIP.md && git add -A && "
            "git -c user.name=s -c user.email=s@s commit -q -m wip",
-    "dirty": "echo forgot > forgot.txt",
-    "nothing": "true",
+    "dirty": "echo 3.10 > SESSION_ITEM && echo forgot > forgot.txt",
+    "nothing": "echo hygiene > SESSION_ITEM",
+    "gated": "echo 3.8 > SESSION_ITEM && echo x > x.txt && git add x.txt && "
+             "git -c user.name=s -c user.email=s@s commit -q -m x",
+    "red3_11": "echo 3.11 > SESSION_ITEM && echo y > y.txt && git add y.txt && "
+               "git -c user.name=s -c user.email=s@s commit -q -m y",
 }
 
 
@@ -142,3 +146,29 @@ def test_a_second_session_cannot_start_while_one_holds_the_lock(repo, tmp_path):
 def test_the_prompt_forbids_attribution_trailers(repo, tmp_path):
     prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out")
     assert "no Co-Authored-By" in prompt and "WIP.md" in prompt
+
+
+def test_a_session_on_a_human_gated_item_is_never_merged(repo, tmp_path):
+    rec = day(repo, tmp_path, "gated")
+    assert rec["status"] == "out-of-scope" and "3.8" in rec["detail"]
+    assert not (repo / "x.txt").exists()
+    assert (repo / "out" / "ALERT.md").exists()
+
+
+def test_an_item_with_two_unmerged_sessions_in_a_row_is_frozen(repo, tmp_path):
+    day(repo, tmp_path, "red3_11", test_cmd="false")
+    rec = day(repo, tmp_path, "red3_11", test_cmd="false")
+    assert rec["status"] == "red"
+    assert daily.frozen_items(repo / "out") == ["3.11"]
+    rec = day(repo, tmp_path, "red3_11", test_cmd="true")
+    assert rec["status"] == "out-of-scope" and "frozen" in rec["detail"]
+    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out", ["3.11"])
+    assert "Frozen items" in prompt and "3.11" in prompt
+    assert "Item G and item 3.8 are\nhuman-gated" in prompt or "human-gated" in prompt
+
+
+def test_the_prompt_limits_scope_to_build_items(repo, tmp_path):
+    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out")
+    for item in daily.BUILD_ITEMS:
+        assert item in prompt
+    assert "SESSION_ITEM" in prompt and "never touch them" in prompt

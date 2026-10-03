@@ -1,4 +1,5 @@
-"""The daily engineering session (charter section 2): one unattended `claude -p` a day.
+"""The build session (charter section 2, scoped by the founder 2026-10-03): unattended
+`claude -p` every three hours, restricted to build-only items (BUILD_ITEMS).
 
     scripts/daily.sh            # what cron runs at 05:00 UTC; it calls run_day()
 
@@ -50,6 +51,31 @@ OUT_COPY = ("leaderboard.json", "matrix.json", "BALANCE.md", "breaches.json", "n
             "meta")
 
 
+# Founder, 2026-10-03: in the dev phase the unattended session may work only on these.
+# Item G (generator prompts) and 3.8 (sandbox hardening) are human-gated.
+BUILD_ITEMS = ("3.10", "3.11", "3.12", "hygiene")
+SESSION_ITEM = "SESSION_ITEM"             # one line, written by the session before it starts
+NO_PROGRESS_LIMIT = 2                     # consecutive non-merged sessions -> item frozen
+
+
+def frozen_items(out: Path):
+    """Items whose last NO_PROGRESS_LIMIT sessions all ended without a merge."""
+    path = out / "daily" / "sessions.jsonl"
+    if not path.exists():
+        return []
+    by_item = {}
+    for line in path.read_text().splitlines():
+        try:
+            rec = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if rec.get("item"):
+            by_item.setdefault(rec["item"], []).append(rec.get("status"))
+    return sorted(i for i, sts in by_item.items()
+                  if len(sts) >= NO_PROGRESS_LIMIT
+                  and all(st != "merged" for st in sts[-NO_PROGRESS_LIMIT:]))
+
+
 class Refused(RuntimeError):
     pass
 
@@ -61,7 +87,7 @@ def git(repo, *args, check=True):
 
 def _dirty(wt: Path):
     return [l[3:] for l in git(wt, "status", "--porcelain").stdout.splitlines()
-            if not l[3:].startswith("out/")]
+            if not l[3:].startswith("out/") and l[3:] != SESSION_ITEM]
 
 
 # --- 1. preconditions ---------------------------------------------------------------
@@ -153,7 +179,7 @@ def copy_out(src: Path, dest: Path):
 
 # --- 5. the session --------------------------------------------------------------------
 
-def build_prompt(root: Path, wt: Path, out: Path) -> str:
+def build_prompt(root: Path, wt: Path, out: Path, frozen=()) -> str:
     def text(p):
         return p.read_text() if p.exists() else "(none)"
     log = out / "house_league.log"
@@ -171,8 +197,17 @@ worktree root describing the exact state and commit it; tomorrow's session conti
 from it. Untrusted bots never run on the host (tests included). The live league data is
 copied into out/ for you; it is a snapshot, not the live directory.
 
-Order: 1) if ALERT.md below shows a failure, fix its cause first, with a test;
-2) otherwise take the next unblocked item in BACKLOG.md; 3) run python3 -m pytest tests -q;
+SCOPE (founder, 2026-10-03). You may work ONLY on one of: {", ".join(BUILD_ITEMS)}
+("hygiene" = charter section 4, including writing up a stuck item). Item G and item 3.8 are
+human-gated: never touch them. Before anything else, write the id of the one item you are
+taking (exactly one of {", ".join(BUILD_ITEMS)}) as the only line of a file named
+{SESSION_ITEM} at the worktree root; the wrapper refuses to merge anything else.
+Frozen items (two sessions in a row without a merge; do not work on them, write them up
+under hygiene instead): {", ".join(frozen) or "none"}.
+
+Order: 1) if ALERT.md below shows a failure in the night or in a previous session, write it
+up and fix it if it falls within scope;
+2) otherwise take the next unblocked in-scope item in BACKLOG.md; 3) run python3 -m pytest tests -q;
 4) append to PROGRESS.md; 5) rewrite DAILY.md (one phone screen: date, night status, what
 was done, what is next, open stops); 6) commit everything and exit. Before you exit,
 `git status` must show nothing to commit, and no document may contain a placeholder for a
@@ -237,8 +272,20 @@ def run_session(cmd, prompt, wt: Path, transcript: Path, env: dict, timeout=WALL
 
 # --- 6-7. merge, publish, record --------------------------------------------------------
 
-def finish(root: Path, wt: Path, test_cmd: str):
-    """Returns (status, detail). status in merged / nothing / wip / dirty / red / conflict."""
+def session_item(wt: Path):
+    p = wt / SESSION_ITEM
+    return p.read_text().strip().splitlines()[0].strip() if p.exists() and \
+        p.read_text().strip() else None
+
+
+def finish(root: Path, wt: Path, test_cmd: str, frozen=()):
+    """Returns (status, detail). status in merged / nothing / wip / dirty / red / conflict /
+    out-of-scope."""
+    item = session_item(wt)
+    if item not in BUILD_ITEMS:
+        return "out-of-scope", f"{SESSION_ITEM} is {item!r}; allowed: {BUILD_ITEMS}"
+    if item in frozen:
+        return "out-of-scope", f"item {item} is frozen (no mergeable progress twice running)"
     if (wt / "WIP.md").exists():
         return "wip", "WIP.md present; continuing tomorrow"
     dirty = _dirty(wt)
@@ -303,14 +350,19 @@ def run_day(root: Path = ROOT, wt: Path = WORKTREE, out: Path = None, binary: st
         if env is None:
             from .house_league import cli_env
             env = cli_env()
-        prompt = build_prompt(root, wt, out)
+        frozen = frozen_items(out)
+        record["frozen"] = frozen
+        if (wt / SESSION_ITEM).exists():
+            (wt / SESSION_ITEM).unlink()           # each session declares its own
+        prompt = build_prompt(root, wt, out, frozen)
         transcript = out / "daily" / f"{record['date']}.jsonl"
         record.update(run_session(session_command(binary, root), prompt, wt, transcript,
                                   env, timeout))
-        status, detail = finish(root, wt, test_cmd)
-        record.update(status=status, detail=detail,
+        status, detail = finish(root, wt, test_cmd, frozen)
+        record.update(status=status, detail=detail, item=session_item(wt),
                       daily_published=publish_daily(root, wt))
-        _write_record(out, record, alert=status in ("red", "conflict", "dirty")
+        _write_record(out, record, alert=status in ("red", "conflict", "dirty",
+                                                    "out-of-scope")
                       or record.get("exit") != 0)
     except Refused as exc:
         record.update(status="refused", detail=str(exc))
