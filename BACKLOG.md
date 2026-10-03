@@ -12,7 +12,7 @@ From the operating charter, section 3, in order. Status: todo / doing / done / b
 | 3.6 | Season report | waiting | at the boundary, 2026-10-26 |
 | 3.7 | Tactic library export | done | 20 cards, 9 families; writes out/library/; nightly rebuild comes with 3.10 |
 | 3.8 | Sandbox red team + SECURITY.md | **blocked** | stopped 2026-10-03 by a safety classifier; founder decision needed -- the daily session must not pick this |
-| 3.9 | Engine fuzzing and invariants | todo | |
+| 3.9 | Engine fuzzing and invariants | done | stdlib fuzzer; 10,000 trajectories, 0 failures; 500 nightly in after-night; found + fixed a non-finite-number crash (SECURITY, PROGRESS) |
 | 3.10 | Site bundle kept current + about page | todo | |
 | 3.11 | Workshop kit | todo | |
 | 3.12 | Stage 3 scoping document | **blocked** | founder decision: fidelity aim vs hard rule 1 and the generator refusals (PROGRESS, session 8) |

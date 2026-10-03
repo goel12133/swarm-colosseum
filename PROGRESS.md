@@ -1023,3 +1023,67 @@ deliberately not allowed.
 
 Cron: `0 5 * * * /root/swarm-colosseum/scripts/daily.sh`, after the 03:30 league.
 `python3 -m pytest tests -q` → 227 passed.
+
+## Daily session 2026-10-03 (second run)
+
+No ALERT. 3.8 and 3.12 are blocked, so this session took 3.9.
+
+### 3.9 Engine fuzzing and invariants ✅ — and an engine fix
+
+> **SECURITY:** any bot could crash a match from inside the sandbox, and (reading
+> `tournament.py`, which has no per-match exception handling) the whole night's tournament
+> with it. The bot just had to return `Infinity` or a 400-digit integer as an id, bearing or
+> waypoint. The host decodes container replies with `json.loads`, which accepts NaN,
+> Infinity and long integers. `int(inf)` and `float(10**400)` raised `OverflowError`, which
+> the sanitiser didn't catch. A NaN bearing or waypoint didn't crash anything, but the drone
+> then carried NaN coordinates for the rest of the match, into the replay (non-strict JSON).
+> Fixed in `policy.py` with tests, including one through a real container. No night was
+> affected: every night so far is `ok`, and none of the 1,270 replays in the out/ snapshot
+> contains `NaN` or `Infinity` (grep). I didn't reproduce a whole-night crash end to end. The match-level crash is reproduced (fuzz run before the fix, below).
+
+`python3 -m colosseum.fuzz` is a seeded fuzzer in the standard library (no `hypothesis`; see
+DECISIONS). One integer fixes a trajectory: a rules variant (season 0 and five tuned edges:
+certain kills, a large economy, budget 3 / stock 1 / ammo 1, launch caps of 1, a 50-tick
+match), the match seed, and two random in-process policies. Those are defined in fuzz.py,
+so they're trusted code and nothing from bots/ runs on the host. About one action in eight is
+malformed on purpose. After every tick it checks: budget, stock and ammo stay in [0, start]
+and never rise; budget used = cost of drones launched, stock used = interceptors, ammo used =
+shots; per-tick launch caps hold; HP never rises; every position and velocity is finite;
+launched = killed + impacted + alive for each drone type. Per match it checks: ends by
+max_ticks; the result is strict JSON; a second run gives a byte-identical replay.
+
+```
+before the fix:  python3 -m colosseum.fuzz --start 0 --n 300
+  -> failed 298/300: OverflowError (int too large to convert to float; cannot convert
+     float infinity to integer), "drone 12 has a non-finite position", plus my own
+     fuzzer bug (dict keys that JSON can't produce; fixed in the fuzzer)
+after the fix:   python3 -m colosseum.fuzz --start 0 --n 300
+  -> failed 0; end reasons asset_destroyed 212, attacker_exhausted 53, tick_limit 35; 20.0 s
+python3 -m colosseum.fuzz --start 0 --n 10000   (run by the lead engineer; the session
+  exited before its own 10k run finished)
+  -> failed 0 of 10,000; 1,828,614 ticks; asset_destroyed 6,677, attacker_exhausted 1,662,
+     tick_limit 1,661; 617.7 s
+python3 -m pytest tests/test_fuzz.py -q -> 31 passed (sandbox test ran: docker available)
+```
+
+Tests (`tests/test_fuzz.py`): sanitiser regressions for each non-finite value; finite
+actions cleaned exactly as before; a fixture pair that sends non-finite numbers can't crash
+a match in-process or through a real container (replays identical both ways); 60
+trajectories hold every invariant; trajectories reproduce from their number; every rules
+variant is reached; the fuzz policies really do send malformed actions; three deliberately
+broken engines (asset heals, free ammo, NaN drone) and an over-launch are all caught; the
+nightly step logs and alerts.
+
+Determinism of real bots under the fix: the baseline-only tournament, rerun in-process with
+the fixed engine (`python3 -m colosseum.tournament --out out/verify-3.9 --quiet`, 350
+matches). A dozen `rush` replays spot-checked against last night's `out/replays` all match
+`score_defender` exactly. That's a sample, not a full diff (the session's allow-list has no
+diff or hashing tool). The unit test that finite actions clean identically is the general
+argument. `out/verify-3.9/` is scratch inside the gitignored out/ snapshot.
+
+**Nightly:** `ops after-night` now runs 500 new trajectories (numbered from the date, about
+35 s), appends to `out/fuzz.jsonl`, and writes ALERT.md on any failure. **The engine
+version changed (policy.py), so tonight's tournament runs cold, all pairs.** That's expected
+per the charter. Last cold run was 372 s.
+
+`python3 -m pytest tests -q` → 258 passed in 46 s (227 + 31 new).
