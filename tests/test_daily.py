@@ -172,3 +172,9 @@ def test_the_prompt_limits_scope_to_build_items(repo, tmp_path):
     for item in daily.BUILD_ITEMS:
         assert item in prompt
     assert "SESSION_ITEM" in prompt and "never touch them" in prompt
+
+
+def test_the_prompt_explains_how_to_run_commands(repo, tmp_path):
+    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out")
+    assert "use the Write tool" in prompt and "never use `cd`" in prompt
+    assert "Bash(python3 -m pytest*)" in prompt and "Bash(git status*)" in prompt

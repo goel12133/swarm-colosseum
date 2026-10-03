@@ -199,9 +199,16 @@ copied into out/ for you; it is a snapshot, not the live directory.
 
 SCOPE (founder, 2026-10-03). You may work ONLY on one of: {", ".join(BUILD_ITEMS)}
 ("hygiene" = charter section 4, including writing up a stuck item). Item G and item 3.8 are
-human-gated: never touch them. Before anything else, write the id of the one item you are
-taking (exactly one of {", ".join(BUILD_ITEMS)}) as the only line of a file named
-{SESSION_ITEM} at the worktree root; the wrapper refuses to merge anything else.
+human-gated: never touch them. Before anything else, use the Write tool (not the shell) to
+write the id of the one item you are taking (exactly one of {", ".join(BUILD_ITEMS)}) as the
+only line of a file named {SESSION_ITEM} at the worktree root; the wrapper refuses to merge
+anything else.
+
+How to run commands. Your shell already starts in the worktree root: never use `cd`,
+`git -C`, redirection (`>`), pipes into other commands, or `&&` chains. Use the file tools
+(Read, Write, Edit, Glob, Grep) for files. Only these shell command forms are allowed; any
+other form is refused, which does not mean the shell is unavailable:
+{chr(10).join("  " + t for t in allowed_tools(root) if t.startswith("Bash("))}
 Frozen items (two sessions in a row without a merge; do not work on them, write them up
 under hygiene instead): {", ".join(frozen) or "none"}.
 
