@@ -137,3 +137,8 @@ def test_a_second_session_cannot_start_while_one_holds_the_lock(repo, tmp_path):
     (repo / "out" / "daily" / "lock").write_text("123")
     rec = day(repo, tmp_path, "commit")
     assert rec["status"] == "refused" and "holds" in rec["detail"]
+
+
+def test_the_prompt_forbids_attribution_trailers(repo, tmp_path):
+    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out")
+    assert "no Co-Authored-By" in prompt and "WIP.md" in prompt

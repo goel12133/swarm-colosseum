@@ -163,7 +163,8 @@ def build_prompt(root: Path, wt: Path, out: Path) -> str:
 below exactly. Today is {date.today().isoformat()}.
 
 Where you are: a git worktree at {wt} on branch {BRANCH}. Work only here. Commit your work
-on this branch with clear messages. Do not create, switch or merge branches; the wrapper
+on this branch with clear messages, and no Co-Authored-By or other attribution trailers
+(the founder asked for none). Do not create, switch or merge branches; the wrapper
 that started you merges this branch into master after you exit, and only if the full test
 suite is green and there is no WIP.md. If you cannot finish an item, write WIP.md at the
 worktree root describing the exact state and commit it; tomorrow's session continues
