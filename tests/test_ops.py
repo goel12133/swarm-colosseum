@@ -75,6 +75,23 @@ def test_backup_contents_and_keeps_the_last_14(tmp_path):
     assert not any("__pycache__" in n or "house_league" in n for n in names)
 
 
+def test_a_backup_restores_byte_identical_into_a_scratch_copy(tmp_path):
+    root = tmp_path / "repo"
+    files = {"bots/house/b.py": "x = 1\n", "reports/FOUNDER_WEEK_1.md": "week\n",
+             "out/leaderboard.json": '{"attackers": []}', "out/matrix.json": "{}",
+             "BALANCE.md": "balance\n", "SEASON.md": "season\n"}
+    for rel, text in files.items():
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        (root / rel).write_text(text)
+    archive = ops.backup(tmp_path / "backups", root, today="2026-10-03")
+    scratch = tmp_path / "scratch"
+    with tarfile.open(archive) as tar:
+        tar.extractall(scratch, filter="data")
+    restored = {str(p.relative_to(scratch)): p.read_text()
+                for p in scratch.rglob("*") if p.is_file()}
+    assert restored == files
+
+
 def test_reports_phase_is_added_to_the_last_night(tmp_path):
     nights = tmp_path / "nights.jsonl"
     nights.write_text(json.dumps({"date": "a", "phases": {"tournament": 90}}) + "\n"

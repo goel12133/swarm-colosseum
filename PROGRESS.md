@@ -1239,3 +1239,39 @@ No code changed.
 ```
 python3 -m pytest tests -q -> 293 passed in 55.72s
 ```
+
+## Build session 2026-10-03 (evening) — hygiene
+
+There was no ALERT. Night 10-03 was ok. 3.10, 3.11 and 3.12 are done, so this session took
+hygiene (charter section 4). Checks and what they printed:
+
+```
+python3 -m colosseum.health
+ok  docker     server 29.1.3
+ok  cli-login  logged in via claude.ai
+ok  cron       30 3 * * * /root/swarm-colosseum/scripts/nightly.sh
+ok  disk       160 GB free, out/ is 161 MB
+ok  last-night 2026-10-03: ok
+ok  alert      none
+python3 -m pytest tests -q --durations=10 -> 293 passed in 54.03s (slowest: clip test 10.32s)
+ls -la out/cache -> results.sqlite, 2,043,904 bytes
+```
+
+- `health`: all ok.
+- Disk: health prints free space (160 GB) but not a percentage. The session's commands
+  can't run `df`, so I haven't checked the 70% rule as a percentage.
+- pytest: under a minute, well inside the five-minute limit. No slow-marking needed.
+- No `WIP.md`. The only untracked file in the root is `SESSION_ITEM`, which is gitignored.
+- Cache: 2.0 MB on disk. The hit rate wasn't measured this session; it belongs in the next
+  meta report.
+- Backups: **not verified against a real archive.** Listing `/root/backups` was refused
+  (it's outside the worktree), and extracting a tar isn't an allowed command anyway. As a
+  stand-in I added `test_a_backup_restores_byte_identical_into_a_scratch_copy`
+  (`tests/test_ops.py`). It writes a backup with `ops.backup`, extracts it into a scratch
+  directory and asserts every file comes back byte-identical. That covers the code path, not
+  last night's archive. Restoring a real archive and running the tournament from it still
+  needs an interactive session that can reach `~/backups`.
+
+```
+python3 -m pytest tests -q -> 294 passed in 44.88s
+```
