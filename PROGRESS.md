@@ -901,3 +901,29 @@ Where I've read the charter differently, and why:
    The project's own commands still run the sandbox. See DECISIONS.local.md.
 4. **The cache key hashes the Rules object in force**, not `rules.py`'s bytes, so season-two
    candidate runs can't be served season-one results. See DECISIONS.local.md.
+
+### 3.1 Match result cache ✅
+
+`colosseum/cache.py`; `run_tournament(cache=True)` is the default. Key = (attacker sha256,
+defender sha256, seed, hash of the Rules in force, engine version over sim / policy /
+sandbox / sandbox_runner). The value is the full match meta plus the replay file name.
+Results are consumed in the same fixed job order, so Elo doesn't move; every match that
+does run still gets a fresh container.
+
+```
+live house, sandboxed, 10 seeds (scratch copy)
+cold   1,170 matches, 1,170 played, 372.1 s
+warm   1,170 matches,     0 played,   0.0 s
+leaderboard / matrix / breaches: cold == warm == last night's pre-cache output (byte compare)
+dry-run night on the warm copy: 1,400 matches, 230 played (exactly the 23 new pairings × 10),
+  65 s for the whole night instead of ~6 min
+tests/test_cache.py: cold == warm == no-cache; +1 bot plays exactly its matches; a rules or
+  engine change replays everything; a cached entry == a fresh match; editing one bot replays
+  only its matches
+python3 -m pytest tests -q -> 196 passed
+```
+
+Live `out/cache/` was pre-warmed from that run (the 230 dry-run rows removed): 0 of tonight's
+1,170 matches are missing. Rotation now keeps every current-roster replay, because a cached
+pairing never rewrites its replay. Cache size and hit rate are in the ledger and the meta
+report.

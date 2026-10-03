@@ -4,8 +4,8 @@ From the operating charter, section 3, in order. Status: todo / doing / done / b
 
 | # | item | status | note |
 |---|---|---|---|
-| 3.1 | Match result cache | doing | |
-| 3.2 | Generator token discipline | todo | |
+| 3.1 | Match result cache | done | cold 372 s → warm 0.0 s; nightly 65 s with two new bots |
+| 3.2 | Generator token discipline | doing | |
 | 3.3 | Daily engineering session (manual run first, then cron) | todo | |
 | 3.4 | Persona ablation (after 14 real nights) | todo | earliest after night 2026-10-11 |
 | 3.5 | Optimiser ablation (after 7 nights of greedy_value_model) | todo | earliest after night 2026-10-05 |
