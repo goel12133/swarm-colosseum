@@ -1275,3 +1275,38 @@ ls -la out/cache -> results.sqlite, 2,043,904 bytes
 ```
 python3 -m pytest tests -q -> 294 passed in 44.88s
 ```
+
+## Build session 2026-10-03 (night) — hygiene
+
+There was no ALERT. Night 10-03 was ok. 3.10, 3.11 and 3.12 are done, so this session took
+hygiene again. It closed one gap from the evening session: the 70% disk rule couldn't be
+checked as a percentage.
+
+- `colosseum/health.py`: the disk line now prints `% used` (from `shutil.disk_usage`) and
+  fails at 70% or more, as well as on the existing free-space and out/-size limits. Test:
+  `test_health_disk_fails_at_70_percent_used` (`tests/test_ops.py`) stubs the disk at 69%
+  (ok) and 70% (bad).
+- Checks at the start, before the change:
+
+```
+python3 -m colosseum.health -> all six ok; disk "160 GB free, out/ is 161 MB"
+python3 -m pytest tests -q -> 294 passed in 48.51s
+ls -la out/cache -> results.sqlite, 2,043,904 bytes
+```
+
+- After the change:
+
+```
+python3 -m colosseum.health
+ok  docker     server 29.1.3
+ok  cli-login  logged in via claude.ai
+ok  cron       30 3 * * * /root/swarm-colosseum/scripts/nightly.sh
+ok  disk       23% used, 160 GB free, out/ is 161 MB
+ok  last-night 2026-10-03: ok
+ok  alert      none
+python3 -m pytest tests -q -> 295 passed in 43.93s
+```
+
+- No `WIP.md`. The only untracked root file is `SESSION_ITEM`, which is gitignored.
+- Still open: the cache hit rate wasn't measured (it belongs in the meta report). Restoring a
+  real archive from `~/backups` still needs an interactive session.
