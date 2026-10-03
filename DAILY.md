@@ -6,7 +6,7 @@ including through a real container. No night was hit; no replay on disk has NaN.
 
 **Night:** ok, no alert. Tops: synchronized_ring (attacker), convergence_blast_scheduler
 (defender). Watch 4/7.
-**Done:** 3.9 engine fuzzing. `python -m colosseum.fuzz`: FUZZ_10K_SHORT. Found the
+**Done:** 3.9 engine fuzzing. `python -m colosseum.fuzz`: 10,000 trajectories, 0 failures. Found the
 crash above. 500 new trajectories a night after the league. 258 tests pass.
 **Heads-up:** the engine changed, so tonight's tournament runs cold (all pairs, ~6+ min).
 **Next:** 3.10 site bundle kept current + about page. 3.5 opens after night 10-05.

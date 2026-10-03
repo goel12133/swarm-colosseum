@@ -174,7 +174,10 @@ copied into out/ for you; it is a snapshot, not the live directory.
 Order: 1) if ALERT.md below shows a failure, fix its cause first, with a test;
 2) otherwise take the next unblocked item in BACKLOG.md; 3) run python3 -m pytest tests -q;
 4) append to PROGRESS.md; 5) rewrite DAILY.md (one phone screen: date, night status, what
-was done, what is next, open stops); 6) commit and exit.
+was done, what is next, open stops); 6) commit everything and exit. Before you exit,
+`git status` must show nothing to commit, and no document may contain a placeholder for a
+result you haven't got: report only what a command you ran printed. Anything left
+uncommitted blocks the merge.
 
 Stop conditions in charter section 1 apply: write them up in DAILY.md and PROGRESS.md and
 do not work around them.

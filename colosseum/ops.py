@@ -54,7 +54,7 @@ def write_alert(reason: str, log: Path = None, alert: Path = None):
     tail = log.read_text().splitlines()[-30:] if log.exists() else ["(no log)"]
     alert.parent.mkdir(parents=True, exist_ok=True)
     alert.write_text(
-        f"# Night failed\n\n{datetime.now(timezone.utc).isoformat(timespec='seconds')}\n\n"
+        f"# Alert\n\n{datetime.now(timezone.utc).isoformat(timespec='seconds')}\n\n"
         f"**Reason:** {reason}\n\nThis file stays until the next successful night.\n\n"
         "## Last 30 log lines\n\n```\n" + "\n".join(tail) + "\n```\n")
     return alert
