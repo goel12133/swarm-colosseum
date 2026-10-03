@@ -11,7 +11,7 @@ From the operating charter, section 3, in order. Status: todo / doing / done / b
 | 3.5 | Optimiser ablation (after 7 nights of greedy_value_model) | waiting | not before night 2026-10-05 |
 | 3.6 | Season report | waiting | at the boundary, 2026-10-26 |
 | 3.7 | Tactic library export | done | 20 cards, 9 families; writes out/library/; nightly rebuild comes with 3.10 |
-| 3.8 | Sandbox red team + SECURITY.md | todo | |
+| 3.8 | Sandbox red team + SECURITY.md | doing | lead engineer, branch redteam -- the daily session must not pick this |
 | 3.9 | Engine fuzzing and invariants | todo | |
 | 3.10 | Site bundle kept current + about page | todo | |
 | 3.11 | Workshop kit | todo | |
