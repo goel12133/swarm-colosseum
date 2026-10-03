@@ -20,7 +20,8 @@ Backups.   One tar.gz a night in ~/backups/: bots/, reports/, out/leaderboard.js
            season. The last BACKUP_KEEP are kept. No secrets: .house_league.env* is outside
            every path in the list and is excluded by name anyway.
 
-after-night runs the weekly report (if due), the site bundle, rotation and the backup, times
+after-night runs the weekly report (if due), the site bundle, 500 engine fuzz trajectories
+(3.9; out/fuzz.jsonl), rotation and the backup, times
 them, and records the total as the "reports" phase on the night's ledger line. A failure in
 any of them writes ALERT.md but never touches the league's own result.
 """
@@ -222,6 +223,25 @@ def record_phase(seconds: float, nights: Path = None):
     nights.write_text("\n".join(lines) + "\n")
 
 
+FUZZ_NIGHTLY = 500
+
+
+def nightly_fuzz(out: Path = DEFAULT_OUT, when: str = None, n: int = FUZZ_NIGHTLY):
+    """Engine fuzzer (3.9): n new trajectories a night, numbered from the date so a failure
+    is reproducible with `python -m colosseum.fuzz --start <first failing> --n 1`. One line
+    a night in out/fuzz.jsonl; any failure raises, which after_night turns into ALERT.md."""
+    from . import fuzz
+    when = when or date.today().isoformat()
+    report = fuzz.run(int(when.replace("-", "")) * 10000, n)
+    with (out / "fuzz.jsonl").open("a") as f:
+        f.write(json.dumps(dict(date=when, **report), sort_keys=True) + "\n")
+    if report["failed"]:
+        first = report["failures"][0]
+        raise RuntimeError(f"{report['failed']}/{n} fuzz trajectories failed; first "
+                           f"{first['trajectory']}: {first['error']}")
+    return f"{n} trajectories ok in {report['seconds']} s"
+
+
 def after_night(commit: bool = True):
     """Weekly report if due, site bundle, rotation, backup. Returns (problems, results)."""
     problems, results = [], {}
@@ -237,7 +257,7 @@ def after_night(commit: bool = True):
         return site.build()
 
     for label, fn in (("watch", update_watch), ("meta report", meta_report),
-                      ("site", site_bundle),
+                      ("site", site_bundle), ("fuzz", nightly_fuzz),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):
         try:
             results[label] = fn()

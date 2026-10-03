@@ -12,6 +12,7 @@ Two jobs:
 """
 import importlib.util
 import itertools
+import math
 from pathlib import Path
 
 _COUNTER = itertools.count()
@@ -99,6 +100,24 @@ class PolicyRunner:
 # --- action sanitising ------------------------------------------------------
 # Each returns (clean_value, n_invalid). The engine adds n_invalid to the runner's count,
 # so a bot that sends nonsense is measured rather than trusted or crashed on.
+#
+# Numbers must be finite: the sandbox decodes replies with json.loads, which accepts NaN,
+# Infinity and integers of any length. Before the 3.9 fuzzer, `int(inf)` and `float(10**400)`
+# raised OverflowError out of the match (and the tournament), and a NaN bearing or waypoint
+# gave a drone NaN coordinates for the rest of the match.
+_ID_ERRORS = (TypeError, ValueError, OverflowError)
+
+
+def _finite(v):
+    """v as a finite float, or None. bool is an int subclass and stays accepted as before."""
+    if not isinstance(v, (int, float)):
+        return None
+    try:
+        f = float(v)
+    except OverflowError:
+        return None
+    return f if math.isfinite(f) else None
+
 
 def clean_attacker_action(action: dict, rules):
     bad = 0
@@ -112,11 +131,11 @@ def clean_attacker_action(action: dict, rules):
             bad += 1
             continue
         dtype = item.get("type")
-        bearing = item.get("bearing")
-        if dtype not in ("striker", "decoy") or not isinstance(bearing, (int, float)):
+        bearing = _finite(item.get("bearing"))
+        if not isinstance(dtype, str) or dtype not in ("striker", "decoy") or bearing is None:
             bad += 1
             continue
-        launches.append((dtype, float(bearing) % 360.0))
+        launches.append((dtype, bearing % 360.0))
 
     steer = {}
     raw_steer = action.get("steer", {}) if isinstance(action, dict) else {}
@@ -126,14 +145,14 @@ def clean_attacker_action(action: dict, rules):
     for k, v in raw_steer.items():
         try:
             did = int(k)
-        except (TypeError, ValueError):
+        except _ID_ERRORS:
             bad += 1
             continue
         if v is None:
             steer[did] = None
         elif (isinstance(v, (list, tuple)) and len(v) == 2
-              and all(isinstance(c, (int, float)) for c in v)):
-            steer[did] = (float(v[0]), float(v[1]))
+              and _finite(v[0]) is not None and _finite(v[1]) is not None):
+            steer[did] = (_finite(v[0]), _finite(v[1]))
         else:
             bad += 1
     return launches, steer, bad
@@ -149,7 +168,7 @@ def clean_defender_action(action: dict):
     for tid in raw:
         try:
             intercept.append(int(tid))
-        except (TypeError, ValueError):
+        except _ID_ERRORS:
             bad += 1
 
     retarget = {}
@@ -160,14 +179,14 @@ def clean_defender_action(action: dict):
     for k, v in raw_re.items():
         try:
             retarget[int(k)] = int(v)
-        except (TypeError, ValueError):
+        except _ID_ERRORS:
             bad += 1
 
     gun = action.get("gun") if isinstance(action, dict) else None
     if gun is not None:
         try:
             gun = int(gun)
-        except (TypeError, ValueError):
+        except _ID_ERRORS:
             bad += 1
             gun = None
     return intercept, retarget, gun, bad

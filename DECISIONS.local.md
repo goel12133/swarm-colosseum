@@ -29,3 +29,23 @@
   controls. They're a hand-kept table in `colosseum/library.py`. A new bot goes to
   "Unsorted" until someone places it there; the index says so. A test checks that every
   member is a real bot on its own side and sits in only one family.
+- **2026-10-03 (daily session) — 3.9 uses a seeded standard-library fuzzer, not
+  `hypothesis`.** The charter allows either. Each trajectory comes from one integer, so a
+  failure replays with `python3 -m colosseum.fuzz --start <n> --n 1`. Nothing new gets
+  installed, and the daily session's allow-list already had `python3 -m colosseum.fuzz*`.
+  What it gives up is shrinking. A failing trajectory is short enough to read anyway.
+- **2026-10-03 (daily session) — the fuzzer also sends malformed actions** (about 1 in 8:
+  NaN, ±Infinity, integers too large for a float, wrong types, unknown ids). The charter asks
+  for "random valid action streams". The bug it found is in the invalid ones. Everything
+  json.loads accepts can come back from the container, and policy.py promises that a bot
+  can never crash a match.
+- **2026-10-03 (daily session) — engine fix: the sanitiser rejects non-finite numbers.** A
+  bearing or waypoint has to be a finite number. An id that is infinite or overflows counts
+  as invalid. Finite actions are cleaned exactly as before (there's a test for it), and bool
+  is still accepted as a number. Engine version changes, so the cache goes cold for one night.
+  That is expected.
+- **2026-10-03 (daily session) — 500 fuzz trajectories a night, as an after-night step**
+  (`ops.nightly_fuzz`, ~35 s). Numbered from the date (YYYYMMDD × 10000), so every night
+  covers new ones. One line a night goes to `out/fuzz.jsonl`. A failure writes ALERT.md
+  through the existing after-night path. It doesn't touch the league result. The test suite
+  runs 60 (a few seconds).
