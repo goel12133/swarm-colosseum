@@ -995,3 +995,31 @@ python3 -m pytest tests -q -> 226 passed in 39 s
 
 Not done here: it isn't in the nightly cron yet. Rebuilding it nightly and linking it from
 the site is item 3.10.
+
+### 3.3 Daily engineering session ✅ — watched once, then enabled
+
+First run, by hand, under a cron-like `env -i` (`scripts/daily.sh`), watched through its
+transcript:
+
+```
+{"branch": "fresh", "exit": 0, "seconds": 418, "status": "merged",
+ "tokens": 132874, "tokens_incl_cache_reads": 2357191,
+ "detail": "1 commit(s) fast-forwarded onto master"}
+```
+
+It took the next unblocked item, 3.7 the tactic library, and finished it in 7 minutes.
+The wrapper reran the full suite (226 passed) and fast-forwarded master. Review of the
+commit: bots parsed with `ast`, never imported; untrusted text escaped; 10 tests; choices
+logged in DECISIONS.local.md. **Two corrections:** it added a `Co-Authored-By: Claude`
+trailer (master history isn't rewritten, per rule 9; the prompt now forbids trailers, with a
+test), and it writes the library to `out/library/` (regenerated, gitignored) rather than a
+committed `library/`. That second one is flagged for the founder, not changed.
+
+**Permission probe** (a throwaway session with the exact daily flags): `ls && touch …`,
+`ls; touch …` and `ls | xargs touch …` were all refused, and no marker files exist. The
+matcher checks each part of a compound command. The first session's `ls && cat …` ran because
+the CLI treats `cat` as read-only. Its one real refusal was `python3 -c`, which is
+deliberately not allowed.
+
+Cron: `0 5 * * * /root/swarm-colosseum/scripts/daily.sh`, after the 03:30 league.
+`python3 -m pytest tests -q` → 227 passed.
