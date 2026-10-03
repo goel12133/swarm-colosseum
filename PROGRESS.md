@@ -1150,3 +1150,58 @@ stylesheet path two levels deep. The about page has its six sections and the abs
 line. A missing library gives a placeholder page. Library escapes render once and never as
 markup. Escaped pipes and long fences render correctly. The existing link test now covers
 every new page.
+
+### 2026-10-03 build session: 3.11 workshop kit
+
+**Alert:** none (`out/ALERT.md` absent, no `WIP.md`). Night 10-03 was ok. `SESSION_ITEM` =
+`3.11`, written first.
+
+**3.11, done.** `workshop/`, for first-time Python students. It runs offline with Python
+3.11 and no Docker:
+- `LESSON_PLAN.md`: 90 minutes. Observe a match, read `rush.py`, change one number in
+  `straight_line.py`, then the exercises, then share.
+  `FACILITATOR.md`: one page. Setup, why it's safe, common errors, answers, tone.
+  `README.md`: the student sheet, with rules and exercises.
+- Starters, three per side with one `# TODO` each. Attackers: `straight_line`,
+  `screen_then_strike`, `many_sides`. Defenders: `closest_first`, `look_before_firing`,
+  `gun_line`.
+- Five exercises, each with a success test of the form "breach/defend against X on these
+  seeds". 1: gun on vs `rush`, seeds 1, 3, 4. 2: decoy screen vs `nearest_first`, seeds
+  0, 1, 3, 4. 3: confirmed strikers only vs `decoy_screen`, seeds 0–5. 4: four sides vs
+  `nearest_first`, seeds 0–3. 5: one bearing per striker vs `identify_then_engage`, seeds
+  0–5. Solutions are in `workshop/solutions/`.
+- The targets come from a seed sweep (seeds 0–5) of every starter's knob against the
+  baselines. I ran it as a temporary pytest file and didn't commit it. The game is noisy,
+  so I only kept targets where the edit flips every listed seed. The sweep also gave the
+  lesson's "more isn't better" moment: `straight_line` breaches `nearest_first` on 4 of 6
+  seeds at 1 launch per tick and on 1 of 6 at 4. Clumped drones die to one burst, and
+  exercise 5 builds on that.
+- `play.py` (one match, writes an offline replay page through the viewer's
+  `page_with`) and `check.py` (one exercise, or every exercise) are both built on `kit.py`.
+  The student's file is refused unless it is a regular `.py` file (no links), at most 64 KB,
+  outside `bots/house` and `bots/submitted`, and passes `colosseum.submit.check_source`.
+  The opponent can only be named, never given as a path.
+- Root `Makefile`: `make workshop` runs `python3 workshop/check.py`. That checks every
+  solution passes and no unedited starter does.
+- Decision logged in `DECISIONS.local.md`: workshop bots run in-process, the same way the
+  baselines do.
+
+```
+python3 -m pytest tests/test_workshop.py -q -> 23 passed in 1.01s
+python3 -m pytest tests -q                  -> 293 passed in 55.61s
+```
+
+What was and wasn't run: the session's allow-list has no `make` and no plain
+`python3 workshop/...`. So `make workshop` itself was not run here. Its command was:
+`test_make_workshop_passes` calls `check.main([])` in-process and asserts the output says
+`all exercises solvable` with five `ok` lines. `play.py` runs the same way in
+`test_play_writes_an_offline_replay`. New tests also cover: the starter counts and one TODO
+each, every bundled bot passing the arena's static checks, single-exercise checks, the
+opponent list, a repeated match being identical, refusal of league bots, of `import os` /
+`open`, of non-.py files, missing files, symlinks, oversized files and files with no ROLE,
+opponents by name only, and workshop code importing only stdlib + `colosseum`. The refusal
+inputs are inert one-liners, and none of them is ever loaded.
+
+Not verified here: an actual run on Python 3.11 or Windows (this host's Python ran the
+tests). The facilitator guide says to run `make workshop` / `python workshop/check.py` on
+one laptop before the day.

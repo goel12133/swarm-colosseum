@@ -49,6 +49,13 @@
   covers new ones. One line a night goes to `out/fuzz.jsonl`. A failure writes ALERT.md
   through the existing after-night path. It doesn't touch the league result. The test suite
   runs 60 (a few seconds).
+- **2026-10-03 (build session) — workshop bots run in-process, like the baselines.** The
+  starters and solutions in `workshop/` are written and reviewed in the repository, the
+  same as `bots/attackers` and `bots/defenders`. They are not league or submitted output,
+  so `load_policy` runs them on the host and the tests use them directly. A student's own
+  file runs in-process only on the student's own laptop (3.11: no Docker there). It
+  passes `submit.check_source` first, and `kit.py` refuses `bots/house` and `bots/submitted`.
+  Untrusted bots still never take this path.
 - **2026-10-03 (founder) — scope.** The project's scope is the open benchmark, the tactic
   library and the student workshop. It is not the evaluation of real defence systems. Any
   item that points the other way is raised with the founder before work starts.
