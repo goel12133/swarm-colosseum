@@ -12,3 +12,4 @@
   that doesn't rerun never rewrites its replay, so a 14-day mtime rule would delete the only
   replay of a live matchup.
 - **2026-10-03 — contrarian's "number one" is its target, the opposing #1.** Charter 3.2 says the contrarian sees "the number one's source and nothing else"; its target was already the opposing #1, so that's the source it gets. Its goal no longer says "unlike the bots described above", since it sees none.
+- **2026-10-03 — what the daily session's 200k token cap counts.** New input + cache writes + output, the same things a league call consists of. An agentic session re-reads its own context every turn; counting those cache reads would put a 2-hour session in the millions and trip the cap on day one for arithmetic, not use. They are recorded (`tokens_incl_cache_reads`), not capped. `--max-budget-usd 5` (notional, not billed) is the in-session runaway backstop.

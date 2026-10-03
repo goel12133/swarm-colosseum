@@ -1,0 +1,39 @@
+# Tools the daily engineering session may use (charter section 2). One per line, passed to
+# claude -p as --allowedTools under --permission-mode dontAsk and --restricted, so anything
+# not listed is refused without asking, and the file tools are confined to the session's
+# worktree (/srv/swarm-daily). Changing this file is a founder decision: daily.sh refuses
+# to start unless its sha256 matches scripts/daily_allowlist.sha256.
+#
+# Deliberately absent: raw docker (docker run -v /:/host is root on the box), git
+# checkout/reset/rebase/merge/push/branch (the wrapper owns branches and merges), the house
+# league (it spends tokens and writes bots), ops (backups and rotation touch the live out/),
+# submit, crontab, systemctl, ufw, anything under /etc, and python3 -c.
+#
+# Honest limit: python3 -m pytest runs whatever test files the session writes, so this list
+# stops accidents, not a determined agent. That is the same trust as any session run as root
+# on this box; the wrapper's green-tests-only merge and the transcript in out/daily/ are the
+# real checks.
+Read
+Edit
+Write
+Glob
+Grep
+Bash(git status*)
+Bash(git diff*)
+Bash(git log*)
+Bash(git show*)
+Bash(git add *)
+Bash(git commit *)
+Bash(git mv *)
+Bash(git rm *)
+Bash(python3 -m pytest*)
+Bash(python3 -m colosseum.tournament *)
+Bash(python3 -m colosseum.meta_report *)
+Bash(python3 -m colosseum.site*)
+Bash(python3 -m colosseum.library*)
+Bash(python3 -m colosseum.health*)
+Bash(python3 -m colosseum.clip *)
+Bash(python3 -m colosseum.fuzz*)
+Bash(python3 scripts/audit_defender.py *)
+Bash(ls*)
+Bash(wc *)
