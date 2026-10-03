@@ -7,9 +7,11 @@
 ALERT.md.  A failed night writes out/ALERT.md (reason + last 30 log lines). It stays until
            the next successful night deletes it. `ls out/ALERT.md` is the whole check.
 
-Rotation.  Replays: every replay from the last ROTATE_DAYS days is kept. Older replays are
-           kept only if a weekly meta report made a clip of them, or they are some bot's best
-           or worst match among all its replays on disk; everything else older is deleted.
+Rotation.  Replays: every replay from the last ROTATE_DAYS days is kept, and every replay
+           of the current roster whatever its age (the result cache means a live pairing
+           may not have been replayed in weeks). Older replays are kept only if a weekly
+           meta report made a clip of them, or they are some bot's best or worst match
+           among all its replays on disk; everything else older is deleted.
            Replays are reproducible from bots and seeds, so this loses no information.
            Raw generator responses (out/house_raw/) are kept RAW_DAYS days.
 
@@ -79,6 +81,16 @@ def rotation_plan(out: Path = DEFAULT_OUT, now: float = None):
     replays = sorted((out / "replays").glob("*__*__s*.json"))
     old = {p for p in replays if now - p.stat().st_mtime > ROTATE_DAYS * 86400}
     keep = {}
+    # With the result cache a pairing that doesn't rerun never rewrites its replay, so every
+    # replay of the current roster is kept whatever its age.
+    lb_path = out / "leaderboard.json"
+    if lb_path.exists():
+        lb = json.loads(lb_path.read_text())
+        live = {r["name"] for role in ("attackers", "defenders") for r in lb[role]}
+        for p in replays:
+            a, d, _ = p.stem.split("__")
+            if a in live and d in live:
+                keep[p.name] = "current roster"
     clips = out / "meta" / "clips.json"
     if clips.exists():
         for name in json.loads(clips.read_text()):

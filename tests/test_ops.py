@@ -116,3 +116,18 @@ def test_watch_verdicts():
     assert "Verdict: structural" in ops.watch_text(before + seven)
     seven[3] = row(seven[3]["date"], 0.8)
     assert "Verdict: a meta" in ops.watch_text(before + seven)
+
+
+def test_rotation_never_deletes_a_current_roster_replay(tmp_path):
+    now = time.time()
+    live = replay(tmp_path, "rush", "layered", 0, 0.5, 60, now)        # old but live
+    gone = replay(tmp_path, "retired_bot", "layered", 0, 0.5, 60, now)
+    gone2 = replay(tmp_path, "retired_bot", "layered", 1, 0.6, 60, now)
+    gone3 = replay(tmp_path, "retired_bot", "layered", 2, 0.4, 60, now)
+    (tmp_path / "leaderboard.json").write_text(json.dumps(
+        {"attackers": [{"name": "rush"}], "defenders": [{"name": "layered"}]}))
+    delete, kept = ops.rotation_plan(tmp_path, now)
+    assert kept[live.name] == "current roster"
+    # retired_bot (attacker side): best s2, worst s1 kept; s1 is also layered's best. The
+    # middle match is the only one that goes.
+    assert {p.name for p in delete} == {gone.name}

@@ -338,6 +338,13 @@ def health_section(nights, dates, prev_dates, out: Path, health_text=None):
     lines.append("- Retired: " + (", ".join(short(n) for n in retired) if retired else "none")
                  + ".")
     lines.append(f"- Tokens: {tokens_week:,} this week, {tokens_all:,} this season.")
+    cached = [r["cache"] for r in runs if r.get("cache")]
+    if cached:
+        played = sum(c.get("ran") or 0 for c in cached)
+        total = sum(c.get("matches") or 0 for c in cached)
+        lines.append(f"- Result cache: {cached[-1].get('cache_entries'):,} entries; this week "
+                     f"{total - played:,} of {total:,} matches came from it "
+                     f"({(total - played) / total:.0%} hit rate), {played:,} were played.")
     lines.append("- Mean tournament time: " +
                  (f"{st.mean(t_times):.0f} s over {len(t_times)} tournaments." if t_times
                   else "no tournaments this week."))

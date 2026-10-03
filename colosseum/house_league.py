@@ -641,7 +641,7 @@ def run_night(caps: Caps = None, dry_run: bool = False, out: Path = DEFAULT_OUT,
                       finished=datetime.now(timezone.utc).isoformat(timespec="seconds"),
                       **{k: summary.get(k) for k in (
                           "status", "reason", "backend", "written", "rejected", "retired",
-                          "spend", "phases", "seconds", "tournament_seconds",
+                          "spend", "phases", "seconds", "tournament_seconds", "cache",
                           "house_positions", "top_attacker", "top_defender")})
         NIGHTS.parent.mkdir(parents=True, exist_ok=True)
         with open(NIGHTS, "a") as f:
@@ -763,6 +763,7 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
 
     lb = None
     tournament_s = None
+    cache_info = None
     if written:
         t0 = time.monotonic()
         with phases("tournament"):
@@ -770,7 +771,11 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
         if not dry_run:
             snapshot(out, when)
         tournament_s = round(time.monotonic() - t0, 1)
-        log(f"tournament: {len(results)} sandboxed matches in {tournament_s}s")
+        from .tournament import LAST_RUN
+        cache_info = dict(LAST_RUN)
+        log(f"tournament: {len(results)} matches in {tournament_s}s -- "
+            f"{cache_info.get('ran')} played in the sandbox, {cache_info.get('cached')} "
+            f"from the cache ({cache_info.get('cache_entries')} entries)")
         matrix = json.loads((out / "matrix.json").read_text())["matrix"]
         for stem, meta in metas.items():
             meta["result"] = judge(stem, meta, lb, matrix)
@@ -792,7 +797,7 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
 
     summary = dict(status="ok", date=when, written=written, rejected=rejected,
                    retired=retired, spend=vars(spend), backend=caps.backend,
-                   tournament_seconds=tournament_s,
+                   tournament_seconds=tournament_s, cache=cache_info,
                    seconds=round(time.monotonic() - started, 1))
     if lb:
         summary["top_attacker"] = lb["attackers"][0]["name"]

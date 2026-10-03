@@ -14,10 +14,12 @@ import argparse
 import json
 import sys
 import os
+import time
 from collections import defaultdict
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
+from .cache import ResultCache
 from .elo import Ladders
 from .rules import SEASON0
 from .sim import replay_json, run_match
@@ -66,11 +68,22 @@ def _match_job(job):
     return res["meta"]
 
 
+# What the last run_tournament() did: matches run vs served from the cache, and timing.
+LAST_RUN = {}
+
+
 def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
-                   quiet=False, sandbox=False, workers=None):
-    attackers = discover(ROOT / "bots" / "attackers")
-    defenders = discover(ROOT / "bots" / "defenders")
-    untrusted = untrusted_bots()
+                   quiet=False, sandbox=False, workers=None, cache=True, roster=None):
+    """roster=(attackers, defenders) replaces discovery (tests use it to add one bot).
+    cache=True serves already-played matches from out/cache/results.sqlite."""
+    t_start = time.monotonic()
+    if roster is not None:
+        attackers, defenders = [Path(p) for p in roster[0]], [Path(p) for p in roster[1]]
+        untrusted = []
+    else:
+        attackers = discover(ROOT / "bots" / "attackers")
+        defenders = discover(ROOT / "bots" / "defenders")
+        untrusted = untrusted_bots()
     if untrusted and not sandbox:
         # Untrusted bots never run on the host. An in-process tournament is baselines only.
         print(f"in-process run: leaving out {len(untrusted)} untrusted bot(s); "
@@ -102,11 +115,32 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
     jobs = [(str(a), str(d), seed, rules, write_replays, sandbox, str(out))
             for a in attackers for d in defenders for seed in seed_list]
 
-    if workers > 1 and len(jobs) > 1:
+    # The cache decides, job by job, whether a result is fetched or played. Everything
+    # after this point sees the same metas in the same order either way.
+    store = ResultCache(out / "cache" / "results.sqlite") if cache else None
+    keys = [store.key(j[0], j[1], j[2], rules) for j in jobs] if store else [None] * len(jobs)
+    metas = [store.get(k) if store else None for k in keys]
+    todo = [i for i, m in enumerate(metas) if m is None]
+    fresh_jobs = [jobs[i] for i in todo]
+    if workers > 1 and len(fresh_jobs) > 1:
         with ProcessPoolExecutor(max_workers=workers) as ex:
-            metas = list(ex.map(_match_job, jobs))     # map preserves input order
+            fresh = list(ex.map(_match_job, fresh_jobs))   # map preserves input order
     else:
-        metas = [_match_job(j) for j in jobs]
+        fresh = [_match_job(j) for j in fresh_jobs]
+    for i, meta in zip(todo, fresh):
+        metas[i] = meta
+        if store:
+            a_s, d_s, seed = jobs[i][0], jobs[i][1], jobs[i][2]
+            replay = f"{Path(a_s).stem}__{Path(d_s).stem}__s{seed}.json" if write_replays \
+                else None
+            store.put(keys[i], a_s, d_s, seed, meta, replay)
+    if store:
+        cache_size = store.size()
+        store.close()
+    LAST_RUN.clear()
+    LAST_RUN.update(matches=len(jobs), ran=len(todo), cached=len(jobs) - len(todo),
+                    cache_entries=cache_size if store else None,
+                    seconds=None)
 
     for (a_s, d_s, seed, *_), meta in zip(jobs, metas):
         a_stem, d_stem = Path(a_s).stem, Path(d_s).stem
@@ -169,6 +203,7 @@ def run_tournament(seeds=10, out=DEFAULT_OUT, rules=SEASON0, write_replays=True,
     if findings.exists():
         report += "\n---\n\n" + findings.read_text()
     (out / "BALANCE.md").write_text(report)
+    LAST_RUN["seconds"] = round(time.monotonic() - t_start, 1)
     return leaderboard, matrix, results
 
 

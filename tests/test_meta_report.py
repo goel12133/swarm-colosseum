@@ -165,3 +165,14 @@ def test_best_match_replay_prefers_the_target(tmp_path):
     assert opp == "layered" and p.name == "hb__layered__s0.json"
     p, opp = mr.best_match_replay(tmp_path, "hb", "attacker", target=None)
     assert opp == "rush_d"
+
+
+def test_cache_hit_rate_is_reported(tmp_path):
+    out, bots, balance = fabricate(tmp_path)
+    rows = [json.loads(l) for l in (out / "nights.jsonl").read_text().splitlines()]
+    for r in rows:
+        r["cache"] = dict(matches=1000, ran=100, cached=900, cache_entries=5000)
+    (out / "nights.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
+    text = mr.build_report(1, out=out, bots_root=bots, balance=balance)
+    assert "Result cache: 5,000 entries; this week 6,300 of 7,000 matches came from it " \
+           "(90% hit rate), 700 were played." in text
