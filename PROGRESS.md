@@ -874,3 +874,8 @@ The branches are rebased on master: `s2-a-imperfect-id` has 190 tests passing an
   attacker vs convergence_blast_scheduler (#1 defender, 95%), generalist defender. Over the
   90% flag: convergence_blast_scheduler 95%, loiter_then_collapse 92.5%. 55,937 tokens;
   tournament 960 matches in 326 s.
+- **2026-10-03 (night 4/7): yes.** Three defenders hold synchronized_ring under 90%
+  (loiter_then_collapse 10%, convergence_blast_scheduler, and the new generalist
+  `backscheduled_blast_packer`); it is at 86% overall. No refusals. The counter_meta attacker
+  `depth_shell_saturation` beat convergence_blast_scheduler (0.585, #3 attacker). 54,667
+  tokens; tournament 1,170 matches in 353 s, growing by roughly 100–200 matches a night.

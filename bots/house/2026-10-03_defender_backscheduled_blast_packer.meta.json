@@ -1,0 +1,22 @@
+{
+  "backend": "cli",
+  "date": "2026-10-03",
+  "dry_run": false,
+  "escalation": false,
+  "model": "opus",
+  "name": "2026-10-03_defender_backscheduled_blast_packer",
+  "persona": "generalist",
+  "prompt_version": "2026-09-29.1",
+  "raw_response": "out/house_raw/2026-10-03T033715_cli_defender_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.651,
+    "rank": 3
+  },
+  "role": "defender",
+  "target": "field",
+  "tokens": {
+    "input": 8215,
+    "output": 28249
+  }
+}
