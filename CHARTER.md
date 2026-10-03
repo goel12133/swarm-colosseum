@@ -1,7 +1,7 @@
-> **Status note (lead engineer, 2026-10-03), above the founder's text, which follows verbatim:**
-> item status lives in `BACKLOG.md`. **3.12 is blocked pending a founder decision** (PROGRESS.md,
-> session 8): do not start it. The deviations from this charter, and why, are in PROGRESS.md
-> session 8 and `DECISIONS.local.md`.
+> **Status note (lead engineer), above the founder's text:** item status lives in `BACKLOG.md`.
+> Amended by the founder on 2026-10-03: 3.8 and 3.12 rewritten, a standing rule on safety
+> stops added to section 1, and the project's scope stated in `DECISIONS.local.md`. Those
+> amendments are in place below, marked *(amended 2026-10-03)*; the rest is verbatim.
 
 # Swarm Colosseum — Operating Charter and Backlog (Stage 2 close-out → Stage 3 prep)
 
@@ -46,6 +46,8 @@ The founder is a full-time national serviceman who reads on his phone. He will c
 - A security finding in the sandbox, the submission validator, the viewer, or the site bundle: fix it immediately, add a test, and flag it at the top of the next report with a line that starts `SECURITY:`.
 - Anything that needs the founder's identity, accounts, money, or a public action.
 - A generator output that contains real-world system names or anything that reads as operational military content: reject the bot, do not commit it, log it, and tighten the generator prompt. Flag it with `CONTENT:` at the top of the next report.
+- *(amended 2026-10-03)* **Safety stops.** If a backlog item or a generated output trips a safety stop, do not rephrase it to get past the stop. Stop that item, write it up with the flag, and move to the next unblocked item. Reaching a wall is information for the founder, not an obstacle to route around.
+- *(amended 2026-10-03)* **Scope.** The project is the open benchmark, the tactic library and the student workshop, not the evaluation of real defence systems. Raise it with the founder before any item points the other way.
 
 ---
 
@@ -84,8 +86,8 @@ At the boundary, `seasons/S1/SEASON_REPORT.md`: the season in one page. How many
 ### 3.7 Tactic library export
 The product is the library. Add `python -m colosseum.library` that writes `library/` with one **tactic card** per bot that ever reached the top five or holds unique coverage: name, side, persona, author, one-paragraph description derived from the docstring, the idea in one sentence, what it beats, what beats it, its best and worst replay, and its source. Plus an index grouped by tactic family (you define the families from what has actually emerged: saturation, timing, decoy screening, trickle, patient defence, budgeted defence, and whatever else is there). This is what a future customer or researcher would actually read; write it for them.
 
-### 3.8 Sandbox red team
-Before anyone outside submits, attack your own sandbox and validator. Write at least twenty adversarial submissions that try to: escape the container, read the host filesystem, reach the network, exhaust memory or CPU slowly enough to dodge the limits, exploit the JSON protocol (oversized messages, malformed UTF-8, deeply nested objects, duplicate keys), smuggle code past `ast` (string-built imports, `getattr` chains, decorators, metaclasses, `__class__` traversal, encoded source), inject through bot names, docstrings, or metadata into the viewer, the site bundle, the meta report, or the tactic cards, and persist state between matches via any shared path. Every one must be rejected or contained, and every one becomes a permanent test. Write `SECURITY.md` describing the threat model, what is enforced where, and what is explicitly out of scope. Flag anything that got through with `SECURITY:`.
+### 3.8 Sandbox hardening and validator testing *(amended 2026-10-03; defensive only)*
+Test that the sandbox and the ast validator reject or contain unsafe submissions, using only non-functional, inert test inputs: a bot that tries import socket, open, exec, eval, subprocess, __import__, dunder traversal, oversized or malformed JSON, non-finite numbers in actions, deeply nested objects, and injection strings in names, docstrings and metadata. Each test asserts the submission is refused or contained; none contains a working exploit, and no test attempts an actual container escape or host-filesystem or network access. The finite-number guard the fuzzer surfaced goes in here as a permanent case. Write SECURITY.md as a defensive threat model: what is validated where, what is contained, what is out of scope. You are testing the fence, not trying to breach it.
 
 ### 3.9 Engine fuzzing and invariants
 Property-based tests over the engine: random valid action streams never crash it; budgets, stock, ammo, and launch caps are never exceeded in any trajectory; HP never rises; a match always ends by tick 600; replays always re-simulate to the same final state. Use `hypothesis` if it is installable without network; otherwise write a seeded fuzzer in the standard library. Run it for at least 10,000 trajectories once and nightly for 500.
@@ -96,8 +98,8 @@ The bundle from Stage 2 is rebuilt nightly after the meta report, with the tacti
 ### 3.11 Workshop kit (for the student cohort the founder is applying to fund)
 `workshop/` containing: a 90-minute lesson plan for first-time Python students (observe a match, read a baseline bot, change one number, run one match locally in-process with a safe wrapper that only loads the student's own file, watch the replay); three starter bots per side with a `# TODO` each; five exercises in rising difficulty, each with a clear success test ("make `rush` breach `nearest_first` on seed 3"); a one-page facilitator guide; and a `make workshop` target that verifies every exercise is solvable with the bundled solutions. Everything runs offline on a school laptop with Python 3.11 and no Docker, because the students' own bots run only on their own machines; the sandbox is for the arena.
 
-### 3.12 Stage 3 scoping document
-`STAGE3_SCOPING.md`, written for the founder and a possible technical co-founder: what fidelity a company would need before an arena result predicts anything about their defence logic; a proposed sensor model (noisy, latency, field of view, classification confusion as a matrix rather than a flag) and a proposed 2.5D physics step (altitude bands, turn rates, speed classes), each as abstract parameters; what in the current engine survives and what has to be rewritten; a dependency on nothing real; a cost estimate in weeks of your time, not money; and the three experiments that would show whether the current library's tactics transfer to the higher-fidelity engine. No implementation. No real systems. Two pages.
+### 3.12 Higher-fidelity engine scoping, for the game *(amended 2026-10-03)*
+The goal is a more interesting simulator with abstract noisy sensors, classification confusion, altitude bands and turn rates as game parameters, so strategy has more texture. There is no goal of predicting real defence performance: the arena is a strategy game and a research benchmark and that is where it stays. Two pages, abstract parameters only, no real systems, no claim about real-world transfer.
 
 ### 3.13 Season two first week
 After the boundary: run the first week under the new rules, then write `seasons/S2/WEEK1.md`: did candidate A make decoys matter (decoy-using attackers' results before vs after), did any baseline break, did the ladder reshuffle, is a new degenerate strategy emerging, and the first week's unaided discoveries. If a flag appears (bot over 90%, role over 85%), do nothing to the rules; the league gets seven nights to answer it, same as S0-2.

@@ -49,3 +49,9 @@
   covers new ones. One line a night goes to `out/fuzz.jsonl`. A failure writes ALERT.md
   through the existing after-night path. It doesn't touch the league result. The test suite
   runs 60 (a few seconds).
+- **2026-10-03 (founder) — scope.** The project's scope is the open benchmark, the tactic
+  library and the student workshop. It is not the evaluation of real defence systems. Any
+  item that points the other way is raised with the founder before work starts.
+- **2026-10-03 (founder) — safety stops are walls, not obstacles.** An item or a generated
+  output that trips a safety stop is stopped, written up with its flag (CONTENT: or
+  SECURITY:), and left; never rephrased to get past the stop.
