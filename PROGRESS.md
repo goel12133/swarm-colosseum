@@ -1489,3 +1489,38 @@ python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 
 
 I didn't start L7. It renders clips in a Docker/Chromium container, and an unfinished L7
 would need a WIP.md, which would also block today's L6 merge.
+
+## Build session 2026-10-04 (second) — L7 five clips ✅
+
+No ALERT, no WIP. L7 was the first open in-scope sprint item.
+
+**L7.** `colosseum/clip.py` and `docker/clip/render.py`:
+- `--gif`: the container also writes a GIF next to the mp4 (360 wide, 15 fps, one 64-colour
+  palette, no dither). `render.py` is mounted at run time, so the image is unchanged.
+  The GIF limit is 8 MB; the mp4 limit stays 5 MB. `*.gif` is gitignored like `*.mp4`.
+- `--showcase` renders five fixed picks at 1x into `out/clips/showcase/`, with a captioned
+  `README.md` (gif inline, mp4 linked). Each pick names a pairing and the outcome the story
+  needs; the lowest seed with that outcome is used, so reruns pick the same match. The picks
+  are: rush vs nearest_first (how a match works), decoy_screen vs discriminating_ledger,
+  synchronized_ring vs the ledger (breached), the ring vs loiter_then_collapse (defended),
+  interleaved_shell_ring vs loiter_then_collapse (breached). Captions use research/01's numbers
+  and the bots' own docstrings.
+- At 4x these matches were about 1 s long (16 frames for 122 ticks), so the showcase uses 1x.
+- Tests: a real GIF render in the container (`GIF89a`, under the limit), seed picking
+  (lowest seed with the outcome; none raises), showcase output with a stub renderer (calls,
+  README captions and links), and five distinct pairings.
+
+```
+python3 -m pytest tests/test_clip.py -q -> 7 passed in 7.33s
+python3 -m colosseum.clip --showcase ->
+  1_how_a_match_works.mp4: 0.02 MB, gif 0.06 MB, 61 frames, ticks 0-122 at 1x
+  2_decoys_ignored.mp4: 0.03 MB, gif 0.06 MB, 59 frames, ticks 0-118 at 1x
+  3_ring_vs_ledger.mp4: 0.05 MB, gif 0.13 MB, 61 frames, ticks 0-122 at 1x
+  4_collapse_vs_ring.mp4: 0.05 MB, gif 0.13 MB, 62 frames, ticks 0-124 at 1x
+  5_shell_ring_vs_collapse.mp4: 0.07 MB, gif 0.21 MB, 119 frames, ticks 0-238 at 1x
+python3 -m pytest tests -q -> 317 passed in 48.61s
+```
+
+The clips were rendered from this session's `out/` snapshot. The live `out/` gets them on
+the next `python -m colosseum.clip --showcase`. They aren't on the site yet; L8's README
+can embed the GIFs.

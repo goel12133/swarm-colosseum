@@ -55,3 +55,53 @@ def test_a_clip_renders_small_and_phone_playable(tmp_path):
     data = out.read_bytes()
     assert data[4:8] == b"ftyp" and len(data) > 1000
     assert info["under_limit"]
+
+
+@pytest.mark.skipif(not docker_image_available(), reason="colosseum-clip image not built")
+def test_a_clip_can_come_with_a_gif(tmp_path):
+    from colosseum import clip
+    info = clip.render(small_replay(tmp_path), tmp_path / "c.mp4", speed=16, gif=True)
+    assert (tmp_path / "c.gif").read_bytes()[:6] == b"GIF89a"
+    assert info["gif_bytes"] > 1000 and info["under_limit"]
+
+
+def fake_replays(tmp_path, outcomes):
+    d = tmp_path / "replays"
+    d.mkdir()
+    for seed, outcome in outcomes.items():
+        (d / f"a__d__s{seed}.json").write_text(json.dumps({"meta": {"outcome": outcome}}))
+    return d
+
+
+def test_the_showcase_uses_the_lowest_seed_with_the_wanted_outcome(tmp_path):
+    from colosseum import clip
+    d = fake_replays(tmp_path, {12: "breached", 3: "defended", 7: "breached", 1: "defended"})
+    assert clip.pick_seed("a", "d", "breached", d).name == "a__d__s7.json"
+    with pytest.raises(LookupError):
+        clip.pick_seed("a", "d", "timeout", d)
+
+
+def test_the_showcase_writes_mp4_gif_and_a_captioned_readme(tmp_path):
+    from colosseum import clip
+    d = fake_replays(tmp_path, {0: "defended", 1: "breached"})
+    calls = []
+
+    def fake_render(replay, out, speed, gif):
+        calls.append((replay.name, out.name, gif))
+        return dict(path=str(out), bytes=1, frames="1 frames", ticks=[0, 1], speed=speed,
+                    gif=str(out.with_suffix(".gif")), gif_bytes=1, under_limit=True)
+
+    picks = [("1_x", "a", "d", "breached", "Title X", "Caption X."),
+             ("2_y", "a", "d", "defended", "Title Y", "Caption Y.")]
+    clip.showcase(d, tmp_path / "show", picks, fake_render)
+    assert calls == [("a__d__s1.json", "1_x.mp4", True), ("a__d__s0.json", "2_y.mp4", True)]
+    readme = (tmp_path / "show" / "README.md").read_text()
+    assert "![Title X](1_x.gif)" in readme and "Caption Y." in readme
+    assert "[mp4](2_y.mp4)" in readme
+
+
+def test_the_five_launch_clips_are_five_distinct_pairings():
+    from colosseum import clip
+    assert len(clip.SHOWCASE) == 5
+    assert len({(a, d) for _, a, d, *_ in clip.SHOWCASE}) == 5
+    assert all(pick[3] in ("breached", "defended") for pick in clip.SHOWCASE)

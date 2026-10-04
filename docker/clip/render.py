@@ -1,8 +1,9 @@
 """Runs inside the colosseum-clip container: page -> frames (headless Chromium) -> mp4.
 
-    python /in/render.py FROM TO SPEED
+    python /in/render.py FROM TO SPEED [gif]
 
-Reads /in/page.html (the viewer with one replay embedded), writes /out/clip.mp4.
+Reads /in/page.html (the viewer with one replay embedded), writes /out/clip.mp4, and with
+`gif` also /out/clip.gif (for READMEs and chat apps that won't play video inline).
 """
 import base64
 import re
@@ -32,4 +33,13 @@ subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", "50/3",
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "26",
                 "-profile:v", "high", "-level", "4.0", "-movflags", "+faststart",
                 "/out/clip.mp4"], check=True, timeout=600)
+if sys.argv[4:5] == ["gif"]:
+    # Half size, 15 fps and one shared 64-colour palette keep a full match at 4x a few MB;
+    # the viewer's flat colours survive the palette without dithering noise.
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-framerate", "50/3",
+                    "-i", str(tmp / "%05d.png"), "-filter_complex",
+                    "fps=15,scale=360:-1:flags=lanczos,split[a][b];"
+                    "[a]palettegen=max_colors=64:stats_mode=diff[p];"
+                    "[b][p]paletteuse=dither=none:diff_mode=rectangle",
+                    "-loop", "0", "/out/clip.gif"], check=True, timeout=600)
 print(f"{len(frames)} frames")
