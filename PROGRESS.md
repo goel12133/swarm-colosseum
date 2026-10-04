@@ -1685,3 +1685,20 @@ python3 -m pytest tests -q -> 347 passed in 53.71s (under the five-minute limit)
 - The cache hit rate still can't be read: the out/ snapshot ends at night 10-04 (0 hits,
   explained above). Night 10-05 is the first warm night.
 - Backup restore is still not checked: no allowed command reaches `~/backups`.
+
+## Build session 2026-10-04 (sixth) — hygiene
+
+No alert, no WIP. Night 10-04 was ok (log: 2 bots written, 0 rejected, 835.8 s). L10 is still
+the only open in-scope item and still waits on the founder (licence, repo name, visibility;
+LICENSE_NOTE.md still says "not chosen yet"), so this session did hygiene only. Nothing changed
+since the fifth session; no code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 194 MB"; last-night 2026-10-04: ok; alert none
+git status --ignored --short -> no untracked files; only ignored caches, out/ and SESSION_ITEM
+WIP.md -> none in the worktree
+python3 -m pytest tests -q -> 347 passed in 53.17s (under the five-minute limit)
+```
+
+- Cache hit rate: still unreadable until night 10-05 (first warm night).
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
