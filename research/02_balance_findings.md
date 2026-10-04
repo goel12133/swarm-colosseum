@@ -56,8 +56,11 @@ rounds a tick) passed all three balance tests, and adding ammunition did nothing
 ammunition was never the binding constraint. *Lesson: some apparent rules flaws are a meta
 the league hasn't answered yet. Give it time before changing the game.*
 
-**Verdict (real night 7, 2026-10-04):** _filled in after the night: a meta if a defender
-holds it under 90% and the role share is inside 40–60%._
+**Status at real night 7 (2026-10-04):** answered in play. Four defenders hold the
+synchronised wave under 90%, and its win rate is down to 83%. But the role share has swung
+the other way: defenders now win 62% of matches, and one of the new defenders wins 91%. The
+league answered the flaw and overshot. That is itself the next finding, and it gets the same
+treatment: it's logged, and the league gets time to answer it.
 
 ---
 

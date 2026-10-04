@@ -59,3 +59,15 @@ attackers, which S0-1 found to be what made defenders look strong.
 strikers (or budget ≤ 2 × stock), a second gun channel, or a cap on how long drones may
 loiter outside radar/ID range. Candidate A (imperfect ID) does not address this; it was
 measured before this bot existed.
+
+### S0-2 status at real night 7 (2026-10-04)
+
+- **Answered in play.** Four defenders now hold synchronized_ring under 90%
+  (loiter_then_collapse 10%, convergence_blast_scheduler 40%, backscheduled_blast_packer 80%,
+  dither_parked_magazine), and its overall win rate is 83%.
+- **The charter's role test fails, but on the other side.** Defenders win 61.6% of matches,
+  outside 40–60, and convergence_blast_scheduler is at 91%. Read literally, the pre-decided
+  rule routes this to "structural: candidate A plus the smallest economy fix". That fix
+  (gun rate of fire 1.75) helps defenders, and would widen the imbalance that failed the test.
+- **Not acted on.** The season-two content isn't due until 2026-10-26; the founder decides
+  (reports/FOUNDER_WEEK_1.md).

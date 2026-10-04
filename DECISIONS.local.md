@@ -62,3 +62,4 @@
 - **2026-10-03 (founder) — safety stops are walls, not obstacles.** An item or a generated
   output that trips a safety stop is stopped, written up with its flag (CONTENT: or
   SECURITY:), and left; never rephrased to get past the stop.
+- **2026-10-04 — S0-2 verdict not executed mechanically.** At real night 7 the watch test passed (4 defenders hold synchronized_ring under 90%) but the role test failed on the *defender* side (61.6%). The charter's literal branch (A + gun-rate fix) would widen that imbalance. Nothing is due before 2026-10-26, so the season-two content is put to the founder as a yes/no instead of being picked silently.
