@@ -4,8 +4,8 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 
 | # | item | status | left |
 |---|---|---|---|
-| L1 | unaided-discovery write-up (h) | doing | |
-| L2 | balance-findings write-up (h) | todo | |
+| L1 | unaided-discovery write-up (h) | done | research/01; clips in out/research/clips |
+| L2 | balance-findings write-up (h) | doing | |
 | L3 | persona ablation, early cut (h) | todo | |
 | L4 | annealing ablation (h) | todo | |
 | L5 | `make reproduce` (s) | todo | |
