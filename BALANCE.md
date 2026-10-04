@@ -71,3 +71,16 @@ measured before this bot existed.
   (gun rate of fire 1.75) helps defenders, and would widen the imbalance that failed the test.
 - **Not acted on.** The season-two content isn't due until 2026-10-26; the founder decides
   (reports/FOUNDER_WEEK_1.md).
+
+## S0-3 — the answer to S0-2 overshot: defenders lean (2026-10-04)
+
+**Finding.** At real night 7 defenders win **61.6%** of matches, outside the 40–60 band, and
+`2026-10-01_defender_convergence_blast_scheduler` wins **91%**. These are the defenders that
+answered S0-2: they time their blasts for a synchronised wave, and they hold up against the
+older attackers too.
+
+**Treatment (founder, 2026-10-04): the S0-2 rule.** A seven-night watch, 2026-10-05 to 10-11
+(`out/WATCH_S0-3.md`): does any attacker hold `convergence_blast_scheduler` under 90%, i.e.
+get through in at least 2 of 10 seeds? If one does, it's a meta; if none does, it's
+structural and goes to season two. **Season two is candidate A only**; S0-2 needs no economy
+fix.

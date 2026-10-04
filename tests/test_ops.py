@@ -210,3 +210,30 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
     assert problems == [] and "ALERT" not in calls
     assert set(results) == {"results", "watch", "meta report", "persona ablation", "library",
                             "site", "fuzz", "rotation", "backup"}
+
+
+def test_a_defender_watch_counts_attackers_that_get_through(tmp_path):
+    w = ops.WATCHES[1]
+    assert w["finding"] == "S0-3" and w["role"] == "defender"
+    D = w["bot"]
+    (tmp_path / "breaches.json").write_text(json.dumps({"seeds": 10, "breaches": {
+        "a_weak": {D: 0, "x": 5}, "a_strong": {D: 3, "x": 9}}}))
+    (tmp_path / "leaderboard.json").write_text(json.dumps({
+        "attackers": [], "defenders": [{"name": D, "win_rate": 0.91}]}))
+    row = ops.watch_row(tmp_path, "2026-10-05", w)
+    assert row["per"] == {"a_weak": 1.0, "a_strong": 0.7}       # it holds a_strong 7/10
+    assert row["under"] == ["a_strong"] and row["overall"] == 0.91
+    text = ops.watch_text([row], w)
+    assert "S0-3" in text and "any attacker hold it" in text and "Verdict: a meta" in text
+
+
+def test_update_watch_writes_every_watch(tmp_path):
+    D = ops.WATCHES[1]["bot"]
+    (tmp_path / "breaches.json").write_text(json.dumps({"seeds": 10, "breaches": {
+        ops.WATCH_BOT: {D: 4}, "a2": {D: 0}}}))
+    (tmp_path / "leaderboard.json").write_text(json.dumps({
+        "attackers": [{"name": ops.WATCH_BOT, "win_rate": 0.83}],
+        "defenders": [{"name": D, "win_rate": 0.91}]}))
+    ops.update_watch(tmp_path, "2026-10-05")
+    assert (tmp_path / "WATCH.md").exists() and (tmp_path / "WATCH_S0-3.md").exists()
+    assert (tmp_path / "watch_s0-3.jsonl").exists()

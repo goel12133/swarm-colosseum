@@ -63,3 +63,10 @@
   output that trips a safety stop is stopped, written up with its flag (CONTENT: or
   SECURITY:), and left; never rephrased to get past the stop.
 - **2026-10-04 — S0-2 verdict not executed mechanically.** At real night 7 the watch test passed (4 defenders hold synchronized_ring under 90%) but the role test failed on the *defender* side (61.6%). The charter's literal branch (A + gun-rate fix) would widen that imbalance. Nothing is due before 2026-10-26, so the season-two content is put to the founder as a yes/no instead of being picked silently.
+- **2026-10-04 (founder) — season two is candidate A only.** S0-2 was answered in play; no
+  economy fix. The 62% / 91% defender lean is logged as S0-3, with a 7-night watch on
+  convergence_blast_scheduler from 2026-10-05 under the S0-2 rule. The pre-decided role test
+  now reads "inside 40–60 in either direction".
+- **2026-10-04 (founder) — item G scrapped as a prompt rewrite.** The current prompts stay for
+  the rest of season one. Only the content-check filter remains, as a wiring item; if it
+  trips a stop it's dropped.

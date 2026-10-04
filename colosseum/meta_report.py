@@ -279,19 +279,22 @@ def findings_section(balance: Path, dates):
 
 
 def watch_section(out: Path):
-    """The founder's seven-night watch (see ops.py), if one is running."""
-    path = out / "WATCH.md"
-    if not path.exists():
+    """The founder's seven-night watches (see ops.WATCHES), if any are running."""
+    paths = sorted(out.glob("WATCH*.md"))
+    if not paths:
         return []
-    body = path.read_text().splitlines()
-    verdict = [l for l in body if l.startswith("**Verdict") or l.startswith("Undecided")]
-    rows = [l for l in body if l.startswith("| 20")]
-    lines = ["## Watch", "", body[0].lstrip("# ") + ".", ""]
-    for r in rows:
-        cells = [c.strip() for c in r.strip("|").split("|")]
-        lines.append(f"- {cells[0]}: it won {cells[1]} of its matches; best defender "
-                     f"{short(cells[2])} at {cells[3]}.")
-    return lines + [""] + verdict + [""]
+    lines = ["## Watch", ""]
+    for path in paths:
+        body = path.read_text().splitlines()
+        verdict = [l for l in body if l.startswith("**Verdict") or l.startswith("Undecided")]
+        rows = [l for l in body if l.startswith("| 20")]
+        lines += [body[0].lstrip("# ") + ".", ""]
+        for r in rows:
+            cells = [c.strip() for c in r.strip("|").split("|")]
+            lines.append(f"- {cells[0]}: it won {cells[1]} of its matches; best opponent "
+                         f"{short(cells[2])} at {cells[3]}.")
+        lines += [""] + verdict + [""]
+    return lines
 
 
 def phase_means(nights, dates):

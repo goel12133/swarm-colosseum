@@ -155,56 +155,82 @@ WATCH_FROM = "2026-09-30"            # first night after the decision
 WATCH_NIGHTS = 7
 WATCH_BAR = 0.90
 
+# Every watch the founder has opened. Same rule each time: seven nights for the league to
+# hold the bot under WATCH_BAR; if something does, it was a meta, otherwise it's structural.
+#   S0-2 (2026-09-29): an attacker beating every defender.
+#   S0-3 (2026-10-04): a defender at 91% while defenders win 62% of matches.
+WATCHES = (
+    dict(bot=WATCH_BOT, role="attacker", start=WATCH_FROM, nights=WATCH_NIGHTS,
+         bar=WATCH_BAR, stem="WATCH", finding="S0-2"),
+    dict(bot="2026-10-01_defender_convergence_blast_scheduler", role="defender",
+         start="2026-10-05", nights=7, bar=0.90, stem="WATCH_S0-3", finding="S0-3"),
+)
 
-def watch_row(out: Path = DEFAULT_OUT, when: str = None):
-    """This night's numbers for WATCH_BOT from breaches.json and leaderboard.json."""
+
+def watch_row(out: Path = DEFAULT_OUT, when: str = None, watch: dict = WATCHES[0]):
+    """This night's numbers for the watched bot from breaches.json and leaderboard.json.
+    rate = how often the watched bot wins against each opponent."""
     b = json.loads((out / "breaches.json").read_text())
     lb = json.loads((out / "leaderboard.json").read_text())
-    row = b["breaches"].get(WATCH_BOT)
-    if row is None:
-        return None
-    seeds = b["seeds"]
-    per = {d: n / seeds for d, n in row.items()}
-    best = min(per, key=lambda d: (per[d], d))
-    overall = next((r["win_rate"] for r in lb["attackers"] if r["name"] == WATCH_BOT), None)
+    bot, seeds = watch["bot"], b["seeds"]
+    if watch["role"] == "attacker":
+        row = b["breaches"].get(bot)
+        if row is None:
+            return None
+        per = {d: n / seeds for d, n in row.items()}
+    else:
+        if not any(bot in r for r in b["breaches"].values()):
+            return None
+        per = {a: (seeds - r.get(bot, seeds)) / seeds for a, r in b["breaches"].items()}
+    best = min(per, key=lambda o: (per[o], o))
+    ladder = lb["attackers" if watch["role"] == "attacker" else "defenders"]
+    overall = next((r["win_rate"] for r in ladder if r["name"] == bot), None)
     return dict(date=when or date.today().isoformat(), overall=overall,
                 best_defender=best, best_rate=per[best],
-                under=sorted(d for d, r in per.items() if r < WATCH_BAR), per=per)
+                under=sorted(o for o, r in per.items() if r < watch["bar"]), per=per)
 
 
 def update_watch(out: Path = DEFAULT_OUT, when: str = None):
-    row = watch_row(out, when)
-    path = out / "watch.jsonl"
-    rows = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
-    if row:
-        rows = [r for r in rows if r["date"] != row["date"]] + [row]
-        path.write_text("".join(json.dumps(r) + "\n" for r in rows))
-    (out / "WATCH.md").write_text(watch_text(rows))
-    return row
+    """Update every watch; returns the first watch's row (kept for older callers)."""
+    first = None
+    for watch in WATCHES:
+        row = watch_row(out, when, watch)
+        path = out / ("watch.jsonl" if watch["stem"] == "WATCH" else
+                      f"{watch['stem'].lower()}.jsonl")
+        rows = [json.loads(l) for l in path.read_text().splitlines()] if path.exists() else []
+        if row:
+            rows = [r for r in rows if r["date"] != row["date"]] + [row]
+            path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+        (out / f"{watch['stem']}.md").write_text(watch_text(rows, watch))
+        first = first or row
+    return first
 
 
-def watch_text(rows):
-    counted = [r for r in rows if r["date"] >= WATCH_FROM][:WATCH_NIGHTS]
-    lines = [f"# Watch: {WATCH_BOT}", "",
-             f"Does any defender hold it under {WATCH_BAR:.0%}? Nights from {WATCH_FROM}, "
-             f"{WATCH_NIGHTS} to decide.", "",
-             "| night | its win rate | best defender against it | its rate there | under 90%? |",
+def watch_text(rows, watch: dict = WATCHES[0]):
+    bot, start, nights, bar = watch["bot"], watch["start"], watch["nights"], watch["bar"]
+    opp = "defender" if watch["role"] == "attacker" else "attacker"
+    counted = [r for r in rows if r["date"] >= start][:nights]
+    lines = [f"# Watch: {bot}", "",
+             f"Finding {watch['finding']}. Does any {opp} hold it under {bar:.0%}? Nights "
+             f"from {start}, {nights} to decide.", "",
+             f"| night | its win rate | best {opp} against it | its rate there | under 90%? |",
              "|---|---|---|---|---|"]
     for r in rows:
-        mark = "" if r["date"] >= WATCH_FROM else " (before)"
-        lines.append(f"| {r['date']}{mark} | {r['overall']:.0%} | {r['best_defender']} | "
+        mark = "" if r["date"] >= start else " (before)"
+        overall = f"{r['overall']:.0%}" if r.get("overall") is not None else "—"
+        lines.append(f"| {r['date']}{mark} | {overall} | {r['best_defender']} | "
                      f"{r['best_rate']:.0%} | {', '.join(r['under']) or 'no'} |")
     found = [r for r in counted if r["under"]]
     lines.append("")
     if found:
         lines.append(f"**Verdict: a meta.** {found[0]['under'][0]} held it under "
-                     f"{WATCH_BAR:.0%} on {found[0]['date']}.")
-    elif len(counted) >= WATCH_NIGHTS:
-        lines.append(f"**Verdict: structural.** No defender held it under {WATCH_BAR:.0%} in "
-                     f"{WATCH_NIGHTS} nights.")
+                     f"{bar:.0%} on {found[0]['date']}.")
+    elif len(counted) >= nights:
+        lines.append(f"**Verdict: structural.** No {opp} held it under {bar:.0%} in "
+                     f"{nights} nights.")
     else:
-        lines.append(f"Undecided: {len(counted)} of {WATCH_NIGHTS} nights so far, none under "
-                     f"{WATCH_BAR:.0%}.")
+        lines.append(f"Undecided: {len(counted)} of {nights} nights so far, none under "
+                     f"{bar:.0%}.")
     return "\n".join(lines) + "\n"
 
 
