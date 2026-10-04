@@ -1448,3 +1448,44 @@ live repo untouched: 84 root@ commits remain there
 ```
 - Identity switched to the GitHub noreply address at the founder's request (`scripts/public_identity`).
 - `.house_league.env.save` moved out of the repo by the founder (2026-10-04); `git status` shows no untracked files.
+
+## Build session 2026-10-04 — L6 site redesign ✅, hygiene
+
+There was no ALERT and no WIP. Night 10-04 was ok (in the log: 2 bots written, 0 rejected,
+835.8 s). L6 was the first open in-scope sprint item.
+
+**L6.** `colosseum/site.py`:
+- `index.html` is now a home page. It says what the project is and states abstract-only.
+  Four start-here cards: about, replays, tactic library, research. Then the top five of each
+  ladder, a link to the full ladders, and the research list.
+- `ladders.html` has both full ladders and the latest meta report (the old index content).
+- `research.html` and `research/<n>.html` render `research/*.md`. Links between the
+  write-ups are kept; every other link is dropped and its label kept. Everything is
+  HTML-escaped as before.
+- The nav on every page now has Home, Ladders and Research. One shared `ladder_table()`
+  builds both ladder views.
+- Tests (`tests/test_site.py`): the home page shows the top five and only the top five, and
+  has the start-here links. Research pages keep links between write-ups and drop the rest.
+  An empty research directory says so. Every page links home, ladders and research. The
+  existing every-link-resolves and escaping tests now also cover the new pages.
+
+```
+python3 -m pytest tests/test_site.py -q -> 17 passed in 2.09s
+python3 -m colosseum.site -> out/site: 24 bots, 1400 replays, 20 tactic cards, 4 research pages, 0 archived seasons, 93.7 MB
+python3 -m pytest tests -q -> 313 passed in 49.97s
+```
+
+**Hygiene: why night 10-04 got 0 cache hits.** The night log says "1400 played in the
+sandbox, 0 from the cache (2570 entries)". This is not a cache bug. `38f2a8e` (3.9, the
+non-finite-number fix, 10-03 05:07) changed `colosseum/policy.py`. That file is one of
+`cache.ENGINE_FILES`, so every key from the 10-03 cold run (1170 entries) was invalidated,
+which is the intended behaviour. 1170 + 1400 = 2570 entries fits. No engine file has changed
+since then (`git log` on sim/policy/sandbox/sandbox_runner/rules/cache/tournament), so night
+10-05 should be the first warm night. Night 10-04 took 835.8 s, under the 15-min limit.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 194 MB"; last-night 2026-10-04: ok
+```
+
+I didn't start L7. It renders clips in a Docker/Chromium container, and an unfinished L7
+would need a WIP.md, which would also block today's L6 merge.
