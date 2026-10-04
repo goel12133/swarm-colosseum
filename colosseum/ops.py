@@ -208,6 +208,37 @@ def watch_text(rows):
     return "\n".join(lines) + "\n"
 
 
+# --- committed results (make reproduce) ---------------------------------------------
+
+RESULT_FILES = ("leaderboard.json", "matrix.json", "breaches.json")
+
+
+def commit_results(root: Path = ROOT, out: Path = DEFAULT_OUT, when: str = None):
+    """Commit the night's results/ and its new house bots together, so any commit holds
+    both the bots and the results they produce (colosseum.reproduce checks this)."""
+    import shutil
+    import subprocess
+
+    def git(*args):
+        return subprocess.run(["git", "-C", str(root), *args], capture_output=True,
+                              text=True, check=True).stdout
+    results = root / "results"
+    results.mkdir(exist_ok=True)
+    for f in RESULT_FILES:
+        if (out / f).exists():
+            shutil.copy2(out / f, results / f)
+    new_bots = [l[3:] for l in git("status", "--porcelain", "--untracked-files=all", "--",
+                                   "bots/house").splitlines() if l.startswith("??")]
+    paths = [f"results/{f}" for f in RESULT_FILES if (results / f).exists()] + new_bots
+    git("add", "--", *paths)
+    if not git("diff", "--cached", "--name-only", "--", *paths).strip():
+        return []
+    git("-c", "user.name=Swarm Colosseum league", "-c", "user.email=league@localhost",
+        "commit", "-q", "-m",
+        f"Night {when or date.today().isoformat()}: results and house bots", "--", *paths)
+    return paths
+
+
 # --- after the night ----------------------------------------------------------------
 
 def record_phase(seconds: float, nights: Path = None):
@@ -265,7 +296,11 @@ def after_night(commit: bool = True):
         from . import site
         return site.build()
 
-    for label, fn in (("watch", update_watch), ("meta report", meta_report),
+    def results():
+        return commit_results() if commit else "skipped (--no-commit)"
+
+    for label, fn in (("results", results), ("watch", update_watch),
+                      ("meta report", meta_report),
                       ("library", tactic_library), ("site", site_bundle),
                       ("fuzz", nightly_fuzz),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):
