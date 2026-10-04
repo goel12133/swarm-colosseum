@@ -1598,3 +1598,35 @@ Not done: the workflow has never run on GitHub (there's no remote, and nothing i
 L10/L15 should run it on the publish mirror once the founder says yes. The founder also
 needs to turn on "require approval for first-time contributors' workflows" when the repo is
 created.
+
+## Same session — L12 workshop README for teachers ✅
+
+L10 (the dry publish pipeline) was next in order, but I took L12 first:
+- L10's inputs aren't decided yet: the licence, the repo name and visibility are still with
+  the founder.
+- Its core step, `scripts/rewrite_identity.sh`, can't be run with this session's allowed
+  commands.
+
+L10 is next.
+
+- `workshop/TEACHERS.md`, one page for a teacher deciding whether to run the workshop:
+  - who it's for, what students practise, and what it isn't (abstract on purpose);
+  - what's needed (Python 3.11, a browser, a projector; no internet, installs, accounts or
+    Docker);
+  - the kit's files in the order a teacher uses them, with solutions marked teacher-only;
+  - three setup steps;
+  - safety in one paragraph;
+  - what happens after: submissions aren't open, and no licence has been chosen, so check
+    before copying beyond your own class.
+
+  It claims nothing the kit doesn't do. A first draft had an age, a setup time and an
+  "eight lines" that I couldn't back up, so they're gone.
+- Linked from the root README (workshop line) and from the top of FACILITATOR.md.
+- Test `test_the_teachers_page_matches_the_kit`: its links and the files it names exist,
+  the setup command and its expected output match `check.py`, `content_check` finds nothing,
+  and the README links it.
+
+```
+python3 -m pytest tests/test_workshop.py tests/test_launch_docs.py -q -> 34 passed in 1.67s
+python3 -m pytest tests -q -> 346 passed in 66.49s
+```

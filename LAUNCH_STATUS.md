@@ -15,7 +15,7 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L9 | submissions via PR + workflow (s) | done | PR adds `bots/submitted/pr/<login>/<NAME>.py`; CI check is static only (never runs the bot); `submit_pr intake` = sandbox gate after merge; not run on GitHub yet |
 | L10 | publish pipeline, dry (s) | todo | |
 | L11 | secret and history audit (h) | done | no secrets; hostname rewritten in the publish clone (approved), live repo untouched |
-| L12 | workshop README for teachers (s) | todo | kit itself done (3.11) |
+| L12 | workshop README for teachers (s) | done | `workshop/TEACHERS.md`: who it's for, needs, files in order, 3-step setup, safety; linked from README |
 | L13 | one-page summary (h) | todo | |
 | L14 | season report draft (s) | todo | |
 | L15 | full rehearsal on a scratch clone (h) | todo | |

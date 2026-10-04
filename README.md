@@ -24,7 +24,8 @@ no claim that a tactic that works here says anything about the real world.
   being told how, the balance findings, a persona ablation, and an optimiser ablation. Each
   states its limits.
 - **A workshop kit** for first-time Python students in [`workshop/`](workshop/). It runs
-  offline, with no Docker.
+  offline, with no Docker. Teachers should start with
+  [`workshop/TEACHERS.md`](workshop/TEACHERS.md).
 - **A static site bundle**, `python -m colosseum.site`, with ladders, bot pages, replays,
   the library and the research. It is built nightly and not served yet.
 

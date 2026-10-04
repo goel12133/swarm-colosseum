@@ -1,5 +1,7 @@
 # Facilitator guide (one page)
 
+New to this workshop? Read [`TEACHERS.md`](TEACHERS.md) first.
+
 **Before the day.** Copy these folders from the repository onto each laptop, side by side
 in one folder: `colosseum/`, `bots/attackers/`, `bots/defenders/`, `viewer/`, `workshop/`.
 Leave out `bots/house/`, `out/` and everything else (the wrapper refuses league bots

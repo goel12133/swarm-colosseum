@@ -137,6 +137,21 @@ def test_opponent_by_name_only():
     assert kit.opponent("nearest_first", "defender").name == "nearest_first"
 
 
+def test_the_teachers_page_matches_the_kit():
+    """L12: links resolve, the files and commands it names exist, game terms only."""
+    import re
+    from colosseum import content_check
+    text = (W / "TEACHERS.md").read_text()
+    for target in re.findall(r"\]\(([^)#]+)\)", text):
+        assert (W / target).exists(), target
+    for name in re.findall(r"`(\w+(?:\.md|/))`", text):
+        assert (W / name).exists() or (ROOT / name).exists(), name
+    assert "all exercises solvable" in text and "make workshop" in text
+    assert "all exercises solvable" in (W / "check.py").read_text()
+    assert content_check.findings(text) == []
+    assert "workshop/TEACHERS.md" in (ROOT / "README.md").read_text()
+
+
 def test_workshop_code_imports_only_stdlib_and_the_engine():
     """It has to run on a school laptop with nothing installed."""
     allowed = {"argparse", "ast", "importlib", "sys", "dataclasses", "pathlib",
