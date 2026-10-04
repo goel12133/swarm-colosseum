@@ -5,9 +5,9 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | # | item | status | left |
 |---|---|---|---|
 | L1 | unaided-discovery write-up (h) | done | research/01; clips in out/research/clips |
-| L2 | balance-findings write-up (h) | doing | |
+| L2 | balance-findings write-up (h) | done | verdict line filled after night 7 (tonight) |
 | L3 | persona ablation, early cut (h) | todo | |
-| L4 | annealing ablation (h) | todo | |
+| L4 | annealing ablation (h) | doing | |
 | L5 | `make reproduce` (s) | todo | |
 | L6 | site redesign (s) | todo | |
 | L7 | five clips, mp4 + gif (s) | todo | |
