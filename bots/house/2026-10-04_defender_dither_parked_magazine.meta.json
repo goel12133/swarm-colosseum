@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-10-04",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3500,
+    "dropped": [],
+    "included": [
+      "source"
+    ],
+    "used": 2426
+  },
+  "model": "opus",
+  "name": "2026-10-04_defender_dither_parked_magazine",
+  "persona": "contrarian",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-04T033517_cli_defender_contrarian.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.608,
+    "rank": 4,
+    "score_vs_target": 0.46
+  },
+  "role": "defender",
+  "target": "2026-09-29_attacker_synchronized_ring",
+  "tokens": {
+    "input": 5579,
+    "output": 21511
+  }
+}
