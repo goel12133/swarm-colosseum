@@ -1447,3 +1447,4 @@ $ git -C public.git log --all --format='%an <%ae>' | sort | uniq -c
 live repo untouched: 84 root@ commits remain there
 ```
 - Identity switched to the GitHub noreply address at the founder's request (`scripts/public_identity`).
+- `.house_league.env.save` moved out of the repo by the founder (2026-10-04); `git status` shows no untracked files.

@@ -2,8 +2,8 @@
 
 *Draft: L15 completes it. Nothing here has been run; each line is yours to do.*
 
-1. **Move the stray env file out of the repo** (hard rule 7 stops me touching it):
-   `mv /root/swarm-colosseum/.house_league.env.save /root/` — unlocks a clean working tree.
+1. ~~Move the stray env file out of the repo~~ **done by the founder 2026-10-04**; the working
+   tree has no untracked files.
 2. ~~Approve the history rewrite~~ **approved 2026-10-04**. Public identity, in
    `scripts/public_identity`: Vikram Goel, GitHub noreply address (no personal email in
    the public history). Nothing to do by hand: the publish step runs `scripts/rewrite_identity.sh`, which
