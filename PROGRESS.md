@@ -1429,3 +1429,20 @@ scanned 89 commits, 341 distinct file versions
   site now drops that section (`site.public_report`, with a test); the report keeps it.
 - `.house_league.env.save` is still in the working tree: moving it is a founder action under
   hard rule 7 (LAUNCH_CHECKLIST.md, step 1).
+
+### L11 rewrite, approved by the founder 2026-10-04 ✅
+
+`scripts/rewrite_identity.sh SOURCE DEST "Name" "email"` mirrors the repo into a fresh bare
+clone and, there only, rewrites every `root@<host>` author and committer. It then drops
+filter-branch's backup refs and prunes, so the old identity is really gone. The live repo is
+never rewritten (hard rule 9); the publish step (L10) pushes from the rewritten clone. The
+audit allow-lists exactly the reviewed benign values (`1.1.1.1`, `/root/.local`,
+`/root/backups`, a synthetic `/root/x`), so it exits 0 only when nothing else is found.
+
+```
+$ scripts/rewrite_identity.sh /root/swarm-colosseum public.git "Vikram Goel" "<email>"
+rewritten: 90 commits
+$ git -C public.git log --all --format='%an <%ae>' | sort | uniq -c
+     84 Vikram Goel <...>     5 Swarm Colosseum league <league@localhost>     1 Swarm Colosseum <dev@...invalid>
+live repo untouched: 84 root@ commits remain there
+```

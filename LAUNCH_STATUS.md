@@ -14,7 +14,7 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L8 | README, CITATION, CONTRIBUTING, LICENSE note (s) | todo | |
 | L9 | submissions via PR + workflow (s) | todo | |
 | L10 | publish pipeline, dry (s) | todo | |
-| L11 | secret and history audit (h) | **stopped** | SECURITY: hostname in 84 commit identities; rewrite needs founder (LAUNCH_CHECKLIST 2) |
+| L11 | secret and history audit (h) | done | no secrets; hostname rewritten in the publish clone (approved), live repo untouched |
 | L12 | workshop README for teachers (s) | todo | kit itself done (3.11) |
 | L13 | one-page summary (h) | todo | |
 | L14 | season report draft (s) | todo | |

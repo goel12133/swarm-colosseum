@@ -49,6 +49,18 @@ def identity_patterns():
     return pats
 
 
+# Reviewed and benign (L11, 2026-10-04). Anything else that matches is reported.
+ALLOWED = {
+    "ipv4": {"1.1.1.1"},                       # the address the no-network sandbox test tries
+    "home-path": {"/root/.local", "/root/backups", "/root/x"},   # generic; /root/x is a test
+}
+
+
+def _hits(name, rx, text):
+    return [m.group(0) for m in rx.finditer(text)
+            if m.group(0) not in ALLOWED.get(name, set())]
+
+
 def git(*args):
     return subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True, text=True,
                           errors="replace").stdout
@@ -62,7 +74,7 @@ def main():
     for c in commits:
         meta = git("show", "-s", "--format=%an <%ae>%n%cn <%ce>%n%B", c)
         for name, rx in {**SECRET_PATTERNS, **ident}.items():
-            if rx.search(meta):
+            if _hits(name, rx, meta):
                 findings.add((c[:7], "(commit message / identity)", name))
         for line in git("ls-tree", "-r", c).splitlines():
             mode_type_sha, path = line.split("\t", 1)
@@ -74,7 +86,7 @@ def main():
             seen_blobs.add(blob)
             text = git("cat-file", "-p", blob)
             for name, rx in {**SECRET_PATTERNS, **ident}.items():
-                if rx.search(text):
+                if _hits(name, rx, text):
                     findings.add((c[:7], path, name))
     by_kind = {}
     for c, path, name in sorted(findings):
