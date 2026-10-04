@@ -239,6 +239,34 @@ def commit_results(root: Path = ROOT, out: Path = DEFAULT_OUT, when: str = None)
     return paths
 
 
+# --- the 14-night persona ablation (sprint L3) ------------------------------------------
+
+ABLATION_NIGHTS = 14
+ABLATION_FROM = "2026-09-29"           # the first night with personas
+
+
+def maybe_start_full_ablation(out: Path = DEFAULT_OUT, root: Path = ROOT):
+    """At real night 14, start the full persona ablation once, detached, so the night's own
+    steps don't wait for it (~28 generator calls, ~1 h). It rewrites and commits
+    research/03_persona_ablation.md when it finishes."""
+    import subprocess
+    from . import meta_report
+    nights = [d for d, _ in meta_report.load_nights(out)]
+    marker = out / "ablation_14" / "started"
+    if len(nights) < ABLATION_NIGHTS or marker.exists():
+        return "not due" if not marker.exists() else "already started"
+    use = [d for d in nights[:ABLATION_NIGHTS] if d >= ABLATION_FROM]
+    marker.parent.mkdir(parents=True, exist_ok=True)
+    marker.write_text(" ".join(use) + "\n")
+    log = open(out / "ablation_14" / "run.log", "a")
+    subprocess.Popen([sys.executable, str(root / "scripts" / "ablation_personas.py"),
+                      "--nights", *use, "--out", str(out / "ablation_14"),
+                      "--render", str(root / "research" / "03_persona_ablation.md"),
+                      "--commit"], cwd=root, stdout=log, stderr=log,
+                     start_new_session=True)
+    return f"started for {len(use)} nights"
+
+
 # --- after the night ----------------------------------------------------------------
 
 def record_phase(seconds: float, nights: Path = None):
@@ -296,11 +324,12 @@ def after_night(commit: bool = True):
         from . import site
         return site.build()
 
-    def results():
+    def results_step():
         return commit_results() if commit else "skipped (--no-commit)"
 
-    for label, fn in (("results", results), ("watch", update_watch),
+    for label, fn in (("results", results_step), ("watch", update_watch),
                       ("meta report", meta_report),
+                      ("persona ablation", maybe_start_full_ablation),
                       ("library", tactic_library), ("site", site_bundle),
                       ("fuzz", nightly_fuzz),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):

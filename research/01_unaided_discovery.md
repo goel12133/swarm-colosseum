@@ -59,6 +59,10 @@ Clip: `out/research/clips/case2_collapse_vs_ring.mp4`.
   case 1 the decisive hint (stock running out against arrivals bunched in time) was already
   in the near-miss matches shown to it. In case 2 the counters came from reading the
   target's source.
+- **Counter-meta wasn't necessary for case 1.** In the persona ablation
+  (`03_persona_ablation.md`), the *generalist* persona, shown only the win-rate matrix and the
+  top three defenders' self-descriptions, independently wrote the same synchronised-release
+  idea on the same night. The counter is easier to find than "nobody told it" suggests.
 - **Two cases, one model family, 10 seeds a pairing.** That's enough to show the mechanism
   works, not to estimate how often it does.
 - **Not every attempt produced a bot.** Of the four escalation calls on 10-01 and 10-02, two

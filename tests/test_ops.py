@@ -160,3 +160,53 @@ def test_rotation_never_deletes_a_current_roster_replay(tmp_path):
     # retired_bot (attacker side): best s2, worst s1 kept; s1 is also layered's best. The
     # middle match is the only one that goes.
     assert {p.name for p in delete} == {gone.name}
+
+
+def test_the_full_persona_ablation_starts_once_at_night_14(tmp_path, monkeypatch):
+    import subprocess as sp
+    started = []
+    monkeypatch.setattr(sp, "Popen", lambda cmd, **kw: started.append(cmd))
+    rows = [json.dumps({"date": f"2026-09-{d:02d}", "status": "ok"}) for d in range(28, 31)]
+    rows += [json.dumps({"date": f"2026-10-{d:02d}", "status": "ok"}) for d in range(1, 11)]
+    (tmp_path / "nights.jsonl").write_text("\n".join(rows) + "\n")         # 13 nights
+    assert ops.maybe_start_full_ablation(tmp_path) == "not due"
+    with open(tmp_path / "nights.jsonl", "a") as f:
+        f.write(json.dumps({"date": "2026-10-11", "status": "ok"}) + "\n")  # night 14
+    assert ops.maybe_start_full_ablation(tmp_path) == "started for 13 nights"
+    cmd = started[0]
+    assert cmd[cmd.index("--nights") + 1] == "2026-09-29" and "--commit" in cmd
+    assert ops.maybe_start_full_ablation(tmp_path) == "already started"
+    assert len(started) == 1
+
+
+def test_the_ablation_page_renders_from_the_result_alone():
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location(
+        "abl", Path(__file__).resolve().parents[1] / "scripts" / "ablation_personas.py")
+    abl = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(abl)
+    arm = dict(mean_score=0.6, top_five=["a"], unique_coverage=0, unique_coverage_5=1,
+               unique_coverage_8=2)
+    text = abl.render(dict(persona=arm, generalist=arm, nights=["2026-09-29", "2026-10-11"],
+                           slots=26, real_league=dict(written=22, slots=26),
+                           generation=dict(written=24, calls=26), retired_persona=[3, 22]))
+    assert "(2-night run)" in text and "22 / 26" in text and "3 of 22" in text
+
+
+def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeypatch):
+    """Regression: a step function named like the results dict shadowed it (2026-10-04)."""
+    from colosseum import meta_report, site
+    calls = []
+    for name in ("commit_results", "update_watch", "maybe_start_full_ablation", "rotate",
+                 "backup", "record_phase", "nightly_fuzz"):
+        monkeypatch.setattr(ops, name, lambda *a, _n=name, **k: calls.append(_n) or _n)
+    monkeypatch.setattr(meta_report, "due_week", lambda *a, **k: None)
+    monkeypatch.setattr(site, "build", lambda *a, **k: calls.append("site") or "site")
+    from colosseum import library
+    monkeypatch.setattr(library, "build", lambda *a, **k: calls.append("library") or "lib")
+    monkeypatch.setattr(ops, "write_alert", lambda *a, **k: calls.append("ALERT"))
+    problems, results = ops.after_night(commit=True)
+    assert problems == [] and "ALERT" not in calls
+    assert set(results) == {"results", "watch", "meta report", "persona ablation", "library",
+                            "site", "fuzz", "rotation", "backup"}
