@@ -12,7 +12,7 @@ From the operating charter, section 3, in order. Status: todo / doing / done / b
 
 | # | item | status | note |
 |---|---|---|---|
-| G | Generator prompt rewrite (game terms) + content check on generated bots | **founder** | the founder is drafting the new prompt text; prompts and checks unchanged until it arrives -- human-gated, the build session must not touch this |
+| G | Generator prompt rewrite (game terms) + content check on generated bots | **stopped** | 2026-10-04: install stopped by a safety classifier; not attempted again -- founder to install by hand or decide; human-gated |
 | 3.1 | Match result cache | done | cold 372 s → warm 0.0 s; nightly 65 s with two new bots |
 | 3.2 | Generator token discipline | done | prompts −15..−73%; budgets in .meta.json |
 | 3.3 | Daily engineering session (manual run first, then cron) | done | first run watched 2026-10-03; cron 05:00 UTC from 2026-10-04 |
