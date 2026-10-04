@@ -20,6 +20,18 @@ open viewer/index.html                        # replay viewer, no build step
 Outputs land in `out/` (gitignored): `leaderboard.json`, `matrix.json`, `BALANCE.md`, and one
 replay per match under `replays/`.
 
+## Reproduce the leaderboard
+
+```bash
+git clone <this repo> && cd swarm-colosseum
+make reproduce        # needs Docker; ~6 min on 4 cores
+```
+
+It replays every match of the current roster (every bot in `bots/`, seeds 0–9) in the
+sandbox from scratch, with no cache, and compares the rebuilt `leaderboard.json`,
+`matrix.json` and `breaches.json` byte for byte with the committed `results/`. Checked on a
+fresh clone on 2026-10-04: `REPRODUCED in 364 s`.
+
 ## The game, in one screen
 
 A protected asset sits at the origin with 30 HP. The attacker has 60 credits and launches

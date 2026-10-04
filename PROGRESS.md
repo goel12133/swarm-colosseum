@@ -1365,3 +1365,18 @@ git status --short --ignored -> only gitignored entries (SESSION_ITEM, out/, cac
   here as the one exception to "no force pushes".
 - **Item G is not installed.** No new prompt text has arrived; `PROMPT_VERSION` is still
   `2026-10-03.1`.
+
+### L5 `make reproduce` ✅
+
+`colosseum/reproduce.py` + `make reproduce`. It replays the whole roster in the sandbox with
+no cache and byte-compares the result with the committed `results/`. `ops after-night` now
+commits `results/` together with the night's new house bots, so every commit holds the bots
+and the results they produce. Proof on a fresh clone:
+
+```
+$ git clone /root/swarm-colosseum clone1 && cd clone1 && time make reproduce
+  leaderboard.json   identical
+  matrix.json        identical
+  breaches.json      identical
+REPRODUCED in 364 s          (real 6m4s, with the persona ablation sharing the CPU)
+```
