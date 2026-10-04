@@ -1310,3 +1310,39 @@ python3 -m pytest tests -q -> 295 passed in 43.93s
 - No `WIP.md`. The only untracked root file is `SESSION_ITEM`, which is gitignored.
 - Still open: the cache hit rate wasn't measured (it belongs in the meta report). Restoring a
   real archive from `~/backups` still needs an interactive session.
+
+## Daily session 2026-10-04 — hygiene
+
+There was no ALERT and no WIP. 3.10, 3.11 and 3.12 are done, so hygiene was the only
+in-scope item. This session changed no code.
+
+```
+python3 -m colosseum.health
+ok  docker     server 29.1.3
+ok  cli-login  logged in via claude.ai
+ok  cron       30 3 * * * /root/swarm-colosseum/scripts/nightly.sh
+ok  disk       23% used, 160 GB free, out/ is 161 MB
+ok  last-night 2026-10-03: ok
+ok  alert      none
+(1.7 s)
+python3 -m pytest tests -q -> 295 passed in 56.42s
+ls -la out/cache -> results.sqlite, 2,043,904 bytes, dated Oct 3 04:23
+git status --short --ignored -> only gitignored entries (SESSION_ITEM, out/, caches)
+```
+
+- **Night 10-04 isn't in this snapshot.** The `out/` copy is dated Oct 4 00:00, before the
+  03:30 run. `out/nights.jsonl` has no 2026-10-04 entry, and `health` reports 10-03 as the
+  last night. I can't say whether night 10-04 ran or how it went.
+- **Why the cache hit rate is still missing.** No real night has run with the cache yet.
+  The cache landed in `13a62b6` at 2026-10-03 04:23 UTC, about 40 minutes after night 10-03
+  finished. The 10-03 log line still uses the old wording ("1170 sandboxed matches in
+  352.8s"), and its summary has no `cache` key. The code to report the rate already exists:
+  `house_league.py` writes `cache=` (matches, ran, cached, entries) into each night's summary
+  and logs "N played in the sandbox, M from the cache". `meta_report.py` turns that into a
+  weekly hit rate. Night 10-04 is the first that can produce the number. The next session
+  should read it from that night's log.
+- Not done again: restoring a real archive from `~/backups` and running the tournament from
+  it. No allowed command reaches `~/backups`, so it still needs an interactive session.
+- The build session's scope is used up. 3.10, 3.11 and 3.12 are done, and every other open
+  item is waiting on a date (3.4, 3.5, 3.6, 3.13), on 3.8 (3.14), or on the founder (G,
+  3.8). Until the scope changes, each session can only repeat these hygiene checks.
