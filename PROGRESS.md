@@ -1380,3 +1380,22 @@ $ git clone /root/swarm-colosseum clone1 && cd clone1 && time make reproduce
   breaches.json      identical
 REPRODUCED in 364 s          (real 6m4s, with the persona ablation sharing the CPU)
 ```
+
+### Founder decisions 2026-10-04, applied
+
+- **Season two = candidate A only.** S0-3 is logged in BALANCE.md (defenders 61.6%,
+  convergence_blast_scheduler 91%), with a 7-night watch from 2026-10-05
+  (`out/WATCH_S0-3.md`; does any attacker hold it under 90%?). Watches are a list in
+  `ops.WATCHES` now. The charter's role test reads "inside 40–60 in either direction".
+- **The 14-night persona ablation is its own session:** `scripts/ablation_session.sh`, cron
+  05:00, never inside the nightly run. Due from real night 14. Each run spends at most 200k
+  minus that night's league tokens, stops cleanly before a call that could cross it (exit 3),
+  and resumes from `generation.json`. It only evaluates, re-renders research/03 and commits
+  once every slot is filled. About 3 slots a night fit, so it takes roughly 9 nights.
+  `ops ablation-session` today → `not due (7 of 14 nights)`.
+- **Item G reduced to the content check** (`colosseum/content_check.py`). The prompts are
+  unchanged for season one. Generic real-world vocabulary plus the shape of a designation
+  code, so the file names nothing real. It runs before validation; a hit is logged
+  `CONTENT: rejected …`, the bot is never written, and the night continues. No false positives
+  across the 50 existing bot and workshop files (after excluding encoding names such as
+  UTF-8). Scratch dry run: exit 0, 250 played / 1,400 cached, 94 s. 309 tests.

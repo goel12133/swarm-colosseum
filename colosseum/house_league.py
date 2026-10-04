@@ -42,7 +42,7 @@ from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from . import personas
+from . import content_check, personas
 from .prompts import generator as prompt_text
 from .rules import SEASON0
 from .sim import run_match
@@ -739,6 +739,11 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
         if not blocks:
             log(f"rejected {role}: model returned no code block")
             rejected.append((role, "model returned no code block"))
+            continue
+        clean, why = content_check.check(blocks[0])
+        if not clean:
+            log(f"CONTENT: rejected {role} ({persona}): {why}")
+            rejected.append((role, f"CONTENT: {why}"))
             continue
         with phases("validation"):
             ok, name, reason = validate_bot(blocks[0], role)

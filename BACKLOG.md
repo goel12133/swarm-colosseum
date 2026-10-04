@@ -12,7 +12,7 @@ From the operating charter, section 3, in order. Status: todo / doing / done / b
 
 | # | item | status | note |
 |---|---|---|---|
-| G | Content-check filter on generated bots (regex + test; prompts unchanged for season one) | doing | founder 2026-10-04: prompt rewrite scrapped; drop this if it trips a stop |
+| G | Content-check filter on generated bots | done | generic vocabulary + designation shape, before validation, CONTENT: log; no false positives on 50 files |
 | 3.1 | Match result cache | done | cold 372 s → warm 0.0 s; nightly 65 s with two new bots |
 | 3.2 | Generator token discipline | done | prompts −15..−73%; budgets in .meta.json |
 | 3.3 | Daily engineering session (manual run first, then cron) | done | first run watched 2026-10-03; cron 05:00 UTC from 2026-10-04 |
