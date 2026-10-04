@@ -1440,9 +1440,10 @@ audit allow-lists exactly the reviewed benign values (`1.1.1.1`, `/root/.local`,
 `/root/backups`, a synthetic `/root/x`), so it exits 0 only when nothing else is found.
 
 ```
-$ scripts/rewrite_identity.sh /root/swarm-colosseum public.git "Vikram Goel" "<email>"
+$ scripts/rewrite_identity.sh /root/swarm-colosseum public.git "$(sed -n 1p scripts/public_identity)" "$(sed -n 2p scripts/public_identity)"
 rewritten: 90 commits
 $ git -C public.git log --all --format='%an <%ae>' | sort | uniq -c
      84 Vikram Goel <...>     5 Swarm Colosseum league <league@localhost>     1 Swarm Colosseum <dev@...invalid>
 live repo untouched: 84 root@ commits remain there
 ```
+- Identity switched to the GitHub noreply address at the founder's request (`scripts/public_identity`).

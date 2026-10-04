@@ -70,3 +70,4 @@
 - **2026-10-04 (founder) — item G scrapped as a prompt rewrite.** The current prompts stay for
   the rest of season one. Only the content-check filter remains, as a wiring item; if it
   trips a stop it's dropped.
+- **2026-10-04 (founder) — public commit identity:** Vikram Goel, GitHub noreply address (`scripts/public_identity`), applied only in the publish mirror by `scripts/rewrite_identity.sh`; the live repo keeps its history.
