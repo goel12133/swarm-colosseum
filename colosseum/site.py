@@ -6,7 +6,10 @@ Everything is a local file, with no external requests, no fonts or scripts from 
 and no JavaScript except the replay viewer's own. Nothing serves it; the founder decides
 where it goes.
 
-    index.html              both ladders, the latest meta report, links
+    index.html              home: what this is, where to start, ladder tops, research
+    ladders.html            both ladders in full, the latest meta report
+    research.html           the research write-ups (research/*.md), one page each under
+    research/<n>.html         research/, links between them kept and any other link dropped
     bots/<name>.html        docstring, persona, author, metadata, recent results
     replays.html            a picker (plain links) over every current replay
     replays/<stem>.html     the viewer with that replay embedded (viewer/build_viewer.page_with)
@@ -74,6 +77,14 @@ border:1px solid var(--rule);color:var(--soft);margin-left:6px}
 ul.picks{list-style:none;padding:0;margin:0}ul.picks li{padding:6px 0;
 border-bottom:1px solid var(--rule)}
 blockquote{margin:12px 0;padding:8px 12px;border-left:3px solid var(--rule);color:var(--soft)}
+nav a.home{color:var(--ink);margin-right:auto}
+.hero{padding:8px 0 4px}.hero h1{font-size:1.9rem;margin-bottom:.3em}
+.lede{font-size:1.1rem;margin:.2em 0 .6em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;
+margin:12px 0}
+.grid .card{margin:0}a.card{display:block;text-decoration:none;color:inherit}
+a.card:hover,a.card:focus{border-color:var(--link)}a.card h3{color:var(--link)}.grid h3{margin:.2em 0 .3em}.grid p{margin:0;color:var(--soft)}
+.more{margin:4px 0 0;font-weight:600}
 """
 
 e = html.escape
@@ -269,17 +280,43 @@ def page(title: str, body: str, depth: int = 0) -> str:
 <meta name="color-scheme" content="light dark">
 <title>{e(title)} · Swarm Colosseum</title>
 <link rel="stylesheet" href="{up}style.css"></head>
-<body><nav><a href="{up}index.html">Ladders</a><a href="{up}replays.html">Replays</a>
-<a href="{up}library/index.html">Tactic library</a><a href="{up}seasons.html">Seasons</a>
-<a href="{up}submitting.html">Submit a bot</a><a href="{up}about.html">About</a></nav>
+<body><nav><a class="home" href="{up}index.html">Swarm Colosseum</a>
+<a href="{up}ladders.html">Ladders</a><a href="{up}replays.html">Replays</a>
+<a href="{up}library/index.html">Tactic library</a><a href="{up}research.html">Research</a>
+<a href="{up}seasons.html">Seasons</a><a href="{up}submitting.html">Submit a bot</a>
+<a href="{up}about.html">About</a></nav>
 <main>{body}</main></body></html>
 """
 
 
 # --- build ----------------------------------------------------------------------
 
+def ladder_table(rows, prefix: str = "") -> str:
+    """One ladder as a table; `prefix` is the path from the page to the site root."""
+    t = ["<div class=\"card scroll\"><table><thead><tr><th class=num>#</th><th>bot</th>"
+         "<th class=num>Elo</th><th class=num>wins</th><th class=\"num wide\">mean score</th>"
+         "</tr></thead><tbody>"]
+    for i, r in enumerate(rows, 1):
+        path = bot_file(r["name"])
+        tag = origin(path, read_meta(path)).split(",")[0].split(" ")[0]
+        tag = {"house": "house", "submitted": "submitted"}.get(tag, "baseline")
+        t.append(f"<tr><td class=num>{i}</td><td class=name><a href=\"{prefix}bots/"
+                 f"{e(slugify(r['name']))}.html\">{e(display(r['name']))}</a>"
+                 f"<span class=tag>{e(tag)}</span></td>"
+                 f"<td class=num>{r['elo']:.0f}</td>"
+                 f"<td class=num>{r['win_rate']:.0%}</td>"
+                 f"<td class=\"num wide\">{r['mean_score']:.3f}</td></tr>")
+    t.append("</tbody></table></div>")
+    return "".join(t)
+
+
+def md_title(text: str, fallback: str) -> str:
+    m = re.search(r"^#\s+(.+)$", text, re.M)
+    return m.group(1).strip() if m else fallback
+
+
 def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
-          seasons: Path = ROOT / "seasons") -> dict:
+          seasons: Path = ROOT / "seasons", research: Path = ROOT / "research") -> dict:
     library = library or out / "library"
     lb = json.loads((out / "leaderboard.json").read_text())
     matrix = json.loads((out / "matrix.json").read_text())["matrix"]
@@ -306,28 +343,12 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
         metas[p.stem] = rep["meta"]
         (site / "replays" / f"{slugify(p.stem)}.html").write_text(viewer.page_with(rep))
 
-    # index
-    body = ["<h1>Swarm Colosseum</h1>",
-            "<p class=\"soft\">An abstract strategy benchmark: AI attackers against AI "
-            "defenders, every match public and reproducible. New here? Start with "
-            "<a href=\"about.html\">what this is</a>.</p>"]
+    # ladders: both in full, then the latest meta report
+    body = ["<h1>Ladders</h1>",
+            "<p class=soft>Every bot plays every bot on the other side, on the same seeds, "
+            "every night. <a href=\"about.html\">How to read this</a>.</p>"]
     for role in ("attackers", "defenders"):
-        body.append(f"<h2>{role.capitalize()}</h2><div class=\"card scroll\"><table>"
-                    "<thead><tr><th class=num>#</th><th>bot</th><th class=num>Elo</th>"
-                    "<th class=num>wins</th><th class=\"num wide\">mean score</th></tr>"
-                    "</thead>"
-                    "<tbody>")
-        for i, r in enumerate(lb[role], 1):
-            path = bot_file(r["name"])
-            tag = origin(path, read_meta(path)).split(",")[0].split(" ")[0]
-            tag = {"house": "house", "submitted": "submitted"}.get(tag, "baseline")
-            body.append(f"<tr><td class=num>{i}</td><td class=name><a href=\"bots/"
-                        f"{e(slugify(r['name']))}.html\">{e(display(r['name']))}</a>"
-                        f"<span class=tag>{e(tag)}</span></td>"
-                        f"<td class=num>{r['elo']:.0f}</td>"
-                        f"<td class=num>{r['win_rate']:.0%}</td>"
-                        f"<td class=\"num wide\">{r['mean_score']:.3f}</td></tr>")
-        body.append("</tbody></table></div>")
+        body.append(f"<h2>{role.capitalize()}</h2>{ladder_table(lb[role])}")
     reports = sorted((out / "meta").glob("WEEK_*.md"),
                      key=lambda p: int(re.search(r"\d+", p.stem).group()))
     body.append("<h2>Latest meta report</h2>")
@@ -337,7 +358,40 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     else:
         body.append("<p class=soft>No weekly report yet: the first is written after the "
                     "seventh night.</p>")
-    (site / "index.html").write_text(page("Ladders", "\n".join(body)))
+    (site / "ladders.html").write_text(page("Ladders", "\n".join(body)))
+
+    papers = write_research(site, research)
+
+    # home: what this is, where to start, the top of each ladder, the research
+    body = ["<div class=hero><h1>Swarm Colosseum</h1>",
+            "<p class=lede>An open arena where AI-written attackers and AI-written "
+            "defenders play an abstract strategy game against each other, every night, "
+            "and every match can be replayed and reproduced.</p>",
+            "<p class=soft>Everything in the game is made up: the units, the distances, the "
+            "rules. It is a strategy game and a research benchmark. "
+            "<a href=\"about.html\">Read what this is</a>.</p></div>",
+            "<h2>Start here</h2><div class=grid>"]
+    for href, title, blurb in (
+            ("about.html", "What this is", "How a match works and how to read the "
+             "ladder, in plain language."),
+            ("replays.html", "Watch a match", f"{len(current)} replays from the latest "
+             "night, in the browser."),
+            ("library/index.html", "Tactic library", "The ideas that worked, one card "
+             "each: what it beats and what beats it."),
+            ("research.html", "Research", "What the league found, written up with the "
+             "numbers.")):
+        body.append(f"<a class=card href=\"{href}\"><h3>{e(title)}</h3>"
+                    f"<p>{e(blurb)}</p></a>")
+    body.append("</div><h2>Top of the ladders</h2>")
+    for role in ("attackers", "defenders"):
+        body.append(f"<h3>{role.capitalize()}</h3>{ladder_table(lb[role][:5])}")
+    body.append(f"<p class=more><a href=\"ladders.html\">Full ladders ({len(live)} bots) "
+                "and the latest meta report</a></p>")
+    if papers:
+        body.append("<h2>Research</h2><div class=card><ul class=picks>")
+        body += [f"<li><a href=\"{e(href)}\">{e(title)}</a></li>" for href, title in papers]
+        body.append("</ul></div>")
+    (site / "index.html").write_text(page("Home", "\n".join(body)))
 
     # bot pages
     for role in ("attackers", "defenders"):
@@ -366,7 +420,36 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     cards = write_library(site, library)
     archived = write_seasons(site, seasons)
     return dict(site=str(site), bots=len(live), replays=len(current), cards=cards,
-                seasons=archived)
+                seasons=archived, research=len(papers))
+
+
+def write_research(site: Path, research: Path) -> list:
+    """research.html and research/<n>.html from research/*.md. Links between the write-ups
+    are kept; any other link is dropped (its label stays). Returns [(href, title)]."""
+    docs = sorted(research.glob("*.md")) if research.is_dir() else []
+    names = {p.name for p in docs}
+    papers = []
+    if docs:
+        (site / "research").mkdir()
+    for p in docs:
+        text = p.read_text()
+        title = md_title(text, p.stem)
+        href = f"research/{slugify(p.stem)}.html"
+        (site / href).write_text(page(title, md_to_html(
+            text, lambda t: f"{slugify(t[:-3])}.html" if t in names else None), 1))
+        papers.append((href, title))
+    body = ["<h1>Research</h1>",
+            "<p class=soft>What the league has found so far. Every number in these "
+            "write-ups comes from the league's own records and can be regenerated with "
+            "<code>make reproduce</code>.</p>"]
+    if papers:
+        body.append("<div class=card><ul class=picks>")
+        body += [f"<li><a href=\"{e(h)}\">{e(t)}</a></li>" for h, t in papers]
+        body.append("</ul></div>")
+    else:
+        body.append("<p class=soft>Nothing written up yet.</p>")
+    (site / "research.html").write_text(page("Research", "\n".join(body)))
+    return papers
 
 
 def write_library(site: Path, library: Path) -> int:
@@ -514,7 +597,8 @@ def main():
     info = build(args.out)
     size = sum(f.stat().st_size for f in Path(info["site"]).rglob("*") if f.is_file())
     print(f"{info['site']}: {info['bots']} bots, {info['replays']} replays, "
-          f"{info['cards']} tactic cards, {info['seasons']} archived seasons, "
+          f"{info['cards']} tactic cards, {info['research']} research pages, "
+          f"{info['seasons']} archived seasons, "
           f"{size / 1e6:.1f} MB")
     return 0
 
