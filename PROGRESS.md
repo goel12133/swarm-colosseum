@@ -1346,3 +1346,22 @@ git status --short --ignored -> only gitignored entries (SESSION_ITEM, out/, cac
 - The build session's scope is used up. 3.10, 3.11 and 3.12 are done, and every other open
   item is waiting on a date (3.4, 3.5, 3.6, 3.13), on 3.8 (3.14), or on the founder (G,
   3.8). Until the scope changes, each session can only repeat these hygiene checks.
+
+## Session 9 — launch sprint (2026-10-04)
+
+`LAUNCH_STATUS.md` is the dashboard. Where I've read the sprint differently, and why:
+- **Unattended sessions take only the mechanical items** (L5–L10, L12, L14, hygiene). L1–L4
+  and L13 (research write-ups at the content seam where all four safety stops clustered),
+  L11 (the secret audit) and L15–L16 stay with me, interactively. That follows the founder's
+  own steer to keep a human on that seam.
+- **Cadence:** every 2 h except 02:00 and 04:00 (they'd overlap the 03:30 league):
+  `0 0,6,8,10,12,14,16,18,20,22`. A session that finishes with time left may take more items,
+  listed in order in `SESSION_ITEM`, and all of them must be in scope or nothing merges.
+- **L11 vs hard rule 7.** L11 says to move `.house_league.env.save` out of the repo; rule 7,
+  which still applies, says never to move it. It becomes a one-line founder action in
+  `LAUNCH_CHECKLIST.md`.
+- **L10 vs hard rule 9.** The publish script force-pushes the built site to `gh-pages`. That's
+  a generated branch, never master, and the script stays dry until the founder's yes. Noted
+  here as the one exception to "no force pushes".
+- **Item G is not installed.** No new prompt text has arrived; `PROMPT_VERSION` is still
+  `2026-10-03.1`.

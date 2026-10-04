@@ -51,9 +51,11 @@ OUT_COPY = ("leaderboard.json", "matrix.json", "BALANCE.md", "breaches.json", "n
             "meta")
 
 
-# Founder, 2026-10-03: in the dev phase the unattended session may work only on these.
-# Item G (generator prompts) and 3.8 (sandbox hardening) are human-gated.
-BUILD_ITEMS = ("3.10", "3.11", "3.12", "hygiene")
+# Launch sprint (founder, 2026-10-04): unattended sessions take the mechanical sprint items.
+# Human-gated, done interactively by the lead engineer: L1-L4 and L13 (research write-ups,
+# the content seam the safety stops clustered on), L11 (secret audit), L15-L16, item G and
+# 3.8.
+BUILD_ITEMS = ("L5", "L6", "L7", "L8", "L9", "L10", "L12", "L14", "hygiene")
 SESSION_ITEM = "SESSION_ITEM"             # one line, written by the session before it starts
 NO_PROGRESS_LIMIT = 2                     # consecutive non-merged sessions -> item frozen
 
@@ -69,8 +71,9 @@ def frozen_items(out: Path):
             rec = json.loads(line)
         except json.JSONDecodeError:
             continue
-        if rec.get("item"):
-            by_item.setdefault(rec["item"], []).append(rec.get("status"))
+        for item in (rec.get("item") or "").split(","):
+            if item:
+                by_item.setdefault(item, []).append(rec.get("status"))
     return sorted(i for i, sts in by_item.items()
                   if len(sts) >= NO_PROGRESS_LIMIT
                   and all(st != "merged" for st in sts[-NO_PROGRESS_LIMIT:]))
@@ -197,12 +200,14 @@ worktree root describing the exact state and commit it; tomorrow's session conti
 from it. Untrusted bots never run on the host (tests included). The live league data is
 copied into out/ for you; it is a snapshot, not the live directory.
 
-SCOPE (founder, 2026-10-03). You may work ONLY on one of: {", ".join(BUILD_ITEMS)}
+SCOPE (launch sprint, founder 2026-10-04). You may work ONLY on: {", ".join(BUILD_ITEMS)}
 ("hygiene" = charter section 4, including writing up a stuck item). Item G and item 3.8 are
-human-gated: never touch them. Before anything else, use the Write tool (not the shell) to
-write the id of the one item you are taking (exactly one of {", ".join(BUILD_ITEMS)}) as the
-only line of a file named {SESSION_ITEM} at the worktree root; the wrapper refuses to merge
-anything else.
+human-gated: never touch them, and never touch L1-L4, L11, L13, L15 or L16 either. Before
+anything else, use the Write tool (not the shell) to write the id of the item you are taking
+(one of {", ".join(BUILD_ITEMS)}) as the first line of a file named {SESSION_ITEM} at the
+worktree root. If you finish it with time left, take the next unblocked in-scope item and
+add its id as a new line before starting it. The wrapper refuses to merge anything else.
+LAUNCH_STATUS.md is the founder's dashboard: update your items' lines (one phone screen).
 
 How to run commands. Your shell already starts in the worktree root: never use `cd`,
 `git -C`, redirection (`>`), pipes into other commands, or `&&` chains. Use the file tools
@@ -279,20 +284,29 @@ def run_session(cmd, prompt, wt: Path, transcript: Path, env: dict, timeout=WALL
 
 # --- 6-7. merge, publish, record --------------------------------------------------------
 
-def session_item(wt: Path):
+def session_items(wt: Path):
+    """The items a session declared, in order (one per line)."""
     p = wt / SESSION_ITEM
-    return p.read_text().strip().splitlines()[0].strip() if p.exists() and \
-        p.read_text().strip() else None
+    if not p.exists():
+        return []
+    return [l.strip() for l in p.read_text().splitlines() if l.strip()]
+
+
+def session_item(wt: Path):
+    items = session_items(wt)
+    return ",".join(items) if items else None
 
 
 def finish(root: Path, wt: Path, test_cmd: str, frozen=()):
     """Returns (status, detail). status in merged / nothing / wip / dirty / red / conflict /
     out-of-scope."""
-    item = session_item(wt)
-    if item not in BUILD_ITEMS:
-        return "out-of-scope", f"{SESSION_ITEM} is {item!r}; allowed: {BUILD_ITEMS}"
-    if item in frozen:
-        return "out-of-scope", f"item {item} is frozen (no mergeable progress twice running)"
+    items = session_items(wt)
+    bad = [i for i in items if i not in BUILD_ITEMS]
+    if not items or bad:
+        return "out-of-scope", (f"{SESSION_ITEM} lists {items!r}; allowed: {BUILD_ITEMS}")
+    stuck = [i for i in items if i in frozen]
+    if stuck:
+        return "out-of-scope", f"item(s) {stuck} are frozen (no mergeable progress twice running)"
     if (wt / "WIP.md").exists():
         return "wip", "WIP.md present; continuing tomorrow"
     dirty = _dirty(wt)

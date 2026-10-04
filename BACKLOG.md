@@ -3,8 +3,10 @@
 Standing rule (2026-10-03): an item or output that trips a safety stop is stopped, written up
 with its flag, and left; it is never rephrased to get past the stop.
 
-Build session (every 3 h): may work only on 3.10, 3.11, 3.12 and standing hygiene. G and 3.8
-are human-gated. An item with two sessions in a row that don't merge is frozen and written up.
+**Launch sprint (2026-10-04 to 10-13): order and status live in LAUNCH_STATUS.md.** Build
+sessions (every 2 h) may take only L5-L10, L12, L14 and hygiene; L1-L4, L11, L13, L15, L16, G
+and 3.8 are human-gated. An item with two sessions in a row that don't merge is frozen and
+written up.
 
 From the operating charter, section 3, in order. Status: todo / doing / done / blocked.
 
