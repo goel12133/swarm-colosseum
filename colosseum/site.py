@@ -211,6 +211,13 @@ def md_to_html(text: str, link_map=None) -> str:
 
 # --- data -----------------------------------------------------------------------
 
+def public_report(text: str) -> str:
+    """The weekly report minus its Health section (machine, login, cron and disk details
+    are for the founder, not for a public page)."""
+    import re as _re
+    return _re.sub(r"(?ms)^## Health\n.*?(?=^## |\Z)", "", text)
+
+
 def bot_file(name: str):
     for d in BOT_DIRS:
         p = ROOT / "bots" / d / f"{name}.py"
@@ -325,7 +332,8 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
                      key=lambda p: int(re.search(r"\d+", p.stem).group()))
     body.append("<h2>Latest meta report</h2>")
     if reports:
-        body.append(f"<div class=card>{md_to_html(reports[-1].read_text())}</div>")
+        body.append(f"<div class=card>{md_to_html(public_report(reports[-1].read_text()))}"
+                    "</div>")
     else:
         body.append("<p class=soft>No weekly report yet: the first is written after the "
                     "seventh night.</p>")

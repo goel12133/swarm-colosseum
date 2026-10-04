@@ -154,3 +154,10 @@ def test_a_long_fence_is_closed_only_by_a_run_as_long():
     html = site.md_to_html("````python\nx = 1\n```\n# not a heading\n````\nafter\n")
     assert html.count("<pre>") == 1 and "<h1>" not in html
     assert "# not a heading" in html and html.endswith("<p>after</p>")
+
+
+def test_the_public_site_drops_the_reports_health_section():
+    text = "# Week 1\n\n## Ladders\n\nx\n\n## Health\n\nok  cron  30 3 * * * /root/x\n\n## After\n\ny\n"
+    out = site.public_report(text)
+    assert "## Health" not in out and "/root/x" not in out
+    assert "## Ladders" in out and "## After" in out

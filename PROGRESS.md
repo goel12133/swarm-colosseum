@@ -1399,3 +1399,33 @@ REPRODUCED in 364 s          (real 6m4s, with the persona ablation sharing the C
   `CONTENT: rejected …`, the bot is never written, and the night continues. No false positives
   across the 50 existing bot and workshop files (after excluding encoding names such as
   UTF-8). Scratch dry run: exit 0, 250 played / 1,400 cached, 94 s. 309 tests.
+
+### L11 secret and history audit — SECURITY finding, stopped for the founder
+
+`scripts/audit_secrets.py` (no scanner installs offline, so a regex pass) covers every
+commit on every branch: each file version, each message, each author/committer identity.
+It prints where, never what.
+
+```
+$ python3 scripts/audit_secrets.py
+scanned 89 commits, 341 distinct file versions
+  home-path: 7 hit(s) in 2 path(s): .house_league.env.example, PROGRESS.md
+  hostname: 85 hit(s) in 1 path(s): (commit message / identity)
+  ipv4: 2 hit(s) in 2 path(s): tests/fixtures/socket_bot.py, tests/test_sandbox.py
+```
+
+- **No key or token shapes anywhere in history.** `.house_league.env`, `.house_league.env.save`,
+  anything under `out/` (including `out/house_raw/`) and `~/.claude` were **never committed**.
+- `ipv4` is `1.1.1.1`, the address the sandbox's no-network test tries; it is not this
+  machine. The `home-path` hits are `/root/.local` and `/root/backups`, which are generic.
+- **SECURITY: 84 commits are authored `root@<this server's hostname>`**, because git fell back
+  to the machine's hostname with no identity configured. A public push would publish the
+  hostname, which names the hosting provider and the server. Per L11, the fix is a history
+  rewrite on a fresh clone that the founder approves, not an amend. The exact commands are in
+  LAUNCH_CHECKLIST.md, step 2; I haven't run them. The leak is stopped going forward:
+  repo-local identity `Swarm Colosseum <dev@swarm-colosseum.invalid>`.
+- The site bundle and `results/` contain no hostname or IP. The site's home page did embed
+  the meta report's **Health** section (Docker version, login method, cron path, disk), so the
+  site now drops that section (`site.public_report`, with a test); the report keeps it.
+- `.house_league.env.save` is still in the working tree: moving it is a founder action under
+  hard rule 7 (LAUNCH_CHECKLIST.md, step 1).
