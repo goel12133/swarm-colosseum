@@ -57,31 +57,52 @@ def evidence_dir(night, scratch):
     return d
 
 
-def generate(nights, scratch):
+class OutOfBudget(Exception):
+    pass
+
+
+def generate(nights, scratch, max_tokens=None):
+    """Resumable: slots already in generation.json are skipped. With max_tokens, a call is
+    made only if the league's own conservative projection for it still fits; otherwise the
+    run stops cleanly (OutOfBudget) and the next session continues."""
     arm = scratch / "arm_generalist"
     arm.mkdir(parents=True, exist_ok=True)
-    log = []
+    log_path = scratch / "generation.json"
+    log = json.loads(log_path.read_text()) if log_path.exists() else []
+    done = {(r["night"], r["slot"]) for r in log if "slot" in r}
     caps = hl.Caps.from_env({})
+    spent = 0
     for night in nights:
         ctx = hl.gather_context(evidence_dir(night, scratch), n_replays=0)
         for i, role in enumerate(slots(night)):
+            if (night, i) in done:
+                continue
             prompt = hl.build_prompt(ctx, role, "generalist", "field", ROOT / "out")
+            projected = hl.estimate_input_tokens(prompt, "cli") + hl.MAX_OUTPUT_TOKENS
+            if max_tokens is not None and spent + projected > max_tokens:
+                log_path.write_text(json.dumps(log, indent=2))
+                raise OutOfBudget(f"stopped before {night} slot {i}: {spent:,} spent, "
+                                  f"{projected:,} projected, budget {max_tokens:,}")
             spend = hl.Spend()
-            row = dict(night=night, role=role)
+            row = dict(night=night, slot=i, role=role,
+                       day=date.today().isoformat())
             try:
                 text = hl.call_model(prompt, caps, spend, dry_run=False)
             except Exception as exc:
                 row.update(status="no response", detail=f"{type(exc).__name__}: {exc}"[:200])
                 log.append(row)
+                log_path.write_text(json.dumps(log, indent=2))
                 print(json.dumps(row), flush=True)
                 continue
             row["tokens"] = spend.tokens
+            spent += spend.tokens
             blocks = hl.extract_bots(text)
             ok, name, reason = hl.validate_bot(blocks[0], role) if blocks else \
                 (False, "", "no code block")
             if not ok:
                 row.update(status="rejected", detail=reason)
                 log.append(row)
+                log_path.write_text(json.dumps(log, indent=2))
                 print(json.dumps(row), flush=True)
                 continue
             path = arm / f"{night}_g{i}_{role}_{hl.slug(name)}.py"
@@ -93,8 +114,9 @@ def generate(nights, scratch):
             else:
                 row.update(status="written", bot=path.stem)
             log.append(row)
+            log_path.write_text(json.dumps(log, indent=2))
             print(json.dumps(row), flush=True)
-    (scratch / "generation.json").write_text(json.dumps(log, indent=2))
+    log_path.write_text(json.dumps(log, indent=2))
     return log
 
 
@@ -186,6 +208,8 @@ def main():
     ap.add_argument("--render", type=Path, default=None,
                     help="write the research page from the result to this path")
     ap.add_argument("--commit", action="store_true", help="git-commit the rendered page")
+    ap.add_argument("--max-tokens", type=int, default=None,
+                    help="stop cleanly (exit 3) before a call that could exceed this")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     first = min(args.nights)
@@ -194,7 +218,11 @@ def main():
              *[p for p in base_house if _role_of(p) == "attacker"]],
             [*discover(ROOT / "bots" / "defenders"),
              *[p for p in base_house if _role_of(p) == "defender"]])
-    log = generate(args.nights, args.out)
+    try:
+        log = generate(args.nights, args.out, args.max_tokens)
+    except OutOfBudget as exc:
+        print(f"PARTIAL: {exc}")
+        return 3
     persona_bots = [p for n in args.nights for p in real_bots(n)]
     generalist_bots = sorted((args.out / "arm_generalist").glob("*.py"))
     result = dict(
@@ -224,4 +252,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

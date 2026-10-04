@@ -1,7 +1,8 @@
 # 03 · Does persona diversity help? Not measurably, yet.
 
 *PRELIMINARY: five nights (2026-09-29 to 10-03), ten generator slots per arm, 10 seeds per
-pairing. A 14-night run replaces this page automatically after real night 14.*
+pairing. From real night 14 a 14-night run is generated in its own session, a few slots a
+night within the nightly token cap, and replaces this page automatically when complete.*
 
 **The question.** The house league writes each night's bots through one of four personas,
 each shown different evidence: *exploiter*, *counter-meta*, *generalist* and *contrarian*.

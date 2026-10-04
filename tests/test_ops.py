@@ -162,21 +162,38 @@ def test_rotation_never_deletes_a_current_roster_replay(tmp_path):
     assert {p.name for p in delete} == {gone.name}
 
 
-def test_the_full_persona_ablation_starts_once_at_night_14(tmp_path, monkeypatch):
+def test_the_ablation_session_is_due_at_14_nights_and_budgets_tonight(tmp_path, monkeypatch):
     import subprocess as sp
-    started = []
-    monkeypatch.setattr(sp, "Popen", lambda cmd, **kw: started.append(cmd))
-    rows = [json.dumps({"date": f"2026-09-{d:02d}", "status": "ok"}) for d in range(28, 31)]
-    rows += [json.dumps({"date": f"2026-10-{d:02d}", "status": "ok"}) for d in range(1, 11)]
-    (tmp_path / "nights.jsonl").write_text("\n".join(rows) + "\n")         # 13 nights
-    assert ops.maybe_start_full_ablation(tmp_path) == "not due"
+    runs = []
+
+    def fake_run(cmd, **kw):
+        runs.append(cmd)
+        return sp.CompletedProcess(cmd, 3)          # stopped cleanly at the budget
+    monkeypatch.setattr(sp, "run", fake_run)
+    today = date.today().isoformat()
+    from datetime import timedelta
+    start = date(2026, 9, 29)
+    days = [(start + timedelta(days=i)).isoformat() for i in range(40)]
+    days = [d for d in days if d != today][:13]                 # 13 nights, today not among them
+    (tmp_path / "nights.jsonl").write_text("".join(
+        json.dumps({"date": d, "status": "ok"}) + "\n" for d in days))
+    assert ops.ablation_session(tmp_path).startswith("not due (13 of 14")
     with open(tmp_path / "nights.jsonl", "a") as f:
-        f.write(json.dumps({"date": "2026-10-11", "status": "ok"}) + "\n")  # night 14
-    assert ops.maybe_start_full_ablation(tmp_path) == "started for 13 nights"
-    cmd = started[0]
+        f.write(json.dumps({"date": today, "status": "ok",
+                            "spend": {"input_tokens": 40_000, "output_tokens": 20_000}}) + "\n")
+    status = ops.ablation_session(tmp_path)
+    assert status.startswith("partial") and "140,000" in status
+    cmd = runs[0]
+    assert cmd[cmd.index("--max-tokens") + 1] == "140000"         # 200k - tonight's league
     assert cmd[cmd.index("--nights") + 1] == "2026-09-29" and "--commit" in cmd
-    assert ops.maybe_start_full_ablation(tmp_path) == "already started"
-    assert len(started) == 1
+    (tmp_path / "ablation_14").mkdir(exist_ok=True)
+    (tmp_path / "ablation_14" / "done").write_text("x")
+    assert ops.ablation_session(tmp_path) == "done"
+
+
+def test_the_ablation_is_not_part_of_the_nightly_run():
+    import inspect
+    assert "ablation" not in inspect.getsource(ops.after_night)
 
 
 def test_the_ablation_page_renders_from_the_result_alone():
@@ -198,7 +215,7 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
     """Regression: a step function named like the results dict shadowed it (2026-10-04)."""
     from colosseum import meta_report, site
     calls = []
-    for name in ("commit_results", "update_watch", "maybe_start_full_ablation", "rotate",
+    for name in ("commit_results", "update_watch", "rotate",
                  "backup", "record_phase", "nightly_fuzz"):
         monkeypatch.setattr(ops, name, lambda *a, _n=name, **k: calls.append(_n) or _n)
     monkeypatch.setattr(meta_report, "due_week", lambda *a, **k: None)
@@ -208,7 +225,7 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
     monkeypatch.setattr(ops, "write_alert", lambda *a, **k: calls.append("ALERT"))
     problems, results = ops.after_night(commit=True)
     assert problems == [] and "ALERT" not in calls
-    assert set(results) == {"results", "watch", "meta report", "persona ablation", "library",
+    assert set(results) == {"results", "watch", "meta report", "library",
                             "site", "fuzz", "rotation", "backup"}
 
 
@@ -237,3 +254,27 @@ def test_update_watch_writes_every_watch(tmp_path):
     ops.update_watch(tmp_path, "2026-10-05")
     assert (tmp_path / "WATCH.md").exists() and (tmp_path / "WATCH_S0-3.md").exists()
     assert (tmp_path / "watch_s0-3.jsonl").exists()
+
+
+def test_the_ablation_generation_stops_before_a_call_it_cannot_afford_and_resumes(tmp_path,
+                                                                                 monkeypatch):
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location(
+        "abl", Path(__file__).resolve().parents[1] / "scripts" / "ablation_personas.py")
+    abl = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(abl)
+    calls = []
+    monkeypatch.setattr(abl.hl, "call_model", lambda *a, **k: calls.append(1) or "no code")
+    monkeypatch.setattr(abl, "slots", lambda night: ["attacker", "defender"])
+    monkeypatch.setattr(abl, "evidence_dir", lambda night, scratch: tmp_path / "ev")
+    monkeypatch.setattr(abl.hl, "gather_context", lambda *a, **k: {})
+    monkeypatch.setattr(abl.hl, "build_prompt", lambda *a, **k: "x" * 7000)
+    import pytest
+    with pytest.raises(abl.OutOfBudget):
+        abl.generate(["2026-09-29"], tmp_path, max_tokens=1000)
+    assert calls == []                                           # nothing was spent
+    (tmp_path / "generation.json").write_text(json.dumps(
+        [{"night": "2026-09-29", "slot": 0, "role": "attacker", "status": "written"}]))
+    log = abl.generate(["2026-09-29"], tmp_path, max_tokens=None)
+    assert len(calls) == 1 and [r["slot"] for r in log] == [0, 1]   # slot 0 skipped

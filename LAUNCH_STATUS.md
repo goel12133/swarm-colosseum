@@ -6,7 +6,7 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 |---|---|---|---|
 | L1 | unaided-discovery write-up (h) | done | research/01; clips in out/research/clips |
 | L2 | balance-findings write-up (h) | done | night-7 status written: answered in play; defenders now 62% |
-| L3 | persona ablation, early cut (h) | done | prelim, 5 nights: no measurable difference; 14-night rerun auto at night 14 (~450k tokens) |
+| L3 | persona ablation, early cut (h) | done | prelim, 5 nights: no measurable difference; 14-night rerun: own 05:00 session from night 14, ~3 slots a night under the cap |
 | L4 | annealing ablation (h) | done | preliminary, 4 nights: optimiser adds no reliable value |
 | L5 | `make reproduce` (h) | done | fresh clone: REPRODUCED in 364 s |
 | L6 | site redesign (s) | todo | |

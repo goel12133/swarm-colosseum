@@ -265,32 +265,55 @@ def commit_results(root: Path = ROOT, out: Path = DEFAULT_OUT, when: str = None)
     return paths
 
 
-# --- the 14-night persona ablation (sprint L3) ------------------------------------------
+# --- the 14-night persona ablation (sprint L3), its own session ------------------------
 
 ABLATION_NIGHTS = 14
 ABLATION_FROM = "2026-09-29"           # the first night with personas
+ABLATION_TOKEN_CAP = 200_000           # the league's nightly cap, shared with that night
 
 
-def maybe_start_full_ablation(out: Path = DEFAULT_OUT, root: Path = ROOT):
-    """At real night 14, start the full persona ablation once, detached, so the night's own
-    steps don't wait for it (~28 generator calls, ~1 h). It rewrites and commits
-    research/03_persona_ablation.md when it finishes."""
+def ablation_session(out: Path = DEFAULT_OUT, root: Path = ROOT):
+    """Run by its own cron entry after the league, never inside the nightly run.
+
+    Due from real night 14. Each run generates as many slots as fit under the nightly token
+    cap after that night's league spend (the script projects each call conservatively and
+    stops cleanly before one that could cross it), and continues next time. Once every slot
+    is filled the script plays both arms, re-renders research/03 and commits it."""
     import subprocess
     from . import meta_report
+    work = out / "ablation_14"
+    if (work / "done").exists():
+        return "done"
     nights = [d for d, _ in meta_report.load_nights(out)]
-    marker = out / "ablation_14" / "started"
-    if len(nights) < ABLATION_NIGHTS or marker.exists():
-        return "not due" if not marker.exists() else "already started"
+    if len(nights) < ABLATION_NIGHTS:
+        return f"not due ({len(nights)} of {ABLATION_NIGHTS} nights)"
     use = [d for d in nights[:ABLATION_NIGHTS] if d >= ABLATION_FROM]
-    marker.parent.mkdir(parents=True, exist_ok=True)
-    marker.write_text(" ".join(use) + "\n")
-    log = open(out / "ablation_14" / "run.log", "a")
-    subprocess.Popen([sys.executable, str(root / "scripts" / "ablation_personas.py"),
-                      "--nights", *use, "--out", str(out / "ablation_14"),
-                      "--render", str(root / "research" / "03_persona_ablation.md"),
-                      "--commit"], cwd=root, stdout=log, stderr=log,
-                     start_new_session=True)
-    return f"started for {len(use)} nights"
+    today = date.today().isoformat()
+    league = sum(((r.get("spend") or {}).get("input_tokens", 0) or 0)
+                 + ((r.get("spend") or {}).get("output_tokens", 0) or 0)
+                 for d, runs in meta_report.load_nights(out) if d == today for r in runs)
+    gen = work / "generation.json"
+    earlier_today = sum(r.get("tokens") or 0 for r in
+                        (json.loads(gen.read_text()) if gen.exists() else [])
+                        if r.get("day") == today)
+    budget = ABLATION_TOKEN_CAP - league - earlier_today
+    if budget <= 0:
+        return f"no budget left tonight (league {league:,}, ablation {earlier_today:,})"
+    work.mkdir(parents=True, exist_ok=True)
+    with open(work / "run.log", "a") as log:
+        proc = subprocess.run([sys.executable, str(root / "scripts" / "ablation_personas.py"),
+                               "--nights", *use, "--out", str(work), "--max-tokens",
+                               str(budget), "--render",
+                               str(root / "research" / "03_persona_ablation.md"), "--commit"],
+                              cwd=root, stdout=log, stderr=log)
+    if proc.returncode == 0:
+        (work / "done").write_text(today + "\n")
+        return "complete: research/03 re-rendered and committed"
+    if proc.returncode == 3:
+        return f"partial: stopped cleanly at the token budget ({budget:,}); continues next run"
+    write_alert(f"persona ablation session failed (exit {proc.returncode}); see "
+                f"{work / 'run.log'}")
+    return f"failed (exit {proc.returncode})"
 
 
 # --- after the night ----------------------------------------------------------------
@@ -355,7 +378,6 @@ def after_night(commit: bool = True):
 
     for label, fn in (("results", results_step), ("watch", update_watch),
                       ("meta report", meta_report),
-                      ("persona ablation", maybe_start_full_ablation),
                       ("library", tactic_library), ("site", site_bundle),
                       ("fuzz", nightly_fuzz),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):
@@ -378,6 +400,7 @@ def main():
     r = sub.add_parser("rotate")
     r.add_argument("--dry-run", action="store_true")
     sub.add_parser("backup")
+    sub.add_parser("ablation-session", help="the 14-night persona ablation (own cron entry)")
     fail = sub.add_parser("alert", help="write ALERT.md (used by nightly.sh)")
     fail.add_argument("reason")
     args = ap.parse_args()
@@ -392,6 +415,9 @@ def main():
         return 0
     if args.cmd == "backup":
         print(backup())
+        return 0
+    if args.cmd == "ablation-session":
+        print(ablation_session())
         return 0
     if args.cmd == "alert":
         print(write_alert(args.reason))
