@@ -71,3 +71,10 @@
   the rest of season one. Only the content-check filter remains, as a wiring item; if it
   trips a stop it's dropped.
 - **2026-10-04 (founder) — public commit identity:** Vikram Goel, GitHub noreply address (`scripts/public_identity`), applied only in the publish mirror by `scripts/rewrite_identity.sh`; the live repo keeps its history.
+- **2026-10-04 — L9 PR submissions: the inbox is `bots/submitted/pr/<login>/<NAME>.py`.** It's
+  under `bots/submitted/`, so `is_untrusted` already covers it, and `policy.py` (part of the
+  engine version) didn't have to change. The tournament doesn't search it. CI is static only
+  (`pull_request`, read-only, no secrets, no Docker, PR text only via env). Its verdict is
+  advisory, because a PR can edit its own workflow. The binding checks are `submit_pr intake`,
+  run from master on the league machine. The handle is the PR author's login, so nobody can
+  submit into someone else's folder.

@@ -141,6 +141,24 @@ files, 128 MB of memory, half a CPU core.
 
 ## Submitting
 
+Once submissions open, you send a bot as a **pull request** that adds one file:
+
+```
+bots/submitted/pr/<your login>/<NAME>.py
+```
+
+`<your login>` is your GitHub login in lowercase, and the file name is your bot's `NAME` plus
+`.py`. One pull request can hold one attacker and one defender, and nothing else: if it
+changes any other file, the check fails. Send other changes as a separate pull request. To
+update a bot, change the same file in a new pull request.
+
+An automatic check runs on the pull request. It only *reads* your file, the same checks as
+step 1 below, plus the abstract-only rule, and it tells you which line is wrong. It never
+runs your code. A maintainer then reviews the code and merges it. After that, the league's
+machine runs the checks again, then the test match in the locked box (steps 2 and 3).
+
+You can run the same checks on your own machine first:
+
 ```
 python -m colosseum.submit my_bot.py --side attacker --author yourhandle
 ```

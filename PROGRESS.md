@@ -1554,3 +1554,47 @@ That's left for L10.
 python3 -m pytest tests/test_launch_docs.py -q -> 10 passed in 0.02s
 python3 -m pytest tests -q -> 327 passed in 47.86s
 ```
+
+## Build session 2026-10-04 (third) — L9 submissions via PR + workflow ✅
+
+Alert: none. Night 10-04 ok (log above).
+
+- `colosseum/submit_pr.py`:
+  - `check` (for CI) takes `git diff --name-status` output and the PR author's login. It
+    passes only when the PR adds or updates at most one bot per side, at
+    `bots/submitted/pr/<login lowercased>/<NAME>.py`, and touches nothing else (not the
+    checker, the workflow, the engine or other players' folders). Each file must be a
+    plain file (no symlinks), within 64 KB, UTF-8, pass `submit.check_source` with its
+    ROLE, be named NAME.py, and pass `content_check`. It reads text and runs `ast`; it never
+    imports or runs a bot.
+  - `intake` (league machine, after merge) sends every PR bot through `submit.submit`: the
+    static checks again, then the sandbox smoke test, then a copy into
+    `bots/submitted/<side>/`. It's not wired into the nightly run, because submissions are
+    closed.
+- `.github/workflows/submission.yml` triggers on `pull_request` for `bots/submitted/pr/**`.
+  `contents: read`, `persist-credentials: false`, no secrets, Python 3.11, stdlib only.
+  The login and base ref reach the shell only through env variables. A PR can edit its own
+  workflow, so the green check is advisory and intake is the gate (DECISIONS.local.md).
+  Nothing is pushed or enabled. The file is inert until the repo is public.
+- SUBMITTING.md and CONTRIBUTING.md describe the PR route. Both still say submissions are
+  closed.
+- `tests/test_submit_pr.py` (18 tests):
+  - a clean bot passes; one bot per side is fine, two on one side are refused;
+  - refused: edits outside the author's folder (checker, workflow, `bots/submitted/<side>`),
+    someone else's folder, a wrong file name, a nested path, a deletion, an empty PR, more
+    than 2 files, unusable logins, a forbidden import, a real-world term, a symlink;
+  - the check never executes the file;
+  - PR bots count as untrusted and aren't in the tournament's folders;
+  - intake routes through submit (stubbed: no bot runs on the host);
+  - a lint of the workflow (trigger, read-only, no secrets, no `${{ }}` in `run:`);
+  - the docs mention the path.
+
+```
+python3 -m pytest tests/test_submit_pr.py tests/test_submit.py tests/test_launch_docs.py -q -> 65 passed in 11.21s
+python3 -m pytest tests -q -> 345 passed in 70.38s
+```
+
+Not done: the workflow has never run on GitHub (there's no remote, and nothing is public).
+L10/L15 should run it on the publish mirror once the founder says yes. The founder also
+needs to turn on "require approval for first-time contributors' workflows" when the repo is
+created.

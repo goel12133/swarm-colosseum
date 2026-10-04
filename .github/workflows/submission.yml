@@ -1,0 +1,40 @@
+# Bot submissions by pull request: static checks only (colosseum/submit_pr.py).
+#
+# Safety, in short:
+# - `pull_request`, never `pull_request_target`: the job gets a read-only token and no
+#   secrets, on GitHub's throwaway runner.
+# - The submitted bot is never imported or run here; it is read as text and parsed with ast.
+#   It runs only in the sandbox on the league machine, after a maintainer merges.
+# - PR-controlled text (login, branch names) reaches the shell only through env variables,
+#   never through ${{ }} inside `run:`.
+# - The result is advisory: the league machine repeats every check from master at intake.
+name: submission
+
+on:
+  pull_request:
+    paths:
+      - "bots/submitted/pr/**"
+
+permissions:
+  contents: read
+
+jobs:
+  static-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: List the changed files
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: git diff --name-status --no-renames "origin/${BASE_REF}...HEAD" > "${RUNNER_TEMP}/changes.txt"
+      - name: Static checks (no bot code runs)
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: python -m colosseum.submit_pr check --changes "${RUNNER_TEMP}/changes.txt" --author "${PR_AUTHOR}"

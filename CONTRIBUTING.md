@@ -30,6 +30,12 @@ rules every contribution follows, then what we can accept right now.
 - **Docs, the workshop, the viewer.** Plain language, readable by a sixteen-year-old.
 - **Bots: not yet.** Outside submissions are closed. [SUBMITTING.md](SUBMITTING.md) explains
   the interface and the checks, so you can get a bot ready and test it on your own machine.
+  When they open, a bot arrives as a pull request that adds only
+  `bots/submitted/pr/<your login>/<NAME>.py`. The workflow in
+  [.github/workflows/submission.yml](.github/workflows/submission.yml) runs
+  `python -m colosseum.submit_pr check` on it, which reads the file and never runs it. After
+  merge, `python -m colosseum.submit_pr intake` on the league machine repeats the checks and
+  runs the test match in the sandbox.
 
 ## Security
 
