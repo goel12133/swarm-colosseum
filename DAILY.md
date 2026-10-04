@@ -1,21 +1,19 @@
-# Daily — 2026-10-04 (third build session: L9, L12)
+# Daily — 2026-10-04 (fourth build session: L14)
 
 **Night:** 10-04 ok. 2 bots written, 0 rejected, 835.8 s. #1 attacker:
 interleaved_shell_ring (Elo 1245).
 **Alert:** none.
 **Done:**
-- L9: submissions by pull request, prepared but still closed.
-  - A PR adds `bots/submitted/pr/<login>/<NAME>.py`.
-  - CI (`.github/workflows/submission.yml`) runs static checks only and never runs the bot.
-    It's read-only, with no secrets.
-  - After merge, `python -m colosseum.submit_pr intake` re-checks each bot and runs the
-    sandbox test match.
-  - The workflow has never run on GitHub; there's no remote yet.
-- L12: `workshop/TEACHERS.md`, the teacher's first page, linked from the README.
-- 346 tests pass in 66 s.
+- L14: season report draft, `reports/SEASON_1.md`.
+  - Built by `python -m colosseum.meta_report --season` from league data. At the boundary,
+    item 3.6 reruns it.
+  - Covers: the season in numbers, the ladder tops, the five best ideas (one clip each),
+    the rules findings and the watch verdict, the research titles, coverage, and season two.
+  - So far (7 of 28 nights): 12 house bots, all alive; 5,930 matches; 277,925 tokens.
+- 347 tests pass in 53 s.
 
-**Next:** L10, the dry publish pipeline. It was skipped this session because the licence,
-repo name and visibility are still yours to decide. Then L14.
+**Next:** L10, the dry publish pipeline. It's the only in-scope item left, and it still
+needs your licence, repo name and visibility. Until then, sessions do hygiene.
 **For you, when the repo is created:** turn on "require approval for first-time
 contributors" for workflows.
 **Your yes/no (still open):** licence (Apache-2.0 + CC BY 4.0 recommended); ROADMAP's

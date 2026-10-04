@@ -167,6 +167,43 @@ def test_best_match_replay_prefers_the_target(tmp_path):
     assert opp == "rush_d"
 
 
+def test_season_report_draft(tmp_path, monkeypatch):
+    monkeypatch.setattr(season, "FIRST_NIGHT", date(2026, 10, 1))
+    monkeypatch.setattr(season, "LAST_NIGHT", date(2026, 10, 28))
+    monkeypatch.setattr(season, "ENDS", date(2026, 10, 29))
+    out, bots, balance = fabricate(tmp_path)
+    (out / "WATCH.md").write_text("# Watch: rush\n\n**Verdict: a meta.** held.\n")
+    season_md = tmp_path / "SEASON.md"
+    season_md.write_text("| | branch | merge on |\n|---|---|---|\n"
+                         "| candidate A, imperfect id | `s2-a` | **2026-10-29**, not before |\n")
+    research = tmp_path / "research"
+    research.mkdir()
+    (research / "01_x.md").write_text("# 01 · Something the league found\n\nbody\n")
+    text = mr.build_season_report(out, bots, balance, season_md, research,
+                                  clip_notes={HOUSE_D: "Clip: `out/meta/x.mp4`."})
+    assert text.startswith("# Season one — draft, 7 of 28 nights (2026-10-01 to 2026-10-07)")
+    assert "- Nights: 7 of 28, 1 failed (2026-10-05)." in text
+    assert "House bots written: 2 (1 attackers, 1 defenders); 2 still on the ladder" in text
+    assert "Rejected before the ladder: 1." in text
+    # 6 attackers x 5 defenders x 10 seeds, on the 6 nights that ran
+    assert "- Matches: 1,800 in 6 nightly round-robins." in text
+    assert "- Tokens: 84,000." in text
+    # best ideas: the house defender is #1 on its ladder, so it comes first
+    ideas = text.split("## The five best ideas")[1]
+    assert ideas.index("label_skeptic (h)") < ideas.index("reserve_wave (h)")
+    assert "Holds three strikers back until the defender's stock is gone" in ideas
+    assert "   Clip: `out/meta/x.mp4`." in ideas
+    # every finding, not just this week's, and the watch verdict
+    assert "S0-1 — Old news (2026-09-28)" in text and "Verdict: a meta." in text
+    assert "- 01 · Something the league found (`research/01_x.md`)" in text
+    assert "Attackers no defender stops: rush." in text
+    assert "rush (only one through label_skeptic (h))" in text
+    assert "- candidate A, imperfect id (branch s2-a), merging on 2026-10-29, not before." in text
+    assert "- Watch: rush: Verdict: a meta. held." in text
+    assert "no economy fix" in text
+    assert "{" not in text and "}" not in text
+
+
 def test_cache_hit_rate_is_reported(tmp_path):
     out, bots, balance = fabricate(tmp_path)
     rows = [json.loads(l) for l in (out / "nights.jsonl").read_text().splitlines()]

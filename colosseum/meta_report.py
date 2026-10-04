@@ -2,6 +2,7 @@
 
     python -m colosseum.meta_report --week 1          # write out/meta/WEEK_1.md + reports/
     python -m colosseum.meta_report --if-due --commit # what cron runs after each night
+    python -m colosseum.meta_report --season          # out/meta/SEASON_1.md + reports/
 
 A "night" is a date with at least one real run in out/nights.jsonl (dry runs are never
 recorded there). Week n is real nights 7(n-1)+1 .. 7n, so a failed night still counts as
@@ -26,6 +27,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+from . import library, season
 from .personas import PERSONAS
 from .tournament import DEFAULT_OUT, ROOT
 
@@ -400,6 +402,189 @@ def build_report(week: int, out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "b
     return "\n".join(lines).rstrip() + "\n"
 
 
+# --- the season report (item 3.6; a draft until the boundary) ---------------------
+
+def season_nights(nights):
+    first, last = season.FIRST_NIGHT.isoformat(), season.LAST_NIGHT.isoformat()
+    return [(d, rs) for d, rs in nights if first <= d <= last]
+
+
+def best_ideas(metas, end, n=5):
+    """The season's n best house bots: best rank on their own ladder, then Elo.
+    [(name, row, role, rank)]"""
+    found = []
+    for role in ("attackers", "defenders"):
+        for rank, r in enumerate(end["leaderboard"][role], 1):
+            if r["name"] in metas:
+                found.append((rank, -r["elo"], r["name"], r, role))
+    return [(name, r, role, rank) for rank, _, name, r, role in sorted(found)[:n]]
+
+
+def season_numbers(nights, metas, out: Path):
+    runs = [r for _, rs in nights for r in rs]
+    dates = [d for d, _ in nights]
+    failed = [d for d, rs in nights if rs[-1].get("status") != "ok"]
+    mine = {n: m for n, m in metas.items()
+            if dates and dates[0] <= m[0].get("date", "") <= dates[-1]}
+    by_role = defaultdict(int)
+    for m, _, _ in mine.values():
+        by_role[m.get("role")] += 1
+    alive = sum(1 for _, _, a in mine.values() if a)
+    rejected = sum(len(r.get("rejected") or []) for r in runs)
+    tokens = sum((r.get("spend") or {}).get("input_tokens", 0)
+                 + (r.get("spend") or {}).get("output_tokens", 0) for r in runs)
+    matches, tournaments = 0, 0
+    for d in dates:
+        snap = load_snapshot(out, d)
+        if snap and snap.get("breaches"):
+            b = snap["breaches"]
+            matches += sum(len(row) for row in b["breaches"].values()) * b["seeds"]
+            tournaments += 1
+    cached = [r["cache"] for r in runs if r.get("cache")]
+    lines = ["## The season in numbers", "",
+             f"- Nights: {len(dates)} of {season.LENGTH_NIGHTS}"
+             + (f", {len(failed)} failed ({', '.join(failed)})." if failed else ", none failed."),
+             f"- House bots written: {len(mine)} ({by_role['attacker']} attackers, "
+             f"{by_role['defender']} defenders); {alive} still on the ladder, "
+             f"{len(mine) - alive} retired. Rejected before the ladder: {rejected}.",
+             f"- Matches: {matches:,} in {tournaments} nightly round-robins"
+             + (f"; {cached[-1]['cache_entries']:,} distinct results in the cache." if cached
+                else "."),
+             f"- Tokens: {tokens:,}.", ""]
+    return lines
+
+
+def season_ideas_section(metas, end, clip_notes=None):
+    lines = ["## The five best ideas", ""]
+    if not end:
+        return lines + ["No ladder snapshot yet.", ""]
+    ideas = best_ideas(metas, end)
+    if not ideas:
+        return lines + ["No house bot is on the ladder yet.", ""]
+    for i, (name, row, role, rank) in enumerate(ideas, 1):
+        meta, py, _ = metas[name]
+        idea = library.md_safe(library.idea_of(name, library.read_docstring(py)))  # as the card
+        lines.append(f"{i}. **{short(name)}** ({meta.get('persona', '?')}, {role[:-1]}): "
+                     f"“{idea or '(no docstring)'}” #{rank} {role[:-1]}, "
+                     f"Elo {row['elo']:.0f}, wins {row['win_rate']:.0%}.")
+        if clip_notes and clip_notes.get(name):
+            lines.append(f"   {clip_notes[name]}")
+    return lines + [""]
+
+
+def season_findings_section(balance: Path, out: Path):
+    lines = ["## Rules findings", ""]
+    titles = FINDING.findall(balance.read_text()) if balance.exists() else []
+    lines += [f"- {t} ({d})" for t, d in titles] or ["- None recorded."]
+    names = re.compile(r"\d{4}-\d{2}-\d{2}_(?:attacker|defender)_\w+")
+    for path in sorted(out.glob("WATCH*.md")):
+        body = path.read_text().splitlines()
+        for l in body:
+            if l.startswith("**Verdict") or l.startswith("Undecided"):
+                line = f"{body[0].lstrip('# ')}: {l.replace('**', '')}"
+                lines.append("- " + names.sub(lambda m: short(m.group(0)), line))
+    return lines + ["", "Details in BALANCE.md.", ""]
+
+
+def research_section(research: Path):
+    """Ablations and unaided discoveries: the write-ups' own titles, which state the answer."""
+    lines = ["## Research this season", ""]
+    papers = sorted(research.glob("[0-9]*.md")) if research.exists() else []
+    if not papers:
+        return lines + ["No write-ups yet.", ""]
+    for p in papers:
+        title = p.read_text().splitlines()[0].lstrip("# ").strip()
+        lines.append(f"- {title} (`research/{p.name}`)")
+    return lines + [""]
+
+
+def season_coverage_section(end):
+    lines = ["## Coverage at the end", ""]
+    if not end or not end.get("breaches"):
+        return lines + ["No breach data.", ""]
+    b, seeds = end["breaches"]["breaches"], end["breaches"]["seeds"]
+    defenders = sorted({d for row in b.values() for d in row})
+    held = [short(d) for d in defenders if not any(b[a].get(d, 0) for a in b)]
+    unstoppable = [short(a) for a in sorted(b)
+                   if all(b[a].get(d, 0) == seeds for d in defenders)]
+    unique = []
+    for d in defenders:
+        by = [a for a in sorted(b) if b[a].get(d, 0)]
+        if len(by) == 1:
+            unique.append(f"{short(by[0])} (only one through {short(d)})")
+    lines += [f"- {len(b)} attackers × {len(defenders)} defenders, {seeds} seeds a pairing.",
+              f"- Defenders nobody gets through: " + (", ".join(held) or "none") + ".",
+              f"- Attackers no defender stops: " + (", ".join(unstoppable) or "none") + ".",
+              f"- Unique coverage: " + ("; ".join(unique) or "none") + ".", ""]
+    return lines
+
+
+def season_two_section(season_md: Path, out: Path):
+    lines = ["## What season two changes", ""]
+    text = season_md.read_text() if season_md.exists() else ""
+    rows = [[re.sub(r"[*`]", "", c).strip() for c in l.strip().strip("|").split("|")]
+            for l in text.splitlines() if l.startswith("| candidate")]
+    lines += [f"- {r[0]} (branch {r[1]}), merging on {r[2]}." for r in rows] or \
+        ["- No change approved yet."]
+    verdicts = [l for p in sorted(out.glob("WATCH*.md")) for l in p.read_text().splitlines()
+                if l.startswith("**Verdict")]
+    if any("a meta" in v for v in verdicts):
+        lines.append("- S0-2 was answered in play (watch verdict: a meta), so no economy fix "
+                     "is added (charter section 1).")
+    return lines + [""]
+
+
+def build_season_report(out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "bots",
+                        balance: Path = ROOT / "BALANCE.md", season_md: Path = ROOT / "SEASON.md",
+                        research: Path = ROOT / "research", clip_notes=None) -> str:
+    nights = season_nights(load_nights(out))
+    dates = [d for d, _ in nights]
+    snaps = [s for s in (load_snapshot(out, d) for d in reversed(dates)) if s]
+    end = snaps[0] if snaps else None
+    metas = load_metas(bots_root)
+    span = f"{dates[0]} to {dates[-1]}" if dates else "no nights yet"
+    if len(dates) < season.LENGTH_NIGHTS:
+        head = [f"# {season.NAME} — draft, {len(dates)} of {season.LENGTH_NIGHTS} nights "
+                f"({span})", "",
+                f"The season ends {season.ENDS.isoformat()}; every number below is from the "
+                f"nights so far and is rewritten when this report is rerun.", ""]
+    else:
+        head = [f"# {season.NAME} — {span}", ""]
+    lines = head + season_numbers(nights, metas, out)
+    if end:
+        lb = end["leaderboard"]
+        lines += ["## Top of the ladders", "",
+                  f"#1 attacker {short(lb['attackers'][0]['name'])} "
+                  f"(Elo {lb['attackers'][0]['elo']:.0f}); #1 defender "
+                  f"{short(lb['defenders'][0]['name'])} (Elo {lb['defenders'][0]['elo']:.0f}).",
+                  ""]
+    lines += season_ideas_section(metas, end, clip_notes)
+    lines += season_findings_section(balance, out)
+    lines += research_section(research)
+    lines += season_coverage_section(end)
+    lines += season_two_section(season_md, out)
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_season(out: Path = DEFAULT_OUT, reports: Path = REPORTS, with_clip=True):
+    """out/meta/SEASON_1.md and a copy in reports/; one clip per highlighted idea."""
+    (out / "meta").mkdir(parents=True, exist_ok=True)
+    notes = {}
+    if with_clip:
+        dates = [d for d, _ in season_nights(load_nights(out))]
+        snaps = [s for s in (load_snapshot(out, d) for d in reversed(dates)) if s]
+        metas = load_metas(ROOT / "bots")
+        for name, _, role, _ in (best_ideas(metas, snaps[0]) if snaps else []):
+            notes[name] = render_best_match(out, name, role[:-1],
+                                            metas[name][0].get("target"),
+                                            f"SEASON_1_{name}.mp4")
+    path = out / "meta" / "SEASON_1.md"
+    path.write_text(build_season_report(out, clip_notes=notes))
+    reports.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(path, reports / path.name)
+    return path
+
+
 def due_week(out: Path = DEFAULT_OUT):
     n = len(load_nights(out))
     if n and n % 7 == 0 and not (out / "meta" / f"WEEK_{n // 7}.md").exists():
@@ -429,10 +614,16 @@ def export_clip(week: int, out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "bo
     if not best:
         return None
     name, _, role = best
-    replay, opponent = best_match_replay(out, name, role[:-1], metas[name][0].get("target"))
+    return render_best_match(out, name, role[:-1], metas[name][0].get("target"),
+                             f"WEEK_{week}_{name}.mp4")
+
+
+def render_best_match(out: Path, name: str, role: str, target, dest_name: str):
+    """Render a bot's strongest match to out/meta/<dest_name>; returns the report's line."""
+    replay, opponent = best_match_replay(out, name, role, target)
     if replay is None:
         return f"Clip: no replay found for {short(name)}."
-    dest = out / "meta" / f"WEEK_{week}_{name}.mp4"
+    dest = out / "meta" / dest_name
     try:
         from . import clip
         info = clip.render(replay, dest, speed=4)
@@ -471,8 +662,14 @@ def main():
     g.add_argument("--week", type=int)
     g.add_argument("--if-due", action="store_true",
                    help="write the report only if this night completed a week")
+    g.add_argument("--season", action="store_true",
+                   help="write the season report (a draft until the season ends)")
     ap.add_argument("--commit", action="store_true", help="git-commit reports/WEEK_n.md")
+    ap.add_argument("--no-clip", action="store_true", help="skip rendering clips")
     args = ap.parse_args()
+    if args.season:
+        print(f"season report: wrote {write_season(with_clip=not args.no_clip)}")
+        return 0
     week = args.week if args.week else due_week()
     if week is None:
         print("meta report: not due")

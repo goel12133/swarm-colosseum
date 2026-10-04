@@ -1630,3 +1630,40 @@ L10 is next.
 python3 -m pytest tests/test_workshop.py tests/test_launch_docs.py -q -> 34 passed in 1.67s
 python3 -m pytest tests -q -> 346 passed in 66.49s
 ```
+
+## Build session 2026-10-04 (fourth) — L14 season report draft ✅
+
+No alert, and the 10-04 night was ok. I skipped L10 again because its inputs (licence, repo
+name, visibility) are still with the founder, and took L14.
+
+- `python3 -m colosseum.meta_report --season` writes `out/meta/SEASON_1.md` and copies it to
+  `reports/SEASON_1.md`. It's generated from league data, so item 3.6 at the boundary is a
+  rerun plus the copy into `seasons/S1/`, not a rewrite. Until all 28 nights exist, the
+  title says "draft, n of 28 nights".
+- Sections, following charter 3.6:
+  - the season in numbers: nights, bots written/alive/retired/rejected, matches (one
+    attackers × defenders × seeds round-robin a night, from history/), cache entries,
+    tokens;
+  - top of each ladder;
+  - the five best ideas: best rank on own ladder, then Elo, house bots only. Each has its
+    one-sentence idea, taken from `library.idea_of` so it matches the tactic card, and one
+    clip of its best match;
+  - every BALANCE.md finding and the watch verdict;
+  - the research write-ups by title (the ablations and the unaided discoveries; their
+    titles state the answer);
+  - coverage at the end: defenders nobody gets through, attackers nobody stops, unique
+    coverage;
+  - what season two changes, from SEASON.md's approved table plus the S0-2 verdict.
+- `export_clip`'s rendering is now `render_best_match`, shared with the season clips. The
+  weekly report's behaviour is unchanged.
+- Test `test_season_report_draft` builds the report from the fabricated history and checks
+  every section, the numbers and the absence of raw JSON.
+
+Draft on the snapshot in out/ (7 nights): 12 house bots written, 12 alive, 4 rejected;
+5,930 matches in 7 round-robins; 2,570 cache entries; 277,925 tokens; no unique coverage;
+5 clips rendered, each ≤0.04 MB.
+
+```
+python3 -m colosseum.meta_report --season -> season report: wrote /srv/swarm-daily/out/meta/SEASON_1.md
+python3 -m pytest tests -q -> 347 passed in 53.24s
+```
