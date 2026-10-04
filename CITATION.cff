@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use Swarm Colosseum, its results or its tactic library, please cite it as below."
+type: software
+title: "Swarm Colosseum: an open arena for AI swarm-attack and air-defence policies in an abstract simulator"
+abstract: >-
+  An abstract strategy game and research benchmark. Attacker and defender policies are
+  short Python programs that play deterministic, sandboxed matches in made-up units on a
+  blank 2D plane; defenders are scored on cost exchange as well as survival. A nightly
+  league of language-model-written bots, two Elo ladders, replays, and a tactic library of
+  the ideas that earned a place. It does not model any real system.
+authors:
+  - name: "Pelennor"
+keywords:
+  - benchmark
+  - multi-agent
+  - strategy game
+  - language models
+  - program synthesis
+  - simulation

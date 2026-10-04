@@ -11,7 +11,7 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L5 | `make reproduce` (h) | done | fresh clone: REPRODUCED in 364 s |
 | L6 | site redesign (s) | done | home page (intro, start-here, top 5s, research); full ladders on ladders.html; research/ as pages |
 | L7 | five clips, mp4 + gif (s) | done | `colosseum.clip --showcase`: 5 captioned clips, 1x, each ≤0.21 MB; render on live out/ once |
-| L8 | README, CITATION, CONTRIBUTING, LICENSE note (s) | todo | |
+| L8 | README, CITATION, CONTRIBUTING, LICENSE note (s) | done | README rewritten; licence recommendation (Apache-2.0 + CC BY 4.0) in LICENSE_NOTE.md for you |
 | L9 | submissions via PR + workflow (s) | todo | |
 | L10 | publish pipeline, dry (s) | todo | |
 | L11 | secret and history audit (h) | done | no secrets; hostname rewritten in the publish clone (approved), live repo untouched |

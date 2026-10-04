@@ -1522,5 +1522,35 @@ python3 -m pytest tests -q -> 317 passed in 48.61s
 ```
 
 The clips were rendered from this session's `out/` snapshot. The live `out/` gets them on
-the next `python -m colosseum.clip --showcase`. They aren't on the site yet; L8's README
-can embed the GIFs.
+the next `python -m colosseum.clip --showcase`. They aren't on the site yet.
+
+## Same session — L8 README, CITATION, CONTRIBUTING, licence note ✅
+
+- `README.md` was still the Stage 1 text ("25 tests", "Stage 2 not started", in-process
+  only). It's rewritten for launch: what's here (league, library, research, workshop, site),
+  how to run it (`--sandbox` for house bots; without it the tournament skips them), the clip
+  showcase, `make reproduce`, the game in one screen (numbers checked against `rules.py`), a
+  short bot example pointing to SUBMITTING.md, the layout, and contribute/cite/licence. It
+  doesn't link ROADMAP.md, because the ROADMAP "paid API" line is still an open founder
+  question.
+- `CITATION.cff` (CFF 1.2.0) names Pelennor as author. It has no URL, version or licence:
+  the repo name and the licence are founder decisions.
+- `CONTRIBUTING.md` covers the rules (abstract only, sandbox, determinism, frozen rules,
+  tests), what's accepted now (bug reports, fixes, docs; bots not yet) and how to report
+  security issues without public details.
+- `LICENSE_NOTE.md` says no licence is granted yet, and gives the recommendation that
+  LAUNCH_CHECKLIST step 3 refers to: Apache-2.0 for code and bots, CC BY 4.0 for write-ups and
+  results, inbound = outbound for submissions, with MIT as the simpler alternative. It
+  doesn't add a `LICENSE` file.
+- `tests/test_launch_docs.py`: local links in all four files resolve, `content_check`
+  finds nothing in them, the citation has its required keys and claims no licence, and the
+  README says submissions are closed and no licence is granted.
+
+The showcase GIFs aren't embedded in the README. `out/` and `*.gif` are gitignored, so
+embedding them would need either committed GIFs or the publish step (L10) copying them in.
+That's left for L10.
+
+```
+python3 -m pytest tests/test_launch_docs.py -q -> 10 passed in 0.02s
+python3 -m pytest tests -q -> 327 passed in 47.86s
+```
