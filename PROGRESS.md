@@ -1667,3 +1667,21 @@ Draft on the snapshot in out/ (7 nights): 12 house bots written, 12 alive, 4 rej
 python3 -m colosseum.meta_report --season -> season report: wrote /srv/swarm-daily/out/meta/SEASON_1.md
 python3 -m pytest tests -q -> 347 passed in 53.24s
 ```
+
+## Build session 2026-10-04 (fifth) — hygiene
+
+No alert, no WIP. Night 10-04 was ok (log: 2 bots written, 0 rejected, 835.8 s). The only open
+in-scope item is L10, and its inputs (licence, repo name, visibility) are still with the
+founder, so this session did hygiene only. L10's line in LAUNCH_STATUS.md now says what it's
+waiting on.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 194 MB"; last-night 2026-10-04: ok; alert none
+git status --porcelain --untracked-files=all -> nothing (no untracked files in the root)
+WIP.md -> none in the worktree
+python3 -m pytest tests -q -> 347 passed in 53.71s (under the five-minute limit)
+```
+
+- The cache hit rate still can't be read: the out/ snapshot ends at night 10-04 (0 hits,
+  explained above). Night 10-05 is the first warm night.
+- Backup restore is still not checked: no allowed command reaches `~/backups`.
