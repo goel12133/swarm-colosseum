@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-10-05",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 1500,
+    "dropped": [],
+    "included": [
+      "lopsided",
+      "target_doc"
+    ],
+    "used": 262
+  },
+  "model": "opus",
+  "name": "2026-10-05_defender_cluster_blast_column_breaker",
+  "persona": "exploiter",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-05T033249_cli_defender_exploiter.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.573,
+    "rank": 2,
+    "score_vs_target": 0.795
+  },
+  "role": "defender",
+  "target": "rush",
+  "tokens": {
+    "input": 2486,
+    "output": 3925
+  }
+}
