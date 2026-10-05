@@ -1772,3 +1772,26 @@ python3 -m pytest tests -q -> 347 passed in 56.14s (under the five-minute limit)
 - Cache hit rate: still unreadable; night 10-05 (first warm night) is not in the snapshot.
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Tenth hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Build session 2026-10-05 (second) — hygiene
+
+No alert, no WIP. Night 10-05 is now in the snapshot: ok. L10 still waits on the founder
+(LICENSE_NOTE.md "not chosen yet"; no repo name or visibility recorded), so hygiene only.
+No code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 199 MB"; last-night 2026-10-05: ok; alert none
+git status --short --untracked-files=all -> empty (no untracked files)
+WIP.md -> none in the worktree
+out/nights.jsonl, night 10-05 -> status ok; cache {"matches": 1500, "ran": 100, "cached": 1400, "cache_entries": 2670, "seconds": 32.6}
+python3 -m pytest tests -q -> 347 passed in 66.86s (under the five-minute limit)
+```
+
+- Cache hit rate, first warm night: 1400 of 1500 matches from the cache (93%); tournament
+  32.6 s against 520.1 s on night 10-04 (0 cached, after the 3.9 engine-version bump).
+- Night 10-05 rejected the attacker: "model returned no code block" (contrarian persona,
+  evidence 3064/3500 tokens). Night status stays ok and nothing to fix in the pipeline; the
+  raw response is not in this snapshot (out/house_raw has no 10-05 file), so I can't say
+  why. If it repeats on contrarian nights, look at the raw output on the live host.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Eleventh hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
