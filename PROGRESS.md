@@ -1795,3 +1795,21 @@ python3 -m pytest tests -q -> 347 passed in 66.86s (under the five-minute limit)
   why. If it repeats on contrarian nights, look at the raw output on the live host.
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Eleventh hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Build session 2026-10-05 (third) — hygiene
+
+No alert, no WIP. L10 still waits on the founder (LICENSE_NOTE.md "not chosen yet"; no repo
+name or visibility in LAUNCH_STATUS.md), so hygiene only. No code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 199 MB"; last-night 2026-10-05: ok; alert none
+git status -> nothing to commit, working tree clean
+WIP.md -> none in the worktree
+ls out/house_raw -> no such directory in the snapshot
+python3 -m pytest tests -q -> 347 passed in 75.29s (under the five-minute limit)
+```
+
+- Night 10-05's rejected attacker ("model returned no code block") still can't be looked at:
+  the snapshot has no out/house_raw. Check it on the live host.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Twelfth hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
