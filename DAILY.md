@@ -1,16 +1,16 @@
-# Daily — 2026-10-04 (ninth build session: hygiene)
+# Daily — 2026-10-05 (build session: hygiene)
 
-**Night:** 10-04 ok. 2 bots written, 0 rejected, 835.8 s. #1 attacker:
-interleaved_shell_ring (Elo 1245).
+**Night:** latest in the snapshot is 10-04, ok (2 bots written, 0 rejected, 835.8 s;
+#1 attacker interleaved_shell_ring, Elo 1245). Night 10-05 is not in this snapshot yet.
 **Alert:** none.
 **Done:** hygiene only. No code changed.
 - health: all six ok; disk 23% used, 160 GB free.
 - No untracked files, no WIP.md.
-- 347 tests pass in 50 s.
+- 347 tests pass in 56 s.
 
 **Next:** L10, the dry publish pipeline. It's the only in-scope item left, and it still needs
 your licence, repo name and visibility. Until you answer, build sessions can only do
-hygiene (nine such sessions today), so pausing them would save effort.
+hygiene (ten in a row now), so pausing them would save effort.
 **For you, when the repo is created:** turn on "require approval for first-time
 contributors" for workflows.
 **Your yes/no (still open):** licence (Apache-2.0 + CC BY 4.0 recommended); ROADMAP's
