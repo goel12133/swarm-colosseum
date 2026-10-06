@@ -1983,3 +1983,19 @@ ls out/house_raw -> "No such file or directory" (raw generator output is not in 
 - Night 10-05's rejected attacker (raw output was 295 chars, "no code block"): out/house_raw is
   not in the snapshot, so still only checkable on the live host.
 - Twenty-second hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Build session 2026-10-06 (fourth) — hygiene
+
+No alert, no WIP. L10 still waits on the founder: `git log 00065d2..HEAD -- LICENSE_NOTE.md
+DECISIONS.local.md LAUNCH_STATUS.md` printed nothing. Hygiene only. No code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 215 MB"; last-night 2026-10-06: ok; alert none
+git status -> clean tree at start
+ls (repo root) -> no WIP.md, no stray files
+python3 -m pytest tests -q -> 347 passed in 69.82s (under the five-minute limit)
+```
+
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Night 10-05's rejected attacker: still only checkable on the live host.
+- Twenty-third hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
