@@ -1947,3 +1947,21 @@ python3 -m pytest tests -q -> 347 passed in 62.53s (under the five-minute limit)
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Night 10-05's rejected attacker: still only checkable on the live host.
 - Twentieth hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Build session 2026-10-06 (second) — hygiene
+
+No alert, no WIP. L10 still waits on the founder: `git log 00065d2..HEAD -- LICENSE_NOTE.md
+DECISIONS.local.md LAUNCH_STATUS.md` printed nothing. Hygiene only. No code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 215 MB"; last-night 2026-10-06: ok; alert none
+git status -> clean tree at start
+ls (repo root) -> no WIP.md, no stray files
+python3 -m pytest tests -q -> 347 passed in 72.39s (under the five-minute limit)
+```
+
+- Night 10-06 is now in the snapshot and ok (league log: 2 accepted, 0 rejected, 1760 matches,
+  260 run, 1500 cached, 93.0 s; 25,421 tokens). The earlier "check on the live host" note is closed.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Night 10-05's rejected attacker: still only checkable on the live host.
+- Twenty-first hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
