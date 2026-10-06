@@ -1,0 +1,33 @@
+{
+  "backend": "cli",
+  "date": "2026-10-06",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 4000,
+    "dropped": [],
+    "included": [
+      "source",
+      "closest",
+      "row"
+    ],
+    "used": 2904
+  },
+  "model": "opus",
+  "name": "2026-10-06_defender_contracting_ring_blaster",
+  "persona": "counter_meta",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-06T033305_cli_defender_counter_meta.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.563,
+    "rank": 9,
+    "score_vs_target": 0.522
+  },
+  "role": "defender",
+  "target": "2026-09-29_attacker_synchronized_ring",
+  "tokens": {
+    "input": 6402,
+    "output": 11475
+  }
+}

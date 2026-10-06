@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-10-06",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 1500,
+    "dropped": [],
+    "included": [
+      "lopsided",
+      "target_doc"
+    ],
+    "used": 278
+  },
+  "model": "opus",
+  "name": "2026-10-06_attacker_parked_ring_magazine_drain",
+  "persona": "exploiter",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-06T033059_cli_attacker_exploiter.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.328,
+    "rank": 8,
+    "score_vs_target": 0.942
+  },
+  "role": "attacker",
+  "target": "nearest_first",
+  "tokens": {
+    "input": 2551,
+    "output": 4993
+  }
+}
