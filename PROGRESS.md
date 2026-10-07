@@ -2113,3 +2113,27 @@ python3 -m pytest tests -q -> 347 passed in 64.93s (under the five-minute limit)
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Night 10-05's rejected attacker: still only checkable on the live host.
 - Thirtieth hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Build session 2026-10-07 (second) — hygiene
+
+No alert, no WIP. L10 still waits on the founder: `git log 00065d2..HEAD -- LICENSE_NOTE.md
+DECISIONS.local.md LAUNCH_STATUS.md` printed nothing. Hygiene only. No code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 221 MB"; last-night 2026-10-07: ok; alert none
+git status -> clean tree at start
+ls (repo root) -> no WIP.md, no stray files
+python3 -m pytest tests -q -> 347 passed in 74.70s (under the five-minute limit)
+```
+
+- Night 10-07: ok (league log). One defender accepted (`deadline_cluster_ledger`, rank 4,
+  Elo 1099.3); the attacker (counter_meta vs `convergence_blast_scheduler`) was rejected,
+  "model returned no code block", with a 403-char raw response.
+- Pattern: this is the second short no-code reply in three nights, and both targeted
+  `convergence_blast_scheduler` (10-05: contrarian, 295 chars). `out/house_raw` is not in the
+  snapshot, so I can't tell whether these are refusals or format slips. The two raw files need
+  reading on the live host: `2026-10-05T033210_cli_attacker_contrarian.md` and
+  `2026-10-07T033125_cli_attacker_counter_meta.md`. Under the safety-stop rule, the prompt is
+  not to be reworded to get past a refusal.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Thirty-first hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
