@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-10-07",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [],
+    "included": [
+      "matrix",
+      "top_three"
+    ],
+    "used": 2765
+  },
+  "model": "opus",
+  "name": "2026-10-07_defender_deadline_cluster_ledger",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-07T033332_cli_defender_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.65,
+    "rank": 4
+  },
+  "role": "defender",
+  "target": "field",
+  "tokens": {
+    "input": 6728,
+    "output": 12154
+  }
+}
