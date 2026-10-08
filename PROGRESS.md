@@ -2326,3 +2326,28 @@ python3 -m pytest tests -q -> 347 passed in 71.99s (under the five-minute limit)
   is not in the snapshot.
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Forty-first hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Session 10 — final sprint run (2026-10-08, deadline 03:00 UTC 10-09)
+
+Build sessions paused for this run (DECISIONS.local.md); restored after L16.
+
+### Licences ✅
+Apache-2.0 for code (`LICENSE`, the official text), CC BY 4.0 for replays, results and research
+(`LICENSE-CC-BY-4.0`, the official legal code). `LICENSING.md` maps folders to licences;
+README, CONTRIBUTING, SUBMITTING, `CITATION.cff` (both ids) and a footer on every site page
+match. `LICENSE_NOTE.md` removed. The content check now ignores licence ids such as CC-BY-4.0.
+
+### L10 publish pipeline, dry ✅
+`scripts/publish.sh [--live] [--site DIR] REMOTE [DEPLOY_KEY]`: rewrite identities in a fresh
+mirror → audit the rewritten history (any finding aborts) → build the site → push `master` to
+`main`, fast-forward only → the site as one orphan commit, force-pushed to `gh-pages` (the
+project's one force push: a generated branch, never master). Non-local remotes are refused
+without `--live`.
+
+```
+$ python3 -m pytest tests/test_publish.py -q     # local bare remote only
+3 passed   # rewritten main (no root@), gh-pages = one commit with .nojekyll;
+           # republishing leaves main at the same hash (deterministic rewrite);
+           # git@github.com:... refused without --live
+```
+Launch-day steps (create repo, deploy key, publish, Pages) are in LAUNCH_CHECKLIST.md 4–7.
