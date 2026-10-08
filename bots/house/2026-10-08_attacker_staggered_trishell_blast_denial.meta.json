@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-10-08",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [],
+    "included": [
+      "matrix",
+      "top_three"
+    ],
+    "used": 2938
+  },
+  "model": "opus",
+  "name": "2026-10-08_attacker_staggered_trishell_blast_denial",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-08T033122_cli_attacker_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.569,
+    "rank": 5
+  },
+  "role": "attacker",
+  "target": "field",
+  "tokens": {
+    "input": 7018,
+    "output": 6871
+  }
+}
