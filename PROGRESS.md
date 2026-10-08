@@ -2413,3 +2413,13 @@ only. No code changed.
 - Tree clean at start, no WIP.md, no stray files in the root (`ls`).
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Same recommendation: pause build sessions until 3.4 opens after night 10-11.
+
+### Build session 2026-10-08 (third after L16): hygiene
+L5-L10, L12, L14 are all done in LAUNCH_STATUS.md. No alert, no WIP, so hygiene only. No code
+changed.
+- `python3 -m colosseum.health`: all six ok (docker, cli-login, cron, disk 23% used / 159 GB
+  free / out/ 236 MB, last-night 2026-10-08 ok, alert none).
+- `python3 -m pytest tests -q`: 353 passed in 83.08 s.
+- Tree clean at start, no WIP.md, no stray files in the root (`ls`).
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Third empty session today: pausing build sessions until night 10-11 is still recommended.
