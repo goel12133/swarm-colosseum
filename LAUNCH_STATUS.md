@@ -16,7 +16,7 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L10 | publish pipeline, dry (s) | todo | waiting on you: licence, repo name, visibility (still, 10-08, second session) |
 | L11 | secret and history audit (h) | done | no secrets; hostname rewritten in the publish clone (approved), live repo untouched |
 | L12 | workshop README for teachers (s) | done | `workshop/TEACHERS.md`: who it's for, needs, files in order, 3-step setup, safety; linked from README |
-| L13 | one-page summary (h) | todo | |
+| L13 | one-page summary (h) | done | research/00_summary.md, 520 words; on the site as research/00_summary.html |
 | L14 | season report draft (s) | done | `meta_report --season` → `reports/SEASON_1.md` (draft, 7 of 28 nights, 5 ideas with clips); rerun at the boundary for 3.6 |
 | L15 | full rehearsal on a scratch clone (h) | todo | |
 | L16 | LAUNCH_READY.md (h) | todo | |

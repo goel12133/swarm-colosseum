@@ -2351,3 +2351,6 @@ $ python3 -m pytest tests/test_publish.py -q     # local bare remote only
            # git@github.com:... refused without --live
 ```
 Launch-day steps (create repo, deploy key, publish, Pages) are in LAUNCH_CHECKLIST.md 4–7.
+
+### L13 one-page summary ✅
+`research/00_summary.md` (520 words): what it is, why, what the league does nightly, three headline results with links, honest limits, what is next. Content check clean on all five research pages; the site renders it as `research/00_summary.html`. Figures as of night 11 (2026-10-08).
