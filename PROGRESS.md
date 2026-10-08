@@ -2283,3 +2283,24 @@ python3 -m pytest tests -q -> 347 passed in 51.85s (under the five-minute limit)
   still can't be read: `out/house_raw` is not in the snapshot.
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Thirty-ninth hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Build session 2026-10-08 — hygiene
+
+No alert, no WIP. L10 still waits on the founder: `git log 00065d2..HEAD --oneline --
+LICENSE_NOTE.md DECISIONS.local.md` printed nothing. Hygiene only. No code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 221 MB"; last-night 2026-10-07: ok; alert none
+git status -> clean tree at start
+ls (repo root) -> no WIP.md, no stray files
+wc -l out/nights.jsonl -> 11; grep 2026-10-08 in it -> no matches
+python3 -m pytest tests -q -> 347 passed in 65.95s (under the five-minute limit)
+```
+
+- No night 2026-10-08 in the snapshot. Health reports last-night 2026-10-07 as ok and
+  no alert, so this session can't tell whether tonight's run hasn't been copied yet or
+  didn't happen. Worth checking `out/nights.jsonl` on the live host.
+- The two short no-code attacker replies (10-05, 10-07) still can't be read: `out/house_raw`
+  is not in the snapshot.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Fortieth hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
