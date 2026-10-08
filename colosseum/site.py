@@ -183,17 +183,29 @@ def md_to_html(text: str, link_map=None) -> str:
             continue
         if re.match(r"^\s*([-*]|\d+\.)\s+", line):
             ordered = bool(re.match(r"^\s*\d+\.", line))
-            items = []
+            base = len(line) - len(line.lstrip())
+            items = []      # [text, sub-items]: one level of nesting, by indent
             while i < len(lines) and (re.match(r"^\s*([-*]|\d+\.)\s+", lines[i]) or
                                       (lines[i].startswith("  ") and items)):
+                indent = len(lines[i]) - len(lines[i].lstrip())
                 if re.match(r"^\s*([-*]|\d+\.)\s+", lines[i]):
-                    items.append(re.sub(r"^\s*([-*]|\d+\.)\s+", "", lines[i]))
+                    text = re.sub(r"^\s*([-*]|\d+\.)\s+", "", lines[i])
+                    if indent > base and items:
+                        items[-1][1].append(text)
+                    else:
+                        items.append([text, []])
+                elif items[-1][1]:
+                    items[-1][1][-1] += " " + lines[i].strip()
                 else:
-                    items[-1] += " " + lines[i].strip()
+                    items[-1][0] += " " + lines[i].strip()
                 i += 1
             tag = "ol" if ordered else "ul"
-            out.append(f"<{tag}>" + "".join(f"<li>{_inline(x, link_map)}</li>" for x in items)
-                       + f"</{tag}>")
+            html = []
+            for text, sub in items:
+                inner = ("<ul>" + "".join(f"<li>{_inline(x, link_map)}</li>" for x in sub)
+                         + "</ul>") if sub else ""
+                html.append(f"<li>{_inline(text, link_map)}{inner}</li>")
+            out.append(f"<{tag}>" + "".join(html) + f"</{tag}>")
             continue
         if line.startswith(">"):
             quote = []

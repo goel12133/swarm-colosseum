@@ -208,3 +208,9 @@ def test_every_page_carries_the_licence_footer(bundle):
     dest, _, _ = bundle
     for page in dest.glob("*.html"):
         assert "Apache License 2.0" in page.read_text() and "CC BY 4.0" in page.read_text(), page
+
+
+def test_nested_list_items_render_as_a_sub_list():
+    html = site.md_to_html("- top\n  - child one\n    continued\n  - child two\n- next")
+    assert html == ("<ul><li>top<ul><li>child one continued</li><li>child two</li></ul></li>"
+                    "<li>next</li></ul>")
