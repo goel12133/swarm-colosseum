@@ -2394,3 +2394,12 @@ repo done, domain open, default github.io), the four launch-day actions in order
 Also fixed from the L15 screenshots: nested Markdown lists now render as sub-lists
 (SUBMITTING's "game in one minute"), and submitting.png was re-shot. All 16 sprint items are
 done on sprint day 5. Build sessions are restored in cron (paused for the sprint since 06:0x).
+
+### Build session 2026-10-08 (after L16): hygiene
+Every in-scope sprint item (L5-L10, L12, L14) is done in LAUNCH_STATUS.md, so hygiene only.
+No code changed.
+- `python3 -m colosseum.health`: all six ok (docker, cli-login, cron, disk 23% used / 159 GB
+  free / out/ 236 MB, last-night 2026-10-08 ok, alert none).
+- `python3 -m pytest tests -q`: 353 passed in 79.52 s.
+- Tree clean at start, no WIP.md, no untracked files in the root.
+- Still open with the founder: ROADMAP.md line 30 still mentions "a paid API" (raised with 3.12).
