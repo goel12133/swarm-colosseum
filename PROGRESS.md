@@ -2304,3 +2304,25 @@ python3 -m pytest tests -q -> 347 passed in 65.95s (under the five-minute limit)
   is not in the snapshot.
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Fortieth hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
+
+## Build session 2026-10-08 (second) — hygiene
+
+No alert, no WIP. L10 still waits on the founder: `git log 604562d..HEAD --oneline --
+LICENSE_NOTE.md DECISIONS.local.md LAUNCH_STATUS.md` printed nothing. Hygiene only. No code touched.
+
+```
+python3 -m colosseum.health -> all six ok; disk "23% used, 160 GB free, out/ is 236 MB"; last-night 2026-10-08: ok; alert none
+git status -> clean tree at start
+ls (repo root) -> no WIP.md, no stray files
+python3 -m pytest tests -q -> 347 passed in 71.99s (under the five-minute limit)
+```
+
+- Night 2026-10-08 is now in the snapshot and was ok (league log): 2 bots accepted, 0 rejected,
+  33,628 tokens, 2160 matches (290 in the sandbox, 1870 from the cache) in 127.2 s, night 454.2 s.
+  `2026-10-08_defender_hover_bank_late_binder` (contrarian) entered at defender rank 2;
+  `2026-10-08_attacker_staggered_trishell_blast_denial` (generalist) at attacker rank 5.
+  Tops unchanged: `synchronized_ring` and `convergence_blast_scheduler`.
+- The two short no-code attacker replies (10-05, 10-07) still can't be read: `out/house_raw`
+  is not in the snapshot.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Forty-first hygiene-only session in a row. Same recommendation: pause build sessions or answer L10.
