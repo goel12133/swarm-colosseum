@@ -2357,3 +2357,26 @@ Launch-day steps (create repo, deploy key, publish, Pages) are in LAUNCH_CHECKLI
 
 ### L14 season report draft, kept current ✅
 The session-built draft (`meta_report --season`) was frozen at night 7: nothing reran it. `ops after-night` now rewrites `reports/SEASON_1.md` every night and commits it (pathspec, league author). It is a marked draft until night 28 and the finished report, with clips, on the boundary night, so it completes itself. Scratch after-night: exit 0, `season report: written (11 of 28 nights)`. 353 tests.
+
+### L15 full rehearsal on a scratch clone ✅
+
+`scripts/rehearse.sh SCRATCH [SCREENS]`: every step logged ok/FAIL, a failure doesn't stop
+the rest, and nothing is pushed anywhere (the publish target is a bare repo in the scratch dir).
+
+```
+ok   clone 0s
+ok   reproduce 1000s        REPRODUCED in 999 s (byte-identical, 2,160 matches)
+ok   tournament 1112s       cold, sandboxed, populates the clone's out/
+ok   library 3s
+ok   site 9s
+ok   pr_good 0s             submit_pr check passes a bot in the author's own folder
+ok   pr_bad_is_refused 0s   a PR touching colosseum/sim.py fails the check
+ok   intake 1s              ACCEPTED -> bots/submitted/defender/rehearsal__rehearsal_closest.py
+ok   publish 19s            local bare remote: main ef8181c, gh-pages 85ad546
+ok   screenshots 50s        56 pages at 390 px, dark mode, in out/launch_screens/
+rehearsal: 0 failed step(s)   (real 36m34s)
+```
+No manual fix was needed. Screenshots cover every page except the 2,160 replay pages, plus
+three of them (DECISIONS.local.md). Checked by eye: home and the one-page summary read well
+at phone width. **Found:** the README and summary said `make reproduce` takes ~6 min; at
+night 11 it takes ~17, and the time grows with the roster. Both now say so.

@@ -18,7 +18,7 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L12 | workshop README for teachers (s) | done | `workshop/TEACHERS.md`: who it's for, needs, files in order, 3-step setup, safety; linked from README |
 | L13 | one-page summary (h) | done | research/00_summary.md, 520 words; on the site as research/00_summary.html |
 | L14 | season report draft (h) | done | rewritten every night by after-night (draft until night 28, then final with clips, committed); now 11 of 28 |
-| L15 | full rehearsal on a scratch clone (h) | todo | |
+| L15 | full rehearsal on a scratch clone (h) | done | `scripts/rehearse.sh`: 10 of 10 steps ok, 36 min; 56 screenshots in out/launch_screens/ |
 | L16 | LAUNCH_READY.md (h) | todo | |
 
 **Waiting on the founder:** generator prompt text (item G; not yet installed: still

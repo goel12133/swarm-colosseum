@@ -10,7 +10,8 @@ question is cheap moves against expensive answers.
 **Why it exists.** To find out what a self-playing league of language-model-written programs
 can discover about a game, and to show that discovery in a form anyone can check. Every
 result can be rebuilt from the committed bots and seeds with one command
-(`make reproduce`, about 6 minutes, byte-identical).
+(`make reproduce`, byte-identical; about 17 minutes on 4 cores at night 11, growing
+with the roster).
 
 **What the league does every night.** It reads the standings, asks a language model to write
 new bots through four *personas* (each shown different evidence), validates each bot without

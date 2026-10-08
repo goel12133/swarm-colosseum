@@ -59,13 +59,14 @@ replay viewer itself in headless Chromium, inside a container.
 
 ```bash
 git clone <this repo> && cd swarm-colosseum
-make reproduce        # needs Docker; ~6 min on 4 cores
+make reproduce        # needs Docker; ~17 min on 4 cores at night 11, grows with the roster
 ```
 
 This replays every match of the current roster (every bot in `bots/`, seeds 0–9) in the
 sandbox from scratch, with no cache. It then compares the rebuilt `leaderboard.json`,
 `matrix.json` and `breaches.json` byte for byte with the committed `results/`. Checked on a
-fresh clone on 2026-10-04: `REPRODUCED in 364 s`.
+fresh clone on 2026-10-04: `REPRODUCED in 364 s`; at night 11 (2026-10-08, 2,160 matches)
+`REPRODUCED in 999 s`.
 
 ## The game, in one screen
 
