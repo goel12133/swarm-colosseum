@@ -2403,3 +2403,13 @@ No code changed.
 - `python3 -m pytest tests -q`: 353 passed in 79.52 s.
 - Tree clean at start, no WIP.md, no untracked files in the root.
 - Still open with the founder: ROADMAP.md line 30 still mentions "a paid API" (raised with 3.12).
+
+### Build session 2026-10-08 (second after L16): hygiene
+In-scope items L5-L10, L12, L14 are all done in LAUNCH_STATUS.md. No alert, no WIP, so hygiene
+only. No code changed.
+- `python3 -m colosseum.health`: all six ok (docker, cli-login, cron, disk 23% used / 159 GB
+  free / out/ 236 MB, last-night 2026-10-08 ok, alert none).
+- `python3 -m pytest tests -q`: 353 passed in 95.41 s.
+- Tree clean at start, no WIP.md, no stray files in the root (`ls`).
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Same recommendation: pause build sessions until 3.4 opens after night 10-11.
