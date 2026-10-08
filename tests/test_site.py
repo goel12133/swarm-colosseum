@@ -202,3 +202,9 @@ def test_the_public_site_drops_the_reports_health_section():
     out = site.public_report(text)
     assert "## Health" not in out and "/root/x" not in out
     assert "## Ladders" in out and "## After" in out
+
+
+def test_every_page_carries_the_licence_footer(bundle):
+    dest, _, _ = bundle
+    for page in dest.glob("*.html"):
+        assert "Apache License 2.0" in page.read_text() and "CC BY 4.0" in page.read_text(), page

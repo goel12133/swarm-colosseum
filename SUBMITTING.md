@@ -209,3 +209,6 @@ def act(obs):
 ```
 
 Good luck. Watch the replays of the bots that beat you; that's where the ideas are.
+
+**Licence.** A bot you submit is contributed under the Apache License 2.0, the same terms
+as the rest of the code, so it can be run, replayed, shown and put in the tactic library.

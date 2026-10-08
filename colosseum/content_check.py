@@ -24,7 +24,7 @@ _DESIGNATION = re.compile(r"\b[A-Z]{1,4}-\d{1,4}[A-Z]?\b")
 
 
 # Code-shaped strings that are not designations
-_NOT_DESIGNATIONS = re.compile(r"^(UTF|ISO|PEP|RFC|SHA|MD|CP)-", re.IGNORECASE)
+_NOT_DESIGNATIONS = re.compile(r"^(UTF|ISO|PEP|RFC|SHA|MD|CP|CC|BY)-", re.IGNORECASE)   # incl. licence ids
 
 
 def findings(text: str):

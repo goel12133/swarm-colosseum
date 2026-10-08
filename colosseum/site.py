@@ -76,6 +76,7 @@ code{padding:1px 4px}pre{padding:10px 12px;overflow-x:auto;white-space:pre-wrap}
 border:1px solid var(--rule);color:var(--soft);margin-left:6px}
 ul.picks{list-style:none;padding:0;margin:0}ul.picks li{padding:6px 0;
 border-bottom:1px solid var(--rule)}
+footer{max-width:860px;margin:24px auto 0;padding:16px;border-top:1px solid var(--rule);color:var(--soft);font-size:.85rem}
 blockquote{margin:12px 0;padding:8px 12px;border-left:3px solid var(--rule);color:var(--soft)}
 nav a.home{color:var(--ink);margin-right:auto}
 .hero{padding:8px 0 4px}.hero h1{font-size:1.9rem;margin-bottom:.3em}
@@ -285,7 +286,9 @@ def page(title: str, body: str, depth: int = 0) -> str:
 <a href="{up}library/index.html">Tactic library</a><a href="{up}research.html">Research</a>
 <a href="{up}seasons.html">Seasons</a><a href="{up}submitting.html">Submit a bot</a>
 <a href="{up}about.html">About</a></nav>
-<main>{body}</main></body></html>
+<main>{body}</main>
+<footer>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0 · Built by
+Pelennor</footer></body></html>
 """
 
 

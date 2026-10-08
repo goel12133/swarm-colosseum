@@ -7,7 +7,7 @@ import pytest
 from colosseum import content_check
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ["README.md", "CONTRIBUTING.md", "LICENSE_NOTE.md", "CITATION.cff"]
+DOCS = ["README.md", "CONTRIBUTING.md", "LICENSING.md", "CITATION.cff"]
 
 
 @pytest.mark.parametrize("name", DOCS)
@@ -23,15 +23,18 @@ def test_the_content_check_passes(name):
     assert content_check.findings((ROOT / name).read_text()) == []
 
 
-def test_the_citation_has_its_required_keys_and_no_licence_yet():
-    keys = {line.split(":", 1)[0] for line in (ROOT / "CITATION.cff").read_text().splitlines()
+def test_the_citation_has_its_required_keys_and_both_licences():
+    text = (ROOT / "CITATION.cff").read_text()
+    keys = {line.split(":", 1)[0] for line in text.splitlines()
             if line and not line.startswith((" ", "-"))}
-    assert {"cff-version", "message", "title", "authors"} <= keys
-    # No licence is chosen (LICENSE_NOTE.md); the citation must not claim one.
-    assert "license" not in keys and not (ROOT / "LICENSE").exists()
+    assert {"cff-version", "message", "title", "authors", "license"} <= keys
+    # Founder, 2026-10-08: Apache-2.0 for code, CC BY 4.0 for replays and research.
+    assert "- Apache-2.0" in text and "- CC-BY-4.0" in text
+    assert (ROOT / "LICENSE").read_text().lstrip().startswith("Apache License")
+    assert "Attribution 4.0 International" in (ROOT / "LICENSE-CC-BY-4.0").read_text()
 
 
-def test_the_readme_says_submissions_are_closed_and_no_licence_is_granted():
+def test_the_readme_says_submissions_are_closed_and_names_both_licences():
     text = (ROOT / "README.md").read_text()
     assert "submissions are not open yet" in text
-    assert "no licence is granted" in text
+    assert "Apache License 2.0" in text and "CC BY 4.0" in text

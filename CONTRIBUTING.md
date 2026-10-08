@@ -45,6 +45,6 @@ and a maintainer will contact you.
 
 ## Licence
 
-No licence has been chosen yet ([LICENSE_NOTE.md](LICENSE_NOTE.md)). Until a `LICENSE` file
-exists we can't accept code contributions under clear terms, so please hold larger pull
-requests until then.
+Code contributions, including bots, are accepted under the [Apache License 2.0](LICENSE).
+Written research and replays are under [CC BY 4.0](LICENSE-CC-BY-4.0). The folder-by-folder
+split is in [LICENSING.md](LICENSING.md).

@@ -78,3 +78,5 @@
   advisory, because a PR can edit its own workflow. The binding checks are `submit_pr intake`,
   run from master on the league machine. The handle is the PR author's login, so nobody can
   submit into someone else's folder.
+- **2026-10-08 — build sessions paused for the final sprint run.** The founder asked for L10 and L13–L16 to be worked continuously in one session by 03:00 UTC 10-09. The 2-hourly sessions (hygiene only since 10-07) would race these commits to master, so their cron entry is commented out until L16 is written, then restored. The league and the ablation session keep running.
+- **2026-10-08 (founder) — licences:** Apache-2.0 for code (`LICENSE`, the official text, sha256 cfc7749b…), CC BY 4.0 for replays, results and research (`LICENSE-CC-BY-4.0`, the official legal code). Folder split in `LICENSING.md`; submitted bots are contributed under Apache-2.0. Repo: `goel12133/swarm-colosseum`, public, created by the founder on launch day.

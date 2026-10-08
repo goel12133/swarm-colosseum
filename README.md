@@ -130,8 +130,8 @@ tests/       the test suite and fixture bots
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): what we accept and the rules every change follows.
 - [CITATION.cff](CITATION.cff): how to cite the benchmark.
-- **Licence: not chosen yet.** See [LICENSE_NOTE.md](LICENSE_NOTE.md). Until there is a
-  `LICENSE` file, no licence is granted.
+- **Licence:** code under the [Apache License 2.0](LICENSE); replays, results and research
+  under [CC BY 4.0](LICENSE-CC-BY-4.0). Which folders are which: [LICENSING.md](LICENSING.md).
 
 ---
 
