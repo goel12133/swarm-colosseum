@@ -215,7 +215,7 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
     """Regression: a step function named like the results dict shadowed it (2026-10-04)."""
     from colosseum import meta_report, site
     calls = []
-    for name in ("commit_results", "update_watch", "rotate",
+    for name in ("commit_results", "update_watch", "rotate", "season_report_step",
                  "backup", "record_phase", "nightly_fuzz"):
         monkeypatch.setattr(ops, name, lambda *a, _n=name, **k: calls.append(_n) or _n)
     monkeypatch.setattr(meta_report, "due_week", lambda *a, **k: None)
@@ -225,7 +225,7 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
     monkeypatch.setattr(ops, "write_alert", lambda *a, **k: calls.append("ALERT"))
     problems, results = ops.after_night(commit=True)
     assert problems == [] and "ALERT" not in calls
-    assert set(results) == {"results", "watch", "meta report", "library",
+    assert set(results) == {"results", "watch", "meta report", "season report", "library",
                             "site", "fuzz", "rotation", "backup"}
 
 
@@ -278,3 +278,16 @@ def test_the_ablation_generation_stops_before_a_call_it_cannot_afford_and_resume
         [{"night": "2026-09-29", "slot": 0, "role": "attacker", "status": "written"}]))
     log = abl.generate(["2026-09-29"], tmp_path, max_tokens=None)
     assert len(calls) == 1 and [r["slot"] for r in log] == [0, 1]   # slot 0 skipped
+
+
+def test_the_season_report_step_writes_a_draft_until_night_28(tmp_path, monkeypatch):
+    from colosseum import meta_report
+    calls = []
+    monkeypatch.setattr(meta_report, "season_nights", lambda n: [("d", [])] * 11)
+    monkeypatch.setattr(meta_report, "load_nights", lambda out: [])
+    monkeypatch.setattr(meta_report, "write_season",
+                        lambda out, with_clip: calls.append(with_clip))
+    assert ops.season_report_step(out=tmp_path, commit=False) == "written (11 of 28 nights)"
+    monkeypatch.setattr(meta_report, "season_nights", lambda n: [("d", [])] * 28)
+    ops.season_report_step(out=tmp_path, commit=False)
+    assert calls == [False, True]                    # clips only for the finished report

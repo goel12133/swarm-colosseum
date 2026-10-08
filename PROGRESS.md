@@ -2354,3 +2354,6 @@ Launch-day steps (create repo, deploy key, publish, Pages) are in LAUNCH_CHECKLI
 
 ### L13 one-page summary ✅
 `research/00_summary.md` (520 words): what it is, why, what the league does nightly, three headline results with links, honest limits, what is next. Content check clean on all five research pages; the site renders it as `research/00_summary.html`. Figures as of night 11 (2026-10-08).
+
+### L14 season report draft, kept current ✅
+The session-built draft (`meta_report --season`) was frozen at night 7: nothing reran it. `ops after-night` now rewrites `reports/SEASON_1.md` every night and commits it (pathspec, league author). It is a marked draft until night 28 and the finished report, with clips, on the boundary night, so it completes itself. Scratch after-night: exit 0, `season report: written (11 of 28 nights)`. 353 tests.

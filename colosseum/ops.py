@@ -316,6 +316,30 @@ def ablation_session(out: Path = DEFAULT_OUT, root: Path = ROOT):
     return f"failed (exit {proc.returncode})"
 
 
+# --- the season report, kept current (sprint L14) -----------------------------------
+
+def season_report_step(root: Path = ROOT, out: Path = DEFAULT_OUT, commit: bool = True):
+    """Rewrite reports/SEASON_1.md every night: a marked draft until night 28, then the
+    finished report (with its clips), so it completes itself on the boundary night."""
+    import subprocess
+    from . import meta_report, season
+    nights = len(meta_report.season_nights(meta_report.load_nights(out)))
+    final = nights >= season.LENGTH_NIGHTS
+    meta_report.write_season(out, with_clip=final)
+    if not commit:
+        return f"written ({nights} of {season.LENGTH_NIGHTS} nights)"
+    rel = "reports/SEASON_1.md"
+    subprocess.run(["git", "-C", str(root), "add", "--", rel], check=True)
+    changed = subprocess.run(["git", "-C", str(root), "diff", "--cached", "--quiet", "--",
+                              rel]).returncode != 0
+    if changed:
+        subprocess.run(["git", "-C", str(root), "-c", "user.name=Swarm Colosseum league",
+                        "-c", "user.email=league@localhost", "commit", "-q", "-m",
+                        f"Season report: {'final' if final else 'draft'}, {nights} of "
+                        f"{season.LENGTH_NIGHTS} nights", "--", rel], check=True)
+    return f"{'final' if final else 'draft'}, {nights} nights, {'committed' if changed else 'unchanged'}"
+
+
 # --- after the night ----------------------------------------------------------------
 
 def record_phase(seconds: float, nights: Path = None):
@@ -378,6 +402,7 @@ def after_night(commit: bool = True):
 
     for label, fn in (("results", results_step), ("watch", update_watch),
                       ("meta report", meta_report),
+                      ("season report", lambda: season_report_step(commit=commit)),
                       ("library", tactic_library), ("site", site_bundle),
                       ("fuzz", nightly_fuzz),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):
