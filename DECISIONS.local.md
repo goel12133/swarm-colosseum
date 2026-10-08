@@ -81,3 +81,9 @@
 - **2026-10-08 — build sessions paused for the final sprint run.** The founder asked for L10 and L13–L16 to be worked continuously in one session by 03:00 UTC 10-09. The 2-hourly sessions (hygiene only since 10-07) would race these commits to master, so their cron entry is commented out until L16 is written, then restored. The league and the ablation session keep running.
 - **2026-10-08 (founder) — licences:** Apache-2.0 for code (`LICENSE`, the official text, sha256 cfc7749b…), CC BY 4.0 for replays, results and research (`LICENSE-CC-BY-4.0`, the official legal code). Folder split in `LICENSING.md`; submitted bots are contributed under Apache-2.0. Repo: `goel12133/swarm-colosseum`, public, created by the founder on launch day.
 - **2026-10-08 — L15 screenshots cover every page except the replay pages, plus three of those.** The bundle has 2,160 replay pages that are one viewer page with different data; screenshotting all of them adds ~40 minutes and shows nothing new. Every other page (home, ladders, every bot page, library cards, research, seasons, submit, about) is captured at 390 px in dark mode.
+
+- 2026-10-08 07:0x (lead engineer): build-session cron restored after L16, as logged when it
+  was paused. Left as a gap, not fixed: replay pages have no link back to the site, because
+  viewer/template.html is also the clip renderer's page and a header change would change the
+  clips. The default domain stays goel12133.github.io/swarm-colosseum until the founder says
+  otherwise.

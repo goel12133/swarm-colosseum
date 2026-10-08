@@ -1,4 +1,4 @@
-# Launch status — sprint day 1 (2026-10-04), target day 10 = 2026-10-13
+# Launch status — sprint day 5 (2026-10-08), target day 10 = 2026-10-13: all 16 done
 
 Nothing is public. (s) = unattended build session; (h) = lead engineer, interactive.
 
@@ -13,13 +13,14 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L7 | five clips, mp4 + gif (s) | done | `colosseum.clip --showcase`: 5 captioned clips, 1x, each ≤0.21 MB; render on live out/ once |
 | L8 | README, CITATION, CONTRIBUTING, licences (s) | done | Apache-2.0 (code) + CC BY 4.0 (replays, research): LICENSE, LICENSE-CC-BY-4.0, LICENSING.md, CITATION, site footer |
 | L9 | submissions via PR + workflow (s) | done | PR adds `bots/submitted/pr/<login>/<NAME>.py`; CI check is static only (never runs the bot); `submit_pr intake` = sandbox gate after merge; not run on GitHub yet |
-| L10 | publish pipeline, dry (s) | todo | waiting on you: licence, repo name, visibility (still, 10-08, second session) |
+| L10 | publish pipeline, dry (s) | done | `scripts/publish.sh`: rewrite, audit, site, main (ff) + gh-pages; tested on a local bare remote; `--live` is yours |
 | L11 | secret and history audit (h) | done | no secrets; hostname rewritten in the publish clone (approved), live repo untouched |
 | L12 | workshop README for teachers (s) | done | `workshop/TEACHERS.md`: who it's for, needs, files in order, 3-step setup, safety; linked from README |
 | L13 | one-page summary (h) | done | research/00_summary.md, 520 words; on the site as research/00_summary.html |
 | L14 | season report draft (h) | done | rewritten every night by after-night (draft until night 28, then final with clips, committed); now 11 of 28 |
 | L15 | full rehearsal on a scratch clone (h) | done | `scripts/rehearse.sh`: 10 of 10 steps ok, 36 min; 56 screenshots in out/launch_screens/ |
-| L16 | LAUNCH_READY.md (h) | todo | |
+| L16 | LAUNCH_READY.md (h) | done | reports/LAUNCH_READY.md: what is ready, screenshots, launch-day order, 5 gaps |
 
-**Waiting on the founder:** generator prompt text (item G; not yet installed: still
-2026-10-03.1); license; repo name and visibility; domain. **3.8** stays interactive-only.
+**Waiting on the founder:** the domain (default: github.io) and launch day itself
+(reports/LAUNCH_READY.md). Item G was scrapped as a prompt rewrite; its content-check half is
+done and the prompt stays 2026-10-03.1. **3.8** stays interactive-only, so submissions stay closed.

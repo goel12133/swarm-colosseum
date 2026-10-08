@@ -2380,3 +2380,17 @@ No manual fix was needed. Screenshots cover every page except the 2,160 replay p
 three of them (DECISIONS.local.md). Checked by eye: home and the one-page summary read well
 at phone width. **Found:** the README and summary said `make reproduce` takes ~6 min; at
 night 11 it takes ~17, and the time grows with the roster. Both now say so.
+
+### L16 reports/LAUNCH_READY.md ✅ — launch sprint complete
+
+15 lines: what is ready, the six screenshots to look at, the founder's decisions (licence and
+repo done, domain open, default github.io), the four launch-day actions in order, and five gaps:
+- submissions closed until 3.8;
+- the PR workflow not yet run on GitHub;
+- the 143 MB site;
+- no link back from replay pages;
+- the persona result preliminary.
+
+Also fixed from the L15 screenshots: nested Markdown lists now render as sub-lists
+(SUBMITTING's "game in one minute"), and submitting.png was re-shot. All 16 sprint items are
+done on sprint day 5. Build sessions are restored in cron (paused for the sprint since 06:0x).
