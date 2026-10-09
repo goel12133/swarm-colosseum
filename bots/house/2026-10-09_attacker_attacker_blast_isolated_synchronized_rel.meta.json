@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-10-09",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3500,
+    "dropped": [],
+    "included": [
+      "source"
+    ],
+    "used": 3064
+  },
+  "model": "opus",
+  "name": "2026-10-09_attacker_attacker_blast_isolated_synchronized_rel",
+  "persona": "contrarian",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-09T034455_cli_attacker_contrarian.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.242,
+    "rank": 10,
+    "score_vs_target": 0.094
+  },
+  "role": "attacker",
+  "target": "2026-10-01_defender_convergence_blast_scheduler",
+  "tokens": {
+    "input": 20244,
+    "output": 58858
+  }
+}
