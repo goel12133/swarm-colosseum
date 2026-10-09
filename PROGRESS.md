@@ -2505,3 +2505,14 @@ changed. LAUNCH_STATUS L14 line now says 12 of 28, which matches commit 766f9da.
   "attacker" appears twice and the name looks cut off at the end. This is cosmetic and the bot
   was accepted. The naming code is outside scope, so I'm only noting it here.
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
+
+### Build session 2026-10-09 (third of the day): hygiene
+L5-L10, L12, L14 are all done in LAUNCH_STATUS.md. No alert, no WIP, so hygiene only. No code
+changed. No new night since the second session (out/ still ends at night 10-09).
+- `python3 -m colosseum.health`: all six ok (docker, cli-login, cron, disk 23% used / 159 GB
+  free / out/ 250 MB, last-night 2026-10-09 ok, alert none).
+- `python3 -m pytest tests -q`: 353 passed in 88.55 s.
+- Tree clean at start, no WIP.md, no stray files in the root (`ls`).
+- Night 10-09's over-15-minute run (one 889 s generator call) is already written up above;
+  nothing new to add.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
