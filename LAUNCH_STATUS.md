@@ -1,4 +1,4 @@
-# Launch status — sprint day 5 (2026-10-08), target day 10 = 2026-10-13: all 16 done
+# Launch status — sprint day 6 (2026-10-09), target day 10 = 2026-10-13: all 16 done
 
 Nothing is public. (s) = unattended build session; (h) = lead engineer, interactive.
 

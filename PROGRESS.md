@@ -2474,3 +2474,14 @@ changed.
 - Tree clean at start, no WIP.md, no stray files in the root (`ls`).
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Eighth empty session today. Pausing build sessions until night 10-11 is recommended again.
+
+### Build session 2026-10-09 (first of the day): hygiene
+L5-L10, L12, L14 are all done in LAUNCH_STATUS.md. No alert, no WIP, so hygiene only. No code
+changed; LAUNCH_STATUS.md header moved to sprint day 6.
+- `python3 -m colosseum.health`: all six ok (docker, cli-login, cron, disk 23% used / 159 GB
+  free / out/ 236 MB, last-night 2026-10-08 ok, alert none). The out/ snapshot has no night
+  10-09 yet; health reports 10-08 as the last night.
+- `python3 -m pytest tests -q`: 353 passed in 78.62 s.
+- Tree clean at start, no WIP.md, no stray files in the root (`git status --ignored`).
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
+- Ninth empty session in a row. Pausing build sessions until night 10-11 is recommended again.
