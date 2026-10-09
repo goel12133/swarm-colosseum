@@ -2485,3 +2485,23 @@ changed; LAUNCH_STATUS.md header moved to sprint day 6.
 - Tree clean at start, no WIP.md, no stray files in the root (`git status --ignored`).
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
 - Ninth empty session in a row. Pausing build sessions until night 10-11 is recommended again.
+
+### Build session 2026-10-09 (second of the day): hygiene
+L5-L10, L12, L14 are all done in LAUNCH_STATUS.md. No alert, no WIP, so hygiene only. No code
+changed. LAUNCH_STATUS L14 line now says 12 of 28, which matches commit 766f9da.
+- `python3 -m colosseum.health`: all six ok (docker, cli-login, cron, disk 23% used / 159 GB
+  free / out/ 250 MB, last-night 2026-10-09 ok, alert none).
+- `python3 -m pytest tests -q`: 353 passed in 84.32 s.
+- Tree clean at start, no WIP.md, no stray files in the root (`ls`).
+- Night 10-09 (league log): 2 bots accepted, 89,491 tokens (under the 150k trigger),
+  tournament 129.3 s, **night 1100.6 s, over the 15-minute runtime line**. The tournament
+  was not the cause. The cause was one generator call (contrarian attacker): 889.2 s,
+  out=58,858 tokens, and the model field reads `claude-opus-5-5,claude-opus-4-8`. The charter's
+  runtime remedy is to cut seeds, and that would not touch the generator call, so I left the
+  seeds alone. Changing the generator is outside this sprint's scope, so this is written up,
+  not fixed. If it happens again, an interactive session should look at a per-call time cap
+  and at why a second model shows up.
+- The same night's attacker file is named `2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.py`.
+  "attacker" appears twice and the name looks cut off at the end. This is cosmetic and the bot
+  was accepted. The naming code is outside scope, so I'm only noting it here.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
