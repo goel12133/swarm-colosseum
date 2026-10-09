@@ -2534,3 +2534,12 @@ changed. No new night since the second session (health still reports last night 
 - `python3 -m pytest tests -q`: 353 passed in 81.98 s.
 - Tree clean at start, no WIP.md, no stray files in the root (`ls`).
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
+
+### Build session 2026-10-09 (sixth of the day): hygiene
+L5-L10, L12, L14 are all done in LAUNCH_STATUS.md. No alert, no WIP, so hygiene only. No code
+changed. No new night since the second session (health still reports last night 2026-10-09).
+- `python3 -m colosseum.health`: all six ok (docker, cli-login, cron, disk 23% used / 159 GB
+  free / out/ 250 MB, last-night 2026-10-09 ok, alert none).
+- `python3 -m pytest tests -q`: 353 passed in 87.97 s.
+- Tree clean at start (`git status --short` empty), no WIP.md.
+- Backup restore: still not checked; no allowed command reaches `~/backups`.
