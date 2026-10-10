@@ -343,6 +343,9 @@ def season_report_step(root: Path = ROOT, out: Path = DEFAULT_OUT, commit: bool 
 # --- republishing the public repo and site (launch, 2026-10-10) ---------------------
 
 PUBLIC_REMOTE = "git@github.com:goel12133/swarm-colosseum.git"
+# Fold merged submission PRs back into master before republishing (colosseum/foldback.py).
+# Off until 3.8 passes (founder, 2026-10-10); switched on by a reviewed commit, not a flag file.
+FOLDBACK_ENABLED = False
 DEPLOY_KEY = Path.home() / ".ssh" / "swarm_colosseum_deploy"
 
 
@@ -353,12 +356,17 @@ def _ssh_env(key: Path) -> dict:
 
 
 def publish_step(root: Path = ROOT, out: Path = DEFAULT_OUT, remote: str = PUBLIC_REMOTE,
-                 key: Path = DEPLOY_KEY):
+                 key: Path = DEPLOY_KEY, foldback_enabled: bool = None, verify=None):
     """Republish after the night: fetch the public main, and push only if it is still what
     we last published (or the repo is empty, on the first publish). If main has moved (a
-    commit or merged PR made on GitHub) this refuses and raises, so after_night writes
-    ALERT.md; folding merged submission PRs back into master is built with 3.8, before
-    submissions open. Not armed until the deploy key exists (the founder creates it)."""
+    merged PR, or anything else done on GitHub): with fold-back on, its new commits are
+    folded into master first (colosseum/foldback.py, which refuses anything outside
+    bots/submitted/pr/) and the publish merges onto main; with it off, or on any refusal,
+    this raises, so after_night writes ALERT.md and nothing is pushed. Not armed until the
+    deploy key exists (the founder creates it)."""
+    from . import foldback
+    if foldback_enabled is None:
+        foldback_enabled = FOLDBACK_ENABLED
     import subprocess
     if not key.exists():
         return f"not armed: no deploy key at {key}"
@@ -370,11 +378,16 @@ def publish_step(root: Path = ROOT, out: Path = DEFAULT_OUT, remote: str = PUBLI
     if ls.returncode != 0:
         raise RuntimeError(f"cannot reach {remote}: {ls.stderr.strip()[:200]}")
     public = ls.stdout.split()[0] if ls.stdout.strip() else None
+    folded = ""
     if public != last:
-        raise RuntimeError(f"public main is {public or 'empty'} but we last published "
-                           f"{last or 'nothing'}: not republishing until a person looks")
+        if not (foldback_enabled and last and public):
+            raise RuntimeError(f"public main is {public or 'empty'} but we last published "
+                               f"{last or 'nothing'}: not republishing until a person looks")
+        folded = foldback.run(root, remote, env, last, public,
+                              verify or foldback.full_suite) + "; "
+    onto = ["--merge-onto", public] if public else []
     proc = subprocess.run([str(root / "scripts" / "publish.sh"), "--live", "--site",
-                           str(out / "site"), remote, str(key)], cwd=root,
+                           str(out / "site"), *onto, remote, str(key)], cwd=root,
                           capture_output=True, text=True, timeout=3600)
     if proc.returncode != 0:
         raise RuntimeError(f"publish.sh exit {proc.returncode}: {proc.stderr.strip()[-300:]}")
@@ -384,7 +397,7 @@ def publish_step(root: Path = ROOT, out: Path = DEFAULT_OUT, remote: str = PUBLI
     refs = {r.split("/")[-1]: sha for sha, r in (l.split() for l in ls.stdout.splitlines())}
     record.write_text(json.dumps(dict(refs, when=datetime.now(timezone.utc).isoformat(
         timespec="seconds")), sort_keys=True) + "\n")
-    return line
+    return folded + line
 
 
 # --- after the night ----------------------------------------------------------------

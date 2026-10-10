@@ -2658,3 +2658,25 @@ reports/LAUNCH_DONE.md has the URLs, the first-night checklist and what didn't g
   Projected size at the boundary is ~39 MB. After-night alerts above 60 MB.
 - **Tests:** the rule, round-trips, the JS decoder, and every index and `?r=` link
   resolving. 371 pass.
+
+### Fold-back of merged PRs ✅ built, switched off until 3.8
+
+`colosseum/foldback.py` is called by `ops.publish_step` when public main has moved and
+`FOLDBACK_ENABLED` is set (it ships `False`). It:
+1. fetches public main into a scratch repo;
+2. reviews every commit since our last publish, merges included, and rejects the whole
+   batch if any path is outside `bots/submitted/pr/<handle>/<NAME>.py` (or is a symlink or
+   executable, or the history was rewritten);
+3. writes the net change into master on a `foldback-<sha>` branch;
+4. runs the full suite, then fast-forwards master.
+
+Then `publish.sh --merge-onto <public main>` publishes a merge commit, so main only grows.
+Five tests drive it against a local bare remote with a fake contributor and a fake merge.
+They cover:
+- the happy path, including a second night;
+- a PR that also touches `colosseum/sim.py` (rejected, nothing applied, nothing pushed);
+- failing tests (master untouched, branch kept);
+- the path rule (8 cases);
+- that it ships switched off.
+
+383 tests pass.

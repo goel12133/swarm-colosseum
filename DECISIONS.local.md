@@ -124,3 +124,14 @@
   after 20.5 MB; projected ~39 MB at the boundary. after-night alerts above 60 MB but still
   publishes. The rehearsal's screenshots now go through a loopback server inside the
   --network none container (no host port).
+
+- 2026-10-10 05:xx (lead engineer), fold-back, three departures from the sketch:
+  (1) new commits are found by ancestry (public main minus our last publish), not by "not
+  authored by the publish identity": a contributor can put any author on a commit, and the
+  founder's own GitHub merges carry the publish identity; (2) the allowed shape is
+  bots/submitted/pr/<handle>/<NAME>.py, regular files only, not all of bots/submitted/:
+  writing straight into bots/submitted/<role>/ would skip intake's sandbox test; (3) once a
+  PR is merged on GitHub, public main can't fast-forward to the rewritten master again, so
+  every later publish is a merge commit (our tree, parents: public main and master) via
+  publish.sh --merge-onto. No force push, ever. A rejected batch alerts and blocks the
+  republish until a person reverts it on GitHub. Ships with ops.FOLDBACK_ENABLED = False.
