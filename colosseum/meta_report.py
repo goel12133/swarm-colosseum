@@ -519,8 +519,13 @@ def season_coverage_section(end):
     return lines
 
 
+WORDS = {1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
+
+
 def season_two_section(season_md: Path, out: Path):
-    lines = ["## What season two changes", ""]
+    """What the next season changes (in season one: season two)."""
+    nxt = WORDS.get(season.NUMBER + 1, str(season.NUMBER + 1))
+    lines = [f"## What season {nxt} changes", ""]
     text = season_md.read_text() if season_md.exists() else ""
     rows = [[re.sub(r"[*`]", "", c).strip() for c in l.strip().strip("|").split("|")]
             for l in text.splitlines() if l.startswith("| candidate")]
@@ -528,7 +533,7 @@ def season_two_section(season_md: Path, out: Path):
         ["- No change approved yet."]
     verdicts = [l for p in sorted(out.glob("WATCH*.md")) for l in p.read_text().splitlines()
                 if l.startswith("**Verdict")]
-    if any("a meta" in v for v in verdicts):
+    if season.NUMBER == 1 and any("a meta" in v for v in verdicts):
         lines.append("- S0-2 was answered in play (watch verdict: a meta), so no economy fix "
                      "is added (charter section 1).")
     return lines + [""]
