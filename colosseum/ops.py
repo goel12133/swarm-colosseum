@@ -474,6 +474,8 @@ def main():
     r.add_argument("--dry-run", action="store_true")
     sub.add_parser("backup")
     sub.add_parser("ablation-session", help="the 14-night persona ablation (own cron entry)")
+    sub.add_parser("publish", help="publish the repo and out/site, as after-night does; the "
+                   "first publish goes through here so out/publish.json records it")
     fail = sub.add_parser("alert", help="write ALERT.md (used by nightly.sh)")
     fail.add_argument("reason")
     args = ap.parse_args()
@@ -491,6 +493,9 @@ def main():
         return 0
     if args.cmd == "ablation-session":
         print(ablation_session())
+        return 0
+    if args.cmd == "publish":
+        print(publish_step())
         return 0
     if args.cmd == "alert":
         print(write_alert(args.reason))

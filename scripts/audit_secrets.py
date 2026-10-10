@@ -10,6 +10,9 @@ and each author/committer identity -- for:
     out/, ~/.claude material)
   * anything identifying this machine (its hostname, IPv4 addresses, home-directory paths
     beyond the repo's own /root/swarm-colosseum)
+  * personal email: any address at a consumer mail provider, anywhere (launch, 2026-10-10;
+    by domain, so no real address has to be written here), and any commit identity whose
+    email isn't one of the project's own (scripts/public_identity, the league, the dev one)
 Output lists commit, path and pattern name only; a matched value is never printed.
 Exit 1 if anything is found.
 """
@@ -46,7 +49,18 @@ def identity_patterns():
     pats["ipv4"] = re.compile(r"\b(?!127\.0\.0\.1\b)(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}"
                               r"(?:25[0-5]|2[0-4]\d|1?\d?\d)\b")
     pats["home-path"] = re.compile(r"/root/(?!swarm-colosseum\b)[A-Za-z0-9_.\-]+")
+    pats["personal-email"] = PERSONAL_EMAIL
     return pats
+
+
+PERSONAL_EMAIL = re.compile(
+    r"[A-Za-z0-9._%+\-]+@(?:gmail|googlemail|yahoo|ymail|hotmail|outlook|live|msn|icloud|me|"
+    r"mac|aol|proton|protonmail|pm|gmx|mail|yandex|zoho)\.[a-z.]{2,6}\b", re.I)
+
+
+def project_identities():
+    public = (ROOT / "scripts" / "public_identity").read_text().splitlines()[1].strip()
+    return {public, "league@localhost", "dev@swarm-colosseum.invalid"}
 
 
 # Reviewed and benign (L11, 2026-10-04). Anything else that matches is reported.
@@ -71,7 +85,10 @@ def main():
     ident = identity_patterns()
     commits = git("rev-list", "--all").split()
     seen_blobs = set()
+    own = project_identities()
     for c in commits:
+        if set(git("show", "-s", "--format=%ae%n%ce", c).split()) - own:
+            findings.add((c[:7], "(identity)", "unknown-identity"))
         meta = git("show", "-s", "--format=%an <%ae>%n%cn <%ce>%n%B", c)
         for name, rx in {**SECRET_PATTERNS, **ident}.items():
             if _hits(name, rx, meta):

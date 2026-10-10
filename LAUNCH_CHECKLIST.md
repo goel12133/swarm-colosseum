@@ -20,9 +20,24 @@
    then on GitHub, repo → *Settings → Deploy keys → Add deploy key*, paste
    `~/.ssh/swarm_colosseum_deploy.pub`, tick **Allow write access**. Unlocks pushing to that one
    repo and nothing else on your account.
-6. **Publish:** `cd /root/swarm-colosseum && scripts/publish.sh --live
-   git@github.com:goel12133/swarm-colosseum.git ~/.ssh/swarm_colosseum_deploy`. It rewrites
-   identities in a mirror, audits, builds the site, pushes `main` (fast-forward) and
-   `gh-pages`. Unlocks the code being public.
+6. **Publish:** `cd /root/swarm-colosseum && python3 -m colosseum.ops publish` (the lead
+   engineer runs this once you say the repo and key exist). It runs `scripts/publish.sh --live`
+   with the deploy key: rewrites identities in a mirror, audits, pushes `main` (fast-forward)
+   and the current `out/site` to `gh-pages`, and records both in `out/publish.json`, which is
+   what lets every later night republish on its own. Unlocks the code being public.
 7. **Turn on Pages:** repo → *Settings → Pages → Source: Deploy from a branch → `gh-pages` /
    root*. Unlocks the site at `https://goel12133.github.io/swarm-colosseum/`.
+8. **Straight after (lead engineer):** clone the public repo fresh and rerun the leak scan
+   (hostname, personal email, key shapes, every commit and blob on `main` and `gh-pages`);
+   open a test PR that adds `bots/submitted/pr/goel12133/launch_check.py` (a workshop
+   solution, renamed), confirm the `submission` check goes green, then close it unmerged and
+   delete its branch; load the site at phone width. Results go in `reports/LAUNCH_DONE.md`.
+9. **The first night after launch (check the next morning):**
+   - `out/ALERT.md` doesn't exist, and `out/house_league.cron.log` shows `"publish":
+     "published: main …, gh-pages …"` from after-night;
+   - `out/publish.json` matches `git ls-remote` on the public repo (main and gh-pages);
+   - the public `main` has the night's results commit, and the site's ladders show the new
+     night;
+   - GitHub's Actions tab: "pages build and deployment" green, and no `submission` run (it
+     runs only on PRs that touch `bots/submitted/pr/`);
+   - the leak scan on a fresh public clone is still clean.
