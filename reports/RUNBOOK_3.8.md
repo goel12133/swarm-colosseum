@@ -9,9 +9,9 @@ don't try to get through it.
 ## Before the session (lead engineer, by Fri 10-23)
 - The full suite is green on master; the night of 10-24 (03:30 UTC) and its publish went
   cleanly; `ops.FOLDBACK_ENABLED` is `False`.
-- Wire intake behind the same switch: after a fold-back, after-night runs
-  `submit_pr intake`, and accepted bots play from the next night. Tests on a local remote,
-  off, and nothing else touched.
+- Intake is wired behind the same switch (done 2026-10-10): a fold-back runs
+  `submit_pr intake` on its branch, and accepted bots are committed and play from the next
+  night (`tests/test_foldback.py`).
 - Note the sandbox image's local id (today `python:3.12-slim`, `sha256:f77ac9e44ae9…`) for
   SECURITY.md. Pinning it by digest edits `sandbox.py`, which changes the engine version and
   replays every match, so it waits for the season boundary, when everything replays anyway.

@@ -358,7 +358,8 @@ def _ssh_env(key: Path) -> dict:
 
 
 def publish_step(root: Path = ROOT, out: Path = DEFAULT_OUT, remote: str = PUBLIC_REMOTE,
-                 key: Path = DEPLOY_KEY, foldback_enabled: bool = None, verify=None):
+                 key: Path = DEPLOY_KEY, foldback_enabled: bool = None, verify=None,
+                 intake=None):
     """Republish after the night: fetch the public main, and push only if it is still what
     we last published (or the repo is empty, on the first publish). If main has moved (a
     merged PR, or anything else done on GitHub): with fold-back on, its new commits are
@@ -386,7 +387,7 @@ def publish_step(root: Path = ROOT, out: Path = DEFAULT_OUT, remote: str = PUBLI
             raise RuntimeError(f"public main is {public or 'empty'} but we last published "
                                f"{last or 'nothing'}: not republishing until a person looks")
         folded = foldback.run(root, remote, env, last, public,
-                              verify or foldback.full_suite) + "; "
+                              verify or foldback.full_suite, intake) + "; "
     onto = ["--merge-onto", public] if public else []
     proc = subprocess.run([str(root / "scripts" / "publish.sh"), "--live", "--site",
                            str(out / "site"), *onto, remote, str(key)], cwd=root,

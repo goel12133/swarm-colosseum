@@ -39,7 +39,19 @@ def world(tmp_path):
     key = tmp_path / "dummy_key"
     key.write_text("")
 
+    def fake_intake(root):
+        """Stands in for submit_pr.intake (which plays a sandboxed test match): accept every
+        PR bot by copying it where intake would put it."""
+        results = []
+        for p in sorted((root / "bots" / "submitted" / "pr").glob("*/*.py")):
+            dest = root / "bots" / "submitted" / "defender" / f"{p.parent.name}__{p.name}"
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(p.read_bytes())
+            results.append((p, {"status": "accepted"}))
+        return results
+
     def publish(**kw):
+        kw.setdefault("intake", fake_intake)
         return ops.publish_step(root=live, out=out, remote=str(remote), key=key, **kw)
 
     assert publish().startswith("published:")
@@ -70,11 +82,13 @@ def test_a_merged_bot_is_folded_into_master_and_main_keeps_growing(world):
     merged = merge_pr(w, {rel: BOT.read_text()})
     before = git(w["live"], "rev-parse", "master")
     msg = w["publish"](foldback_enabled=True, verify=lambda root: True)
-    assert msg.startswith("folded 2 commit(s): " + rel), msg
-    # master gained exactly one league commit carrying the file, byte for byte
-    assert git(w["live"], "rev-list", "--count", f"{before}..master") == "1"
+    assert msg.startswith("folded 2 commit(s): " + rel) and "intake: 1 accepted" in msg, msg
+    # master gained a fold-back commit carrying the file byte for byte, and an intake commit
+    assert git(w["live"], "rev-list", "--count", f"{before}..master") == "2"
     assert (w["live"] / rel).read_text() == BOT.read_text()
-    assert "league@localhost" in git(w["live"], "log", "-1", "--format=%ae", "master")
+    assert (w["live"] / "bots/submitted/defender/alice__alice_closest.py").exists()
+    assert git(w["live"], "log", "-1", "--format=%s", "master").startswith("Intake: 1 accepted")
+    assert git(w["live"], "log", "-2", "--format=%ae", "master").split() == ["league@localhost"] * 2
     assert not git(w["live"], "branch", "--list", "foldback-*")
     # public main still contains the merged PR, and its tree now equals master's (rewritten)
     main = git(w["remote"], "rev-parse", "main")

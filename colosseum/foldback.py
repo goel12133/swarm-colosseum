@@ -14,8 +14,11 @@ looks at what public main has gained since the last publish and brings it into m
      submodule, or a public main that no longer contains our last publish: the whole batch
      is rejected, nothing is applied, and the night alerts (publish_step raises)
   4. otherwise the net change is applied to master on a branch, as files written from
-     public main (the bot is never imported or run here; intake does that, in the sandbox),
-     the full test suite runs, and master fast-forwards to it
+     public main (the bot is never imported or run here)
+  5. intake (colosseum/submit_pr.py) on the same branch: every bot in bots/submitted/pr/
+     is checked again and plays its test match in the sandbox; accepted bots are committed
+     under bots/submitted/<role>/ and play from the next night. Then the full test suite
+     runs, and master fast-forwards to the branch
 The publish that follows merges onto public main (scripts/publish.sh --merge-onto), so main
 only ever grows. Off until 3.8 passes: ops.FOLDBACK_ENABLED.
 """
@@ -71,9 +74,16 @@ def review(scratch: Path, last: str, public: str):
     return commits
 
 
-def run(root: Path, remote: str, env: dict, last: str, public: str, verify) -> str:
+def intake_all(root: Path):
+    from . import submit_pr
+    return submit_pr.intake(pr_dir=root / "bots" / "submitted" / "pr")
+
+
+def run(root: Path, remote: str, env: dict, last: str, public: str, verify,
+        intake=None) -> str:
     """Fold public main's new commits (last..public) into root's master. verify(root) runs
-    the test suite on the fold-back branch and returns True if it passed."""
+    the test suite on the fold-back branch and returns True if it passed; intake(root)
+    admits the folded bots ([(path, result)], as submit_pr.intake)."""
     if _git(root, "status", "--porcelain"):
         raise RuntimeError("live repo has uncommitted changes: not folding back")
     if _git(root, "rev-parse", "--abbrev-ref", "HEAD").strip() != "master":
@@ -108,6 +118,13 @@ def run(root: Path, remote: str, env: dict, last: str, public: str, verify) -> s
             lines += [f"{sha[:7]} {author}: " + ", ".join(f"{s} {p}" for s, p in ch)
                       for sha, author, ch in commits]
             _git(root, *LEAGUE, "commit", "-q", "--allow-empty", "-m", "\n".join(lines))
+            results = (intake or intake_all)(root)
+            accepted = [str(p) for p, r in results if r.get("status") == "accepted"]
+            _git(root, "add", "-A", "--", "bots/submitted")
+            if _git(root, "diff", "--cached", "--name-only"):
+                _git(root, *LEAGUE, "commit", "-q", "-m",
+                     f"Intake: {len(accepted)} accepted, "
+                     f"{sum(r.get('status') == 'rejected' for _, r in results)} rejected")
             if not verify(root):
                 raise RuntimeError(f"tests failed on {branch}; master unchanged, branch kept")
         except Exception:
@@ -117,7 +134,8 @@ def run(root: Path, remote: str, env: dict, last: str, public: str, verify) -> s
         _git(root, "merge", "-q", "--ff-only", branch)
         _git(root, "branch", "-q", "-d", branch)
     paths = sorted({p for _, _, ch in commits for _, p in ch})
-    return f"folded {len(commits)} commit(s): {', '.join(paths) or 'no file changes'}"
+    return (f"folded {len(commits)} commit(s): {', '.join(paths) or 'no file changes'}; "
+            f"intake: {len(accepted)} accepted")
 
 
 def full_suite(root: Path) -> bool:

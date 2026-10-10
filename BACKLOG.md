@@ -16,7 +16,7 @@ sessions in a row that don't merge is frozen and written up.
 |---|---|---|---|---|
 | P1 | Site trim (<60 MB) | — | done | 191.0 → 20.5 MB; rule in `site.full_page_stems`; packed replays |
 | P2 | Fold-back of merged PRs | — | done, **off** | `colosseum/foldback.py`; on only after 3.8 passes |
-| P3 | 3.8 runbook | — | done | `reports/RUNBOOK_3.8.md`; prep by 10-23: intake behind the switch (lead engineer) |
+| P3 | 3.8 runbook | — | done | `reports/RUNBOOK_3.8.md`; intake wired behind the fold-back switch (done) |
 | P4 | Season boundary | 2026-10-26, before that night's league | **armed** | `colosseum/boundary.py` from nightly.sh: final season report, freeze `seasons/S1/`, merge branch `season2` (candidate A + SEASON = 1 + season two dates), full suite; on failure master is untouched and that night's league is skipped with an alert. Health check `boundary` warns daily if `season2` stops merging cleanly. Not a session item |
 | P5 (s) | 14-night persona ablation → research/03, superseding the preliminary | `out/ablation_14/done` exists | waiting | the ablation session runs on its own from 10-11 |
 | W (s) | Weekly founder report, `reports/FOUNDER_WEEK_<n>.md` (charter "Reporting") | the week's meta report is written | next: week 2 after night 10-11 | |
