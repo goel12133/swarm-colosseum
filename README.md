@@ -111,7 +111,7 @@ A bot is loaded as a **fresh module instance per match**, so globals can't leak 
 matches. If it raises or returns something malformed, that call becomes a no-op and is
 counted in the match result: a bot can lose, but it can't crash a match.
 [SUBMITTING.md](SUBMITTING.md) has the full interface, the allowed imports, the limits and
-a complete first bot. **Outside submissions are not open yet.**
+a complete first bot. **Outside submissions are not open yet: they open on 2026-10-24, after a sandbox review.**
 
 ## Layout
 

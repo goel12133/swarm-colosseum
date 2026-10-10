@@ -36,5 +36,5 @@ def test_the_citation_has_its_required_keys_and_both_licences():
 
 def test_the_readme_says_submissions_are_closed_and_names_both_licences():
     text = (ROOT / "README.md").read_text()
-    assert "submissions are not open yet" in text
+    assert "submissions are not open yet" in text and "2026-10-24" in text
     assert "Apache License 2.0" in text and "CC BY 4.0" in text

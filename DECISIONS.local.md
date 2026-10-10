@@ -87,3 +87,20 @@
   viewer/template.html is also the clip renderer's page and a header change would change the
   clips. The default domain stays goel12133.github.io/swarm-colosseum until the founder says
   otherwise.
+
+- 2026-10-10 03:0x (lead engineer), launch: the founder said the repo exists and the deploy
+  key is installed; neither checks out (repo 404 to the owner's own gh login, no key file on
+  the box). Default: do not create the repo or a key myself (both are founder actions on his
+  account, and he may have made them somewhere else), push nowhere, finish everything that
+  doesn't need the remote, write it up. The gh login (goel12133, scopes gist/read:org/repo)
+  was used only for read-only lookups; I never read its token file.
+- Submissions-open date (founder: "<your date>"): **Sat 2026-10-24**, with 3.8 that evening
+  (default 19:00 founder's time). Saturday because he has limited weekday time; two days before
+  the boundary so outside bots join on the first night of season two (2026-10-26) and don't
+  touch season one's final standings. They open only if 3.8 passes; otherwise the page moves
+  the date.
+- Nightly republish ("pull main and republish"): after-night fetches the public main and
+  republishes only if it is still what we last pushed (out/publish.json), else it alerts and
+  pushes nothing. Merged submission PRs can't be pulled back into master yet: the public
+  history is a rewrite of master, so a GitHub merge on top of it can't fast-forward back.
+  That fold-back is built with 3.8, before 2026-10-24; until then nobody merges on GitHub.

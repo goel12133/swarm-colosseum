@@ -2589,3 +2589,18 @@ changed. Night 10-10 is not in the snapshot: health still reports last night 202
 - `python3 -m pytest tests -q`: 353 passed in 77.87 s.
 - Tree clean at start (`git status`), no WIP.md at the root, no ALERT.md in out/ (`ls`).
 - Backup restore: still not checked; no allowed command reaches `~/backups`.
+
+### Launch, 2026-10-10: approved, blocked at "the repo exists"
+
+The founder approved the launch in writing. `goel12133/swarm-colosseum` returns 404 (to the
+owner's own login) and there is no deploy key on the box, so nothing was pushed. Done anyway:
+- **Leak scan of what would be published.** `publish.sh` was run to a local bare remote and
+  every commit identity, message and blob on main + gh-pages was scanned for the hostname, the
+  personal email, private keys and token shapes. Clean: identities are only the noreply
+  address, dev@…invalid and league@localhost; the `sk-ant-` hits are a 22-character test
+  fixture and a 12-character placeholder.
+- **Nightly republish** (`ops.publish_step`, after the site step): not armed until the deploy
+  key exists; refuses and alerts if the public main moved without us. 3 tests on a local bare
+  remote; the after-night test now stubs it so a test can never push.
+- **Submissions open 2026-10-24** on SUBMITTING, ABOUT, README and the summary; 3.8 is
+  scheduled for that evening, and opening depends on it.

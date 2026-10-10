@@ -5,6 +5,8 @@ import tarfile
 import time
 from datetime import date
 
+import pytest
+
 from colosseum import health, ops
 
 DAY = 86400
@@ -216,7 +218,7 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
     from colosseum import meta_report, site
     calls = []
     for name in ("commit_results", "update_watch", "rotate", "season_report_step",
-                 "backup", "record_phase", "nightly_fuzz"):
+                 "backup", "record_phase", "nightly_fuzz", "publish_step"):
         monkeypatch.setattr(ops, name, lambda *a, _n=name, **k: calls.append(_n) or _n)
     monkeypatch.setattr(meta_report, "due_week", lambda *a, **k: None)
     monkeypatch.setattr(site, "build", lambda *a, **k: calls.append("site") or "site")
@@ -226,7 +228,7 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
     problems, results = ops.after_night(commit=True)
     assert problems == [] and "ALERT" not in calls
     assert set(results) == {"results", "watch", "meta report", "season report", "library",
-                            "site", "fuzz", "rotation", "backup"}
+                            "site", "publish", "fuzz", "rotation", "backup"}
 
 
 def test_a_defender_watch_counts_attackers_that_get_through(tmp_path):
@@ -291,3 +293,53 @@ def test_the_season_report_step_writes_a_draft_until_night_28(tmp_path, monkeypa
     monkeypatch.setattr(meta_report, "season_nights", lambda n: [("d", [])] * 28)
     ops.season_report_step(out=tmp_path, commit=False)
     assert calls == [False, True]                    # clips only for the finished report
+
+
+# --- nightly republish, only ever against a local bare remote ------------------------
+
+@pytest.fixture
+def bare(tmp_path):
+    import subprocess
+    r = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(r)], check=True)
+    (tmp_path / "site").mkdir()
+    (tmp_path / "site" / "index.html").write_text("<!doctype html><title>t</title>")
+    key = tmp_path / "dummy_key"          # arms the step; unused for a local remote
+    key.write_text("")
+    return r, key
+
+
+def test_publish_is_not_armed_without_the_deploy_key(tmp_path):
+    msg = ops.publish_step(out=tmp_path, remote=str(tmp_path / "nowhere.git"),
+                           key=tmp_path / "missing")
+    assert msg.startswith("not armed")
+
+
+def test_publish_records_what_it_pushed_and_republishes_on_top(tmp_path, bare):
+    import subprocess
+    r, key = bare
+    assert ops.publish_step(out=tmp_path, remote=str(r), key=key).startswith("published:")
+    rec = json.loads((tmp_path / "publish.json").read_text())
+    main = subprocess.run(["git", "-C", str(r), "rev-parse", "main"], capture_output=True,
+                          text=True, check=True).stdout.strip()
+    assert rec["main"] == main and "gh-pages" in rec
+    assert ops.publish_step(out=tmp_path, remote=str(r), key=key).startswith("published:")
+
+
+def test_publish_refuses_when_public_main_moved_without_us(tmp_path, bare):
+    import subprocess
+    r, key = bare
+    ops.publish_step(out=tmp_path, remote=str(r), key=key)
+    w = tmp_path / "w"                    # someone merges a commit on the public side
+    subprocess.run(["git", "clone", "-q", "-b", "main", str(r), str(w)], check=True)
+    (w / "x.txt").write_text("x")
+    subprocess.run(["git", "-C", str(w), "add", "x.txt"], check=True)
+    subprocess.run(["git", "-C", str(w), "-c", "user.name=a", "-c", "user.email=a@a",
+                    "commit", "-q", "-m", "merged on github"], check=True)
+    subprocess.run(["git", "-C", str(w), "push", "-q", "origin", "main"], check=True)
+    moved = subprocess.run(["git", "-C", str(r), "rev-parse", "main"], capture_output=True,
+                           text=True, check=True).stdout.strip()
+    with pytest.raises(RuntimeError, match="not republishing"):
+        ops.publish_step(out=tmp_path, remote=str(r), key=key)
+    assert subprocess.run(["git", "-C", str(r), "rev-parse", "main"], capture_output=True,
+                          text=True, check=True).stdout.strip() == moved

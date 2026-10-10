@@ -340,6 +340,53 @@ def season_report_step(root: Path = ROOT, out: Path = DEFAULT_OUT, commit: bool 
     return f"{'final' if final else 'draft'}, {nights} nights, {'committed' if changed else 'unchanged'}"
 
 
+# --- republishing the public repo and site (launch, 2026-10-10) ---------------------
+
+PUBLIC_REMOTE = "git@github.com:goel12133/swarm-colosseum.git"
+DEPLOY_KEY = Path.home() / ".ssh" / "swarm_colosseum_deploy"
+
+
+def _ssh_env(key: Path) -> dict:
+    import os
+    return dict(os.environ, GIT_SSH_COMMAND=f"ssh -i {key} -o IdentitiesOnly=yes "
+                "-o StrictHostKeyChecking=accept-new")
+
+
+def publish_step(root: Path = ROOT, out: Path = DEFAULT_OUT, remote: str = PUBLIC_REMOTE,
+                 key: Path = DEPLOY_KEY):
+    """Republish after the night: fetch the public main, and push only if it is still what
+    we last published (or the repo is empty, on the first publish). If main has moved (a
+    commit or merged PR made on GitHub) this refuses and raises, so after_night writes
+    ALERT.md; folding merged submission PRs back into master is built with 3.8, before
+    submissions open. Not armed until the deploy key exists (the founder creates it)."""
+    import subprocess
+    if not key.exists():
+        return f"not armed: no deploy key at {key}"
+    record = out / "publish.json"
+    last = json.loads(record.read_text())["main"] if record.exists() else None
+    env = _ssh_env(key)
+    ls = subprocess.run(["git", "ls-remote", remote, "refs/heads/main"], env=env,
+                        capture_output=True, text=True, timeout=120)
+    if ls.returncode != 0:
+        raise RuntimeError(f"cannot reach {remote}: {ls.stderr.strip()[:200]}")
+    public = ls.stdout.split()[0] if ls.stdout.strip() else None
+    if public != last:
+        raise RuntimeError(f"public main is {public or 'empty'} but we last published "
+                           f"{last or 'nothing'}: not republishing until a person looks")
+    proc = subprocess.run([str(root / "scripts" / "publish.sh"), "--live", "--site",
+                           str(out / "site"), remote, str(key)], cwd=root,
+                          capture_output=True, text=True, timeout=3600)
+    if proc.returncode != 0:
+        raise RuntimeError(f"publish.sh exit {proc.returncode}: {proc.stderr.strip()[-300:]}")
+    line = proc.stdout.strip().splitlines()[-1]      # "published: main <short>, gh-pages <short>"
+    ls = subprocess.run(["git", "ls-remote", remote, "refs/heads/main", "refs/heads/gh-pages"],
+                        env=env, capture_output=True, text=True, timeout=120, check=True)
+    refs = {r.split("/")[-1]: sha for sha, r in (l.split() for l in ls.stdout.splitlines())}
+    record.write_text(json.dumps(dict(refs, when=datetime.now(timezone.utc).isoformat(
+        timespec="seconds")), sort_keys=True) + "\n")
+    return line
+
+
 # --- after the night ----------------------------------------------------------------
 
 def record_phase(seconds: float, nights: Path = None):
@@ -376,7 +423,7 @@ def nightly_fuzz(out: Path = DEFAULT_OUT, when: str = None, n: int = FUZZ_NIGHTL
 
 
 def after_night(commit: bool = True):
-    """Weekly report if due, tactic library, site bundle, fuzz, rotation, backup.
+    """Weekly report if due, tactic library, site bundle, publish, fuzz, rotation, backup.
     Returns (problems, results)."""
     problems, results = [], {}
     t0 = time.monotonic()
@@ -404,6 +451,7 @@ def after_night(commit: bool = True):
                       ("meta report", meta_report),
                       ("season report", lambda: season_report_step(commit=commit)),
                       ("library", tactic_library), ("site", site_bundle),
+                      ("publish", lambda: publish_step() if commit else "skipped (--no-commit)"),
                       ("fuzz", nightly_fuzz),
                       ("rotation", rotate), ("backup", lambda: str(backup()))):
         try:
