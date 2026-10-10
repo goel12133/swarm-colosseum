@@ -318,17 +318,19 @@ def ablation_session(out: Path = DEFAULT_OUT, root: Path = ROOT):
 
 # --- the season report, kept current (sprint L14) -----------------------------------
 
-def season_report_step(root: Path = ROOT, out: Path = DEFAULT_OUT, commit: bool = True):
-    """Rewrite reports/SEASON_1.md every night: a marked draft until night 28, then the
+def season_report_step(root: Path = ROOT, out: Path = DEFAULT_OUT, commit: bool = True,
+                       final: bool = None):
+    """Rewrite reports/SEASON_<n>.md every night: a marked draft until night 28, then the
     finished report (with its clips), so it completes itself on the boundary night."""
     import subprocess
     from . import meta_report, season
     nights = len(meta_report.season_nights(meta_report.load_nights(out)))
-    final = nights >= season.LENGTH_NIGHTS
+    if final is None:                    # the boundary forces it, even if a night was missed
+        final = nights >= season.LENGTH_NIGHTS
     meta_report.write_season(out, with_clip=final)
     if not commit:
         return f"written ({nights} of {season.LENGTH_NIGHTS} nights)"
-    rel = "reports/SEASON_1.md"
+    rel = f"reports/SEASON_{season.NUMBER}.md"
     subprocess.run(["git", "-C", str(root), "add", "--", rel], check=True)
     changed = subprocess.run(["git", "-C", str(root), "diff", "--cached", "--quiet", "--",
                               rel]).returncode != 0

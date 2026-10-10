@@ -27,6 +27,18 @@ PY="$ROOT/.venv/bin/python"
 DRY=""
 [ "${HOUSE_LEAGUE_DRY_RUN:-0}" = "1" ] && DRY="--dry-run"
 
+# The season boundary (colosseum/boundary.py): on the first night of a new season, freeze the
+# old one and merge the next season's rules before anything plays. If it is due and fails,
+# tonight's league is skipped and ALERT.md says why, so no night runs on the old rules.
+if [ -z "$DRY" ]; then
+    if ! "$PY" -m colosseum.boundary --if-due >> out/house_league.cron.log 2>&1; then
+        "$PY" -m colosseum.ops alert "season boundary failed, so tonight's league was \
+skipped; see out/house_league.cron.log, fix, then python -m colosseum.boundary --if-due" \
+            >> out/house_league.cron.log 2>&1
+        exit 1
+    fi
+fi
+
 "$PY" -m colosseum.house_league --once $DRY >> out/house_league.cron.log 2>&1
 rc=$?
 if [ "$rc" -ne 0 ] && [ -z "$DRY" ] && [ ! -f out/ALERT.md ]; then

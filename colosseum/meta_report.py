@@ -2,7 +2,7 @@
 
     python -m colosseum.meta_report --week 1          # write out/meta/WEEK_1.md + reports/
     python -m colosseum.meta_report --if-due --commit # what cron runs after each night
-    python -m colosseum.meta_report --season          # out/meta/SEASON_1.md + reports/
+    python -m colosseum.meta_report --season          # out/meta/SEASON_<n>.md + reports/
 
 A "night" is a date with at least one real run in out/nights.jsonl (dry runs are never
 recorded there). Week n is real nights 7(n-1)+1 .. 7n, so a failed night still counts as
@@ -567,7 +567,7 @@ def build_season_report(out: Path = DEFAULT_OUT, bots_root: Path = ROOT / "bots"
 
 
 def write_season(out: Path = DEFAULT_OUT, reports: Path = REPORTS, with_clip=True):
-    """out/meta/SEASON_1.md and a copy in reports/; one clip per highlighted idea."""
+    """out/meta/SEASON_<n>.md and a copy in reports/; one clip per highlighted idea."""
     (out / "meta").mkdir(parents=True, exist_ok=True)
     notes = {}
     if with_clip:
@@ -577,8 +577,8 @@ def write_season(out: Path = DEFAULT_OUT, reports: Path = REPORTS, with_clip=Tru
         for name, _, role, _ in (best_ideas(metas, snaps[0]) if snaps else []):
             notes[name] = render_best_match(out, name, role[:-1],
                                             metas[name][0].get("target"),
-                                            f"SEASON_1_{name}.mp4")
-    path = out / "meta" / "SEASON_1.md"
+                                            f"SEASON_{season.NUMBER}_{name}.mp4")
+    path = out / "meta" / f"SEASON_{season.NUMBER}.md"
     path.write_text(build_season_report(out, clip_notes=notes))
     reports.mkdir(parents=True, exist_ok=True)
     shutil.copy2(path, reports / path.name)
