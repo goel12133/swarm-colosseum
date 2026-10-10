@@ -1,6 +1,6 @@
 # Launch status — sprint day 6 (2026-10-09), target day 10 = 2026-10-13: all 16 done
 
-Nothing is public. (s) = unattended build session; (h) = lead engineer, interactive.
+Public since 2026-10-10: <https://pelennor.tech>. (s) = unattended build session; (h) = lead engineer, interactive.
 
 | # | item | status | left |
 |---|---|---|---|

@@ -2722,3 +2722,9 @@ They cover:
   under the 5-minute line, so no tests were marked slow.
 - Clean tree, no WIP.md, no alert. No code changed. The backup restore still needs an
   interactive session.
+
+**06:10, lead engineer:** the 06:00 session's rebase conflicted in PROGRESS.md, because
+both sides appended (my P4 entries landed while it ran). I resolved it by keeping both,
+ran the suite on daily-wip (392 pass) and fast-forwarded master, so the next session
+starts fresh. out/ALERT.md, which records it, clears after the next good night.
+LAUNCH_STATUS no longer says "Nothing is public".
