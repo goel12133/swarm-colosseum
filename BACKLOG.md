@@ -3,10 +3,25 @@
 Standing rule (2026-10-03): an item or output that trips a safety stop is stopped, written up
 with its flag, and left; it is never rephrased to get past the stop.
 
-**Launch sprint (2026-10-04 to 10-13): order and status live in LAUNCH_STATUS.md.** Build
-sessions (every 2 h) may take only L5-L10, L12, L14 and hygiene; L1-L4, L11, L13, L15, L16, G
-and 3.8 are human-gated. An item with two sessions in a row that don't merge is frozen and
-written up.
+**Launch sprint: done (launched 2026-10-10, LAUNCH_STATUS.md).** Since launch every merge to
+master is public the next night. Build sessions (every 2 h) may take only the items marked
+(s) below, in this order, each once its gate has passed, plus hygiene; they may not touch
+the protected files in `colosseum/daily.py` (publishing, the audit, the sandbox, intake,
+fold-back, the rules). G, 3.8 and switching fold-back on are human-gated. An item with two
+sessions in a row that don't merge is frozen and written up.
+
+**Post-launch (founder, 2026-10-10), in order:**
+
+| # | item | gate | status | note |
+|---|---|---|---|---|
+| P1 | Site trim (<60 MB) | — | done | 191.0 → 20.5 MB; rule in `site.full_page_stems`; packed replays |
+| P2 | Fold-back of merged PRs | — | done, **off** | `colosseum/foldback.py`; on only after 3.8 passes |
+| P3 | 3.8 runbook | — | done | `reports/RUNBOOK_3.8.md`; prep by 10-23: intake behind the switch (lead engineer) |
+| P4 | Season boundary | night 2026-10-25 committed | scripted | a tested after-night step merges the prepared `season2` branch; not a session item |
+| P5 (s) | 14-night persona ablation → research/03, superseding the preliminary | `out/ablation_14/done` exists | waiting | the ablation session runs on its own from 10-11 |
+| W (s) | Weekly founder report, `reports/FOUNDER_WEEK_<n>.md` (charter "Reporting") | the week's meta report is written | next: week 2 after night 10-11 | |
+| 3.13 (s) | `seasons/S2/WEEK1.md` | seven nights of season two (night 2026-11-01 committed) | waiting | |
+| 3.14 (s) | Submission dry run | 3.8 passed and the boundary done | waiting | |
 
 From the operating charter, section 3, in order. Status: todo / doing / done / blocked.
 
@@ -25,5 +40,5 @@ From the operating charter, section 3, in order. Status: todo / doing / done / b
 | 3.10 | Site bundle kept current + about page | done | library rebuilt nightly before the site; library, seasons archive and ABOUT.md pages linked from every page; still unserved |
 | 3.11 | Workshop kit | done | workshop/: 90-min lesson, facilitator page, 3 starters per side, 5 exercises with solutions; `make workshop` checks all solvable (via test, 293 pass); offline, no Docker |
 | 3.12 | Higher-fidelity engine scoping, for the game (2 pages, abstract, no transfer claims) | done | `ENGINE_SCOPING.md`: sensor dropouts/false tracks, classification confusion, turn rates, altitude bands; neutral defaults, order 2→3→1, bands need founder; ROADMAP paid-API line raised with founder |
-| 3.13 | Season two first week | todo | after 2026-10-26 |
-| 3.14 | Submission dry run | todo | after 3.8 and the boundary |
+| 3.13 | Season two first week | todo | after 2026-10-26 (post-launch table above) |
+| 3.14 | Submission dry run | todo | after 3.8 and the boundary (post-launch table above) |

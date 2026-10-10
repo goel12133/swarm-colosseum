@@ -135,3 +135,11 @@
   every later publish is a merge commit (our tree, parents: public main and master) via
   publish.sh --merge-onto. No force push, ever. A rejected batch alerts and blocks the
   republish until a person reverts it on GitHub. Ships with ops.FOLDBACK_ENABLED = False.
+
+- 2026-10-10 05:xx (lead engineer), post-launch build sessions: BUILD_ITEMS are now P5, W,
+  3.13, 3.14 and hygiene, and the wrapper refuses to merge a session branch that touches a
+  protected file (publish, audit, identity, allow-list, daily, ops, fold-back, sandbox,
+  submit, policy, rules, sim, .github, CHARTER), because every merge is public the next
+  night. P1-P3 were done interactively today. P4 (the boundary) is a scripted after-night
+  step, not a session item: it needs a branch merge, which sessions may not make, and a
+  rules change should come from a branch that was reviewed and tested in advance.

@@ -52,10 +52,20 @@ OUT_COPY = ("leaderboard.json", "matrix.json", "BALANCE.md", "breaches.json", "n
 
 
 # Launch sprint (founder, 2026-10-04): unattended sessions take the mechanical sprint items.
-# Human-gated, done interactively by the lead engineer: L1-L4 and L13 (research write-ups,
-# the content seam the safety stops clustered on), L11 (secret audit), L15-L16, item G and
-# 3.8.
-BUILD_ITEMS = ("L5", "L6", "L7", "L8", "L9", "L10", "L12", "L14", "hygiene")
+# Post-launch (founder, 2026-10-10), in BACKLOG.md order: P5 the persona-ablation write-up,
+# W the weekly founder report, then SPEC-3 3.13 and 3.14. Human-gated and never a build
+# item: 3.8, G, and switching fold-back on. The season boundary (P4) is a scripted step,
+# not a session item, because it needs a branch merge the session may not make.
+BUILD_ITEMS = ("P5", "W", "3.13", "3.14", "hygiene")
+# Since launch every merge to master is public the next night, so a session may not touch
+# what publishes, audits, sandboxes or admits code; the wrapper refuses to merge a branch
+# that does (finish(), "protected").
+PROTECTED = ("scripts/publish.sh", "scripts/rewrite_identity.sh", "scripts/audit_secrets.py",
+             "scripts/public_identity", "scripts/daily_allowlist.txt",
+             "scripts/daily_allowlist.sha256", "colosseum/daily.py", "colosseum/foldback.py",
+             "colosseum/ops.py", "colosseum/sandbox.py", "colosseum/sandbox_runner.py",
+             "colosseum/submit.py", "colosseum/submit_pr.py", "colosseum/policy.py",
+             "colosseum/rules.py", "colosseum/sim.py", ".github/", "CHARTER.md")
 SESSION_ITEM = "SESSION_ITEM"             # one line, written by the session before it starts
 NO_PROGRESS_LIMIT = 2                     # consecutive non-merged sessions -> item frozen
 
@@ -200,9 +210,12 @@ worktree root describing the exact state and commit it; tomorrow's session conti
 from it. Untrusted bots never run on the host (tests included). The live league data is
 copied into out/ for you; it is a snapshot, not the live directory.
 
-SCOPE (launch sprint, founder 2026-10-04). You may work ONLY on: {", ".join(BUILD_ITEMS)}
-("hygiene" = charter section 4, including writing up a stuck item). Item G and item 3.8 are
-human-gated: never touch them, and never touch L1-L4, L11, L13, L15 or L16 either. Before
+SCOPE (post-launch, founder 2026-10-10). You may work ONLY on: {", ".join(BUILD_ITEMS)}
+("hygiene" = charter section 4, including writing up a stuck item), in BACKLOG.md order,
+each only once its gate in BACKLOG.md has passed. Item G and item 3.8 are human-gated:
+never touch them, and never switch fold-back on. The site and repo are public: everything
+you merge is published the next night. The wrapper refuses to merge any change to these
+files: {", ".join(PROTECTED)}. If an item needs one, write it up instead. Before
 anything else, use the Write tool (not the shell) to write the id of the item you are taking
 (one of {", ".join(BUILD_ITEMS)}) as the first line of a file named {SESSION_ITEM} at the
 worktree root. If you finish it with time left, take the next unblocked in-scope item and
@@ -299,7 +312,7 @@ def session_item(wt: Path):
 
 def finish(root: Path, wt: Path, test_cmd: str, frozen=()):
     """Returns (status, detail). status in merged / nothing / wip / dirty / red / conflict /
-    out-of-scope."""
+    out-of-scope / protected."""
     items = session_items(wt)
     bad = [i for i in items if i not in BUILD_ITEMS]
     if not items or bad:
@@ -315,6 +328,11 @@ def finish(root: Path, wt: Path, test_cmd: str, frozen=()):
     ahead = int(git(root, "rev-list", "--count", f"master..{BRANCH}").stdout.strip() or 0)
     if ahead == 0:
         return "nothing", "no commits"
+    touched = git(root, "diff", "--name-only", f"master...{BRANCH}").stdout.split()
+    hit = sorted(p for p in touched if any(p == x or (x.endswith("/") and p.startswith(x))
+                                           for x in PROTECTED))
+    if hit:
+        return "protected", f"touches {hit[:5]}: protected since launch; not merged"
     try:
         rebase(wt)                           # master may have moved during the session
     except Refused as exc:
@@ -383,7 +401,7 @@ def run_day(root: Path = ROOT, wt: Path = WORKTREE, out: Path = None, binary: st
         record.update(status=status, detail=detail, item=session_item(wt),
                       daily_published=publish_daily(root, wt))
         _write_record(out, record, alert=status in ("red", "conflict", "dirty",
-                                                    "out-of-scope")
+                                                    "out-of-scope", "protected")
                       or record.get("exit") != 0)
     except Refused as exc:
         record.update(status="refused", detail=str(exc))

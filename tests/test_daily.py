@@ -39,17 +39,19 @@ def repo(tmp_path):
 
 SCENARIOS = {
     # what the fake session does inside the worktree
-    "commit": "echo L6 > SESSION_ITEM && echo work > feature.txt && git add feature.txt && "
+    "commit": "echo P5 > SESSION_ITEM && echo work > feature.txt && git add feature.txt && "
               "git -c user.name=s -c user.email=s@s commit -q -m feature && "
               "echo 'today: did the feature' > DAILY.md && git add DAILY.md && "
               "git -c user.name=s -c user.email=s@s commit -q -m daily",
-    "wip": "echo L12 > SESSION_ITEM && echo half > half.txt && echo 'state: halfway' > WIP.md && git add -A && "
+    "wip": "echo 3.13 > SESSION_ITEM && echo half > half.txt && echo 'state: halfway' > WIP.md && git add -A && "
            "git -c user.name=s -c user.email=s@s commit -q -m wip",
-    "dirty": "echo L6 > SESSION_ITEM && echo forgot > forgot.txt",
+    "dirty": "echo P5 > SESSION_ITEM && echo forgot > forgot.txt",
     "nothing": "echo hygiene > SESSION_ITEM",
+    "protected": "echo hygiene > SESSION_ITEM && mkdir -p scripts && echo x >> scripts/publish.sh && "
+                 "git add scripts/publish.sh && git -c user.name=s -c user.email=s@s commit -q -m p",
     "gated": "echo 3.8 > SESSION_ITEM && echo x > x.txt && git add x.txt && "
              "git -c user.name=s -c user.email=s@s commit -q -m x",
-    "red3_11": "echo L12 > SESSION_ITEM && echo y > y.txt && git add y.txt && "
+    "red3_11": "echo 3.13 > SESSION_ITEM && echo y > y.txt && git add y.txt && "
                "git -c user.name=s -c user.email=s@s commit -q -m y",
 }
 
@@ -159,11 +161,11 @@ def test_an_item_with_two_unmerged_sessions_in_a_row_is_frozen(repo, tmp_path):
     day(repo, tmp_path, "red3_11", test_cmd="false")
     rec = day(repo, tmp_path, "red3_11", test_cmd="false")
     assert rec["status"] == "red"
-    assert daily.frozen_items(repo / "out") == ["L12"]
+    assert daily.frozen_items(repo / "out") == ["3.13"]
     rec = day(repo, tmp_path, "red3_11", test_cmd="true")
     assert rec["status"] == "out-of-scope" and "frozen" in rec["detail"]
-    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out", ["L12"])
-    assert "Frozen items" in prompt and "L12" in prompt
+    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out", ["3.13"])
+    assert "Frozen items" in prompt and "3.13" in prompt
     assert "Item G and item 3.8 are\nhuman-gated" in prompt or "human-gated" in prompt
 
 
@@ -183,15 +185,28 @@ def test_the_prompt_explains_how_to_run_commands(repo, tmp_path):
 def test_a_session_may_declare_several_items_but_all_must_be_in_scope(repo, tmp_path):
     two = tmp_path / "two.sh"
     script = fake_claude(tmp_path, "commit")
-    body = open(script).read().replace("echo L6 > SESSION_ITEM",
-                                       "printf 'L6\\nL8\\n' > SESSION_ITEM")
+    body = open(script).read().replace("echo P5 > SESSION_ITEM",
+                                       "printf 'P5\\nW\\n' > SESSION_ITEM")
     two.write_text(body); two.chmod(0o755)
     rec = daily.run_day(root=repo, wt=tmp_path / "wt", out=repo / "out", binary=str(two),
                         test_cmd="true", env={"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)})
-    assert rec["status"] == "merged" and rec["item"] == "L6,L8"
+    assert rec["status"] == "merged" and rec["item"] == "P5,W"
     sneaky = tmp_path / "sneaky.sh"
-    sneaky.write_text(body.replace("L6\\nL8", "L6\\nL1").replace("feature.txt", "f2.txt"))
+    sneaky.write_text(body.replace("P5\\nW", "P5\\nL1").replace("feature.txt", "f2.txt"))
     sneaky.chmod(0o755)
     rec = daily.run_day(root=repo, wt=tmp_path / "wt", out=repo / "out", binary=str(sneaky),
                         test_cmd="true", env={"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)})
     assert rec["status"] == "out-of-scope" and "L1" in rec["detail"]
+
+
+def test_a_session_that_touches_a_protected_file_is_never_merged(repo, tmp_path):
+    rec = day(repo, tmp_path, "protected")
+    assert rec["status"] == "protected" and "scripts/publish.sh" in rec["detail"]
+    assert not (repo / "scripts" / "publish.sh").exists()
+    assert (repo / "out" / "ALERT.md").exists()
+
+
+def test_the_protected_list_covers_publishing_auditing_and_the_sandbox():
+    for path in ("scripts/publish.sh", "scripts/audit_secrets.py", "colosseum/foldback.py",
+                 "colosseum/sandbox.py", "colosseum/ops.py", "colosseum/rules.py", ".github/"):
+        assert path in daily.PROTECTED, path
