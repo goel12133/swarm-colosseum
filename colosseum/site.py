@@ -11,8 +11,10 @@ where it goes.
     research.html           the research write-ups (research/*.md), one page each under
     research/<n>.html         research/, links between them kept and any other link dropped
     bots/<name>.html        docstring, persona, author, metadata, recent results
-    replays.html            a picker (plain links) over every current replay
-    replays/<stem>.html     the viewer with that replay embedded (viewer/build_viewer.page_with)
+    replays.html            every current replay: its page or the viewer, and its data
+    replays/viewer.html     the viewer, opening replays/data/<stem>.json.gz on demand (?r=)
+    replays/data/<stem>.json.gz   every current replay, packed (colosseum/replay_pack.py)
+    replays/<stem>.html     full pages, only for the matches site.full_page_stems picks
     library/index.html      the tactic library's INDEX.md (python -m colosseum.library)
     library/cards/<n>.html  one tactic card each, replay links pointing at replays/<stem>.html
     seasons.html            SEASON.md, then every archived season under seasons/
@@ -77,6 +79,8 @@ border:1px solid var(--rule);color:var(--soft);margin-left:6px}
 ul.picks{list-style:none;padding:0;margin:0}ul.picks li{padding:6px 0;
 border-bottom:1px solid var(--rule)}
 footer{max-width:860px;margin:24px auto 0;padding:16px;border-top:1px solid var(--rule);color:var(--soft);font-size:.85rem}
+iframe.replay{width:100%;height:1150px;border:0;border-radius:8px;background:var(--panel)}
+@media (min-width:760px){iframe.replay{height:820px}}
 blockquote{margin:12px 0;padding:8px 12px;border-left:3px solid var(--rule);color:var(--soft)}
 nav a.home{color:var(--ink);margin-right:auto}
 .hero{padding:8px 0 4px}.hero h1{font-size:1.9rem;margin-bottom:.3em}
@@ -330,6 +334,54 @@ def md_title(text: str, fallback: str) -> str:
     return m.group(1).strip() if m else fallback
 
 
+# --- which replays get a full page (post-launch site trim, founder, 2026-10-10) ---------
+
+NIGHT_PREFIX = re.compile(r"^(\d{4}-\d{2}-\d{2})_")
+
+
+def match_night(stem: str, first_night: str) -> str:
+    """The night a match was first played: the later of its two bots' first nights (a house
+    bot's name starts with it; baselines have been there since the season began)."""
+    nights = [m.group(1) for name in stem.split("__")[:2] if (m := NIGHT_PREFIX.match(name))]
+    return max(nights + [first_night])
+
+
+def full_page_stems(metas: dict, as_of: str, first_night: str) -> set:
+    """The rule: a full replay page for every match first played in the current or the
+    previous week of the season (weeks counted from first_night, the week of as_of being
+    current), plus each live bot's best and worst match by its own score. Every other
+    replay is data only, opened by the viewer on demand. metas: {stem: replay meta}."""
+    from datetime import date
+    def week(night):
+        return (date.fromisoformat(night) - date.fromisoformat(first_night)).days // 7
+    now = week(as_of)
+    keep = {s for s in metas if week(match_night(s, first_night)) >= now - 1}
+    by_bot = {}
+    for s, m in metas.items():
+        by_bot.setdefault(("attacker", m["attacker"]), []).append((m["score_attacker"], s))
+        by_bot.setdefault(("defender", m["defender"]), []).append((m["score_defender"], s))
+    for scored in by_bot.values():
+        keep.add(min(scored, key=lambda x: (x[0], x[1]))[1])        # worst (ties: first stem)
+        keep.add(min(scored, key=lambda x: (-x[0], x[1]))[1])       # best
+    return keep
+
+
+def replay_href(stem: str, full: set, up: str = "") -> str:
+    """A match's link: its full page if it has one, else the viewer on its data file."""
+    slug = slugify(stem)
+    if stem in full:
+        return f"{up}replays/{slug}.html"
+    return f"{up}replays/viewer.html?r=data/{slug}.json.gz"
+
+
+# The trimmed site's size target (founder, 2026-10-10); after-night alerts above it.
+SIZE_BUDGET = 60_000_000
+
+
+def bundle_bytes(site: Path) -> int:
+    return sum(f.stat().st_size for f in Path(site).rglob("*") if f.is_file())
+
+
 # The site's custom domain (founder, 2026-10-10). GitHub Pages reads it from a CNAME file at
 # the root of gh-pages; publish.sh pushes the whole build, so every publish keeps it.
 DOMAIN = "pelennor.tech"
@@ -343,7 +395,7 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     if site.exists():
         shutil.rmtree(site)
     (site / "bots").mkdir(parents=True)
-    (site / "replays").mkdir()
+    (site / "replays" / "data").mkdir(parents=True)
     (site / "style.css").write_text(CSS)
     (site / "CNAME").write_text(DOMAIN)
 
@@ -352,17 +404,28 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     current = [p for p in replays if p.stem.split("__")[0] in live
                and p.stem.split("__")[1] in live]
 
-    # replay pages, via the viewer's own page builder
+    # replays: every one as packed data (replays/data/<stem>.json.gz), one shared viewer
+    # that opens them on demand, and a full page only for the matches the rule picks
+    from . import replay_pack, season
     spec = importlib.util.spec_from_file_location("build_viewer",
                                                   ROOT / "viewer" / "build_viewer.py")
     viewer = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(viewer)
+    (site / "replays" / "viewer.html").write_text(viewer.page_with(None))
     metas = {}
     for p in current:
         rep = json.loads(p.read_text())
         rep["meta"]["rules"] = {}
         metas[p.stem] = rep["meta"]
-        (site / "replays" / f"{slugify(p.stem)}.html").write_text(viewer.page_with(rep))
+        (site / "replays" / "data" / f"{slugify(p.stem)}.json.gz").write_bytes(
+            replay_pack.pack(rep))
+    first = season.FIRST_NIGHT.isoformat()
+    history = out / "history"
+    nights = sorted(d.name for d in history.iterdir() if d.is_dir()) if history.is_dir() else []
+    as_of = max(nights + [match_night(s, first) for s in metas] + [first])
+    full = full_page_stems(metas, as_of, first)
+    for stem in sorted(full):
+        write_replay_page(site, stem, metas[stem])
 
     # ladders: both in full, then the latest meta report
     body = ["<h1>Ladders</h1>",
@@ -417,19 +480,25 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     # bot pages
     for role in ("attackers", "defenders"):
         for r in lb[role]:
-            write_bot_page(site, r, role, matrix, current, metas)
+            write_bot_page(site, r, role, matrix, current, metas, full)
 
     # replay picker
     items = []
     for p in current:
         m = metas[p.stem]
-        items.append(f"<li><a href=\"replays/{e(slugify(p.stem))}.html\">"
+        kind = "page" if p.stem in full else "viewer"
+        items.append(f"<li><a href=\"{e(replay_href(p.stem, full))}\">"
                      f"{e(display(p.stem.split('__')[0]))} vs "
                      f"{e(display(p.stem.split('__')[1]))}</a> <span class=soft>seed {m['seed']} · "
-                     f"{e(m['outcome'])} · {m['ticks']} ticks</span></li>")
+                     f"{e(m['outcome'])} · {m['ticks']} ticks · {kind} · <a href=\"replays/data/"
+                     f"{e(slugify(p.stem))}.json.gz\">data</a></span></li>")
     (site / "replays.html").write_text(page("Replays", (
         f"<h1>Replays</h1><p class=soft>{len(current)} matches from the latest nightly "
-        f"tournament. Each opens in the replay viewer.</p>"
+        f"tournament. The {len(full)} from this week and last, and each bot's best and worst, "
+        f"have their own page; the rest open in the same viewer, which loads the match when "
+        f"you ask for it. <b>data</b> is the replay itself (gzipped JSON, "
+        f"<code>python -m colosseum.replay_pack unpack</code> turns it back into the "
+        f"full replay).</p>"
         f"<div class=card><ul class=picks>{''.join(items)}</ul></div>")))
 
     sub = (ROOT / "SUBMITTING.md").read_text()
@@ -440,8 +509,27 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
         link_map={"SUBMITTING.md": "submitting.html", "SEASON.md": "seasons.html"})))
     cards = write_library(site, library)
     archived = write_seasons(site, seasons)
-    return dict(site=str(site), bots=len(live), replays=len(current), cards=cards,
-                seasons=archived, research=len(papers))
+    return dict(site=str(site), bots=len(live), replays=len(current), full_pages=len(full),
+                cards=cards, seasons=archived, research=len(papers))
+
+
+def write_replay_page(site: Path, stem: str, m: dict):
+    """A full replay page: the site's own page (nav and footer) with the match's facts and
+    the viewer, which loads the packed replay next to it."""
+    slug = slugify(stem)
+    src = f"viewer.html?r=data/{slug}.json.gz"
+    a, d = m["attacker"], m["defender"]
+    body = (f"<h1>{e(display(a))} vs {e(display(d))}</h1>"
+            f"<p class=soft>seed {m['seed']} · {e(m['outcome'])} · {m['ticks']} ticks · "
+            f"attacker {m['score_attacker']:.3f}, defender {m['score_defender']:.3f} · "
+            f"<a href=\"../bots/{e(slugify(a))}.html\">{e(display(a))}</a> · "
+            f"<a href=\"../bots/{e(slugify(d))}.html\">{e(display(d))}</a> · "
+            f"<a href=\"data/{e(slug)}.json.gz\">data</a></p>"
+            f"<iframe class=replay src=\"{e(src)}\" title=\"replay viewer\" "
+            f"loading=lazy></iframe>"
+            f"<p class=more><a href=\"{e(src)}\">Open the viewer on its own</a></p>")
+    (site / "replays" / f"{slug}.html").write_text(page(f"{display(a)} vs {display(d)}",
+                                                        body, 1))
 
 
 def write_research(site: Path, research: Path) -> list:
@@ -495,6 +583,8 @@ def write_library(site: Path, library: Path) -> int:
         stem = slugify(unquote(m.group(1)))
         if (site / "replays" / f"{stem}.html").exists():
             return f"../../replays/{stem}.html"
+        if (site / "replays" / "data" / f"{stem}.json.gz").exists():
+            return f"../../replays/viewer.html?r=data/{stem}.json.gz"
         return "../../replays.html"
 
     pages = {}
@@ -555,7 +645,7 @@ def write_seasons(site: Path, seasons: Path) -> int:
     return len(archived)
 
 
-def write_bot_page(site, row, role, matrix, current, metas):
+def write_bot_page(site, row, role, matrix, current, metas, full):
     name = row["name"]
     path = bot_file(name)
     meta = read_meta(path)
@@ -605,8 +695,8 @@ def write_bot_page(site, row, role, matrix, current, metas):
         won = (m["outcome"] == "breached") == (me == "attacker")
         body.append(f"<tr><td class=name>{e(display(opp))}</td><td class=num>{m['seed']}</td>"
                     f"<td class=\"{'good' if won else 'bad'}\">{e(m['outcome'])}</td>"
-                    f"<td class=num>{score:.3f}</td><td><a href=\"../replays/"
-                    f"{e(slugify(p.stem))}.html\">watch</a></td></tr>")
+                    f"<td class=num>{score:.3f}</td><td><a href=\""
+                    f"{e(replay_href(p.stem, full, '../'))}\">watch</a></td></tr>")
     body.append("</tbody></table></div>")
     (site / "bots" / f"{slugify(name)}.html").write_text(page(name, "\n".join(body), 1))
 
@@ -616,8 +706,9 @@ def main():
     ap.add_argument("--out", type=Path, default=SITE)
     args = ap.parse_args()
     info = build(args.out)
-    size = sum(f.stat().st_size for f in Path(info["site"]).rglob("*") if f.is_file())
-    print(f"{info['site']}: {info['bots']} bots, {info['replays']} replays, "
+    size = bundle_bytes(info["site"])
+    print(f"{info['site']}: {info['bots']} bots, {info['replays']} replays "
+          f"({info['full_pages']} with full pages), "
           f"{info['cards']} tactic cards, {info['research']} research pages, "
           f"{info['seasons']} archived seasons, "
           f"{size / 1e6:.1f} MB")

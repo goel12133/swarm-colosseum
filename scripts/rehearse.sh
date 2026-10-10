@@ -36,14 +36,16 @@ step intake bash -c "cd '$C' && git checkout -q pr-good && python3 -m colosseum.
 step publish bash -c "git init -q --bare '$S/remote.git' && cd '$C' && git checkout -q master &&
   scripts/publish.sh --site '$C/out/site' '$S/remote.git' && git -C '$S/remote.git' rev-parse main gh-pages"
 
-# phone-width screenshots: every page except the 2,160 replay pages (one viewer, different
-# data), plus three of those
+# phone-width screenshots: every page except the replay pages (one viewer, different data),
+# plus three of those. Full replay pages fetch their packed data, which file:// can't, so the
+# pages are served on the container's own loopback (--network none: nothing leaves it)
 step screenshots bash -c "cd '$C/out/site' && { find . -name '*.html' ! -path './replays/*' | sort; find ./replays -name '*.html' | sort | head -3; } > '$S/pages.txt' &&
   chmod -R a+rX '$C/out/site' && chmod 777 '$SCREENS' &&
   docker run --rm --network none -v '$C/out/site:/site:ro' -v '$SCREENS:/shots' -v '$S/pages.txt:/pages.txt:ro' colosseum-clip:1 sh -c '
+    cd /site && (python3 -m http.server 8000 --bind 127.0.0.1 >/dev/null 2>&1 &) && sleep 1
     while read p; do n=\$(echo \"\$p\" | sed \"s|^\\./||; s|/|__|g; s|\\.html\$||\");
       chromium --headless --no-sandbox --disable-gpu --hide-scrollbars --force-dark-mode \
-        --window-size=390,2200 --screenshot=/shots/\$n.png \"file:///site/\$p\" 2>/dev/null; done < /pages.txt' &&
+        --window-size=390,2200 --virtual-time-budget=4000 --screenshot=/shots/\$n.png \"http://127.0.0.1:8000/\$p\" 2>/dev/null; done < /pages.txt' &&
   test \$(ls '$SCREENS'/*.png | wc -l) -ge \$(wc -l < '$S/pages.txt')"
 
 echo "rehearsal: $FAILS failed step(s)" | tee -a "$LOG"

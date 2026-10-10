@@ -442,7 +442,12 @@ def after_night(commit: bool = True):
 
     def site_bundle():
         from . import site
-        return site.build()
+        info = site.build()
+        size = site.bundle_bytes(info["site"])
+        if size > site.SIZE_BUDGET:          # still published; the alert says to trim more
+            raise RuntimeError(f"site is {size / 1e6:.1f} MB, over the "
+                               f"{site.SIZE_BUDGET / 1e6:.0f} MB budget")
+        return dict(info, mb=round(size / 1e6, 1))
 
     def results_step():
         return commit_results() if commit else "skipped (--no-commit)"

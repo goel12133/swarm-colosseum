@@ -2639,3 +2639,22 @@ LAUNCH_STATUS. The new verdict is a small, uneven gain that isn't robust. Full t
 - **Nightly republish:** armed from tonight.
 
 reports/LAUNCH_DONE.md has the URLs, the first-night checklist and what didn't go to plan.
+
+### Site trim ✅ — 191.0 MB → 20.5 MB
+
+- **The rule** (`site.full_page_stems`): a full replay page for every match first played
+  this season week or last, plus each live bot's best and worst match by its own score.
+  Every other match is data only, opened on demand by the one shared viewer
+  (`replays/viewer.html?r=data/<stem>.json.gz`). `replays.html` links each match to its
+  page or the viewer, and to its data file.
+- **Packed replays** (`colosseum/replay_pack.py`): positions are stored as per-id deltas in
+  0.1 u, then gzipped. A replay is 5.2 KB on average instead of 54 KB, and it unpacks value
+  for value. That was checked on all 2,900 replays in Python; the browser's decoder matches
+  on 267,062 values; and a node test covers it.
+- **Full pages** now carry the site nav (which also closes the LAUNCH_READY gap of replay
+  pages having no way back to the site) and load the packed file into the viewer.
+- **Size:** today all 2,800 matches are in weeks 1–2, so all have pages (4.2 MB of pages,
+  14.7 MB of data). The rule keeps 1,432 of today's matches on 10-12 and 62 from 10-19.
+  Projected size at the boundary is ~39 MB. After-night alerts above 60 MB.
+- **Tests:** the rule, round-trips, the JS decoder, and every index and `?r=` link
+  resolving. 371 pass.

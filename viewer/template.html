@@ -84,8 +84,9 @@
         <span>rings: radar 450 u · identification 150 u</span>
       </div>
       <label class="drop" id="drop">
-        Drop a replay JSON here, or <input id="file" type="file" accept=".json" style="display:inline">
+        Drop a replay JSON here, or <input id="file" type="file" accept=".json,.gz" style="display:inline">
       </label>
+      <p class="sub" id="status"></p>
     </div>
 
     <aside>
@@ -255,10 +256,43 @@ for(const b of document.querySelectorAll('[data-speed]')){
       o.setAttribute('aria-pressed', String(o === b)));
   };
 }
+// Packed replays (colosseum/replay_pack.py, "replay-delta-1"): each frame's positions are
+// changes from that id's previous frame, in tenths of a unit. Unpacks to the plain replay.
+function unpackReplay(doc){
+  if(!doc || doc.format !== 'replay-delta-1') return doc;
+  const prev = new Map();
+  const rows = (list, kind) => list.map(r => {
+    const k = kind + r[0], p = prev.get(k) || [0, 0];
+    const x = p[0] + r[r.length - 2], y = p[1] + r[r.length - 1];
+    prev.set(k, [x, y]);
+    return [...r.slice(0, -2), x / 10, y / 10];
+  });
+  return {meta: doc.meta, events: doc.events,
+          frames: doc.frames.map(([t, hp, d, i]) => ({t, hp, d: rows(d, 'd'), i: rows(i, 'i')}))};
+}
+// gzip or plain JSON, whichever the bytes are (a server may already have decompressed it)
+async function readReplay(blob){
+  const head = new Uint8Array(await blob.slice(0, 2).arrayBuffer());
+  const gz = head[0] === 0x1f && head[1] === 0x8b;
+  const text = gz ? await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).text()
+                  : await blob.text();
+  return unpackReplay(JSON.parse(text));
+}
+// ?r=data/<file>.json.gz opens one packed replay, from this folder's data/ only
+async function loadFromQuery(){
+  const r = new URLSearchParams(location.search).get('r') || '';
+  if(!/^data\/[A-Za-z0-9_.\-]+\.json\.gz$/.test(r)) return;
+  const status = document.getElementById('status');
+  status.textContent = 'Loading the replay…';
+  try {
+    const res = await fetch(r);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    load(await readReplay(await res.blob())); fit();
+    status.textContent = '';
+  } catch(err){ status.textContent = 'Could not load this replay: ' + err.message; }
+}
 function readFile(file){
-  const fr = new FileReader();
-  fr.onload = () => { try { load(JSON.parse(fr.result)); } catch(err){ alert('Not a replay JSON: ' + err.message); } };
-  fr.readAsText(file);
+  readReplay(file).then(load).catch(err => alert('Not a replay JSON: ' + err.message));
 }
 document.getElementById('file').onchange = e => e.target.files[0] && readFile(e.target.files[0]);
 const drop = document.getElementById('drop');
@@ -304,9 +338,11 @@ function renderClip(fromTick, toTick, spd){
 }
 
 const clipArgs = location.hash.match(/clip=(\d+),(\d+),(\d+)/);
-load(SAMPLE);
-if(clipArgs) renderClip(+clipArgs[1], +clipArgs[2], Math.max(1, +clipArgs[3]));
-else fit();
+if(SAMPLE){
+  load(SAMPLE);
+  if(clipArgs) renderClip(+clipArgs[1], +clipArgs[2], Math.max(1, +clipArgs[3]));
+  else fit();
+} else { fit(); loadFromQuery(); }
 </script>
 </body>
 </html>

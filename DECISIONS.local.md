@@ -112,3 +112,15 @@
   DECISIONS, LAUNCH_READY, DAILY) keep the old github.io mention as written. GitHub Pages
   was not enabled on the repo (has_pages false); I enable it through the API with
   source gh-pages / root and cname pelennor.tech, as part of the approved publish.
+
+- 2026-10-10 05:xx (lead engineer), site trim: the rule is as specified (full pages for
+  matches first played this week or last, plus each live bot's best and worst; a match is
+  dated by the later of its two bots' first nights). Two deviations, because the rule alone
+  can't reach 60 MB: (1) the "raw JSON" served for the rest is the replay packed
+  (positions as per-id deltas in 0.1 u, gzipped; colosseum/replay_pack.py, unpack command
+  documented on the replays page): the plain JSON alone is 151 MB; (2) full pages no longer
+  embed the replay, they load the same packed file in the shared viewer (an iframe), else
+  this week's and last week's pages alone (all 2,800 today) are 190 MB. Before 191.0 MB,
+  after 20.5 MB; projected ~39 MB at the boundary. after-night alerts above 60 MB but still
+  publishes. The rehearsal's screenshots now go through a loopback server inside the
+  --network none container (no host port).

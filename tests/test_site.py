@@ -44,7 +44,9 @@ def test_the_bundle_builds(bundle):
               "about.html", "seasons.html", "library/index.html", "research.html"):
         assert (dest / f).exists(), f
     assert info["research"] == 2
-    assert info["replays"] == len(list((dest / "replays").glob("*.html"))) > 0
+    assert info["replays"] == len(list((dest / "replays" / "data").glob("*.json.gz"))) > 0
+    pages = [p for p in (dest / "replays").glob("*.html") if p.name != "viewer.html"]
+    assert info["full_pages"] == len(pages) > 0
     assert info["cards"] == len(list((dest / "library" / "cards").glob("*.html"))) > 0
     assert info["seasons"] == 1
 
@@ -111,7 +113,11 @@ def test_every_link_resolves_inside_the_bundle(bundle):
             assert not re.match(r"^([a-z]+:|//)", target), f"external link in {page}: {target}"
             if target.startswith("#"):
                 continue
-            resolved = (page.parent / target.split("#")[0]).resolve()
+            path, _, query = target.split("#")[0].partition("?")
+            resolved = (page.parent / path).resolve()
+            if query.startswith("r="):            # the viewer's on-demand replay
+                data = (resolved.parent / query[2:]).resolve()
+                assert data.exists(), f"{page.relative_to(dest)} -> {target}"
             assert resolved.exists(), f"{page.relative_to(dest)} -> {target}"
             assert resolved.is_relative_to(dest.resolve())
             checked += 1
@@ -168,7 +174,8 @@ def test_untrusted_text_is_escaped_and_no_script_but_the_viewers(bundle):
     assert "https://example.com" not in index                  # external link dropped
     for page in dest.rglob("*.html"):
         n = page.read_text().count("<script")
-        assert n == (1 if page.parent.name == "replays" else 0), page
+        # the shared viewer is the only page with a script; full pages embed it in an iframe
+        assert n == (1 if page.relative_to(dest).as_posix() == "replays/viewer.html" else 0), page
 
 
 def test_markdown_renderer_escapes_everything():
@@ -220,3 +227,19 @@ def test_the_build_writes_the_custom_domain_cname(tmp_path):
     """GitHub Pages keeps a custom domain only while gh-pages has CNAME at its root."""
     site.build(tmp_path / "site")
     assert (tmp_path / "site" / "CNAME").read_text() == "pelennor.tech"
+
+
+def test_every_replay_is_packed_and_opens_from_the_index(bundle):
+    from colosseum import replay_pack
+    dest, _, info = bundle
+    index = (dest / "replays.html").read_text()
+    for data in (dest / "replays" / "data").glob("*.json.gz"):
+        stem = data.name[:-len(".json.gz")]
+        assert f'href="replays/data/{data.name}"' in index, stem
+        page = dest / "replays" / f"{stem}.html"
+        watch = (f"replays/{stem}.html" if page.exists()
+                 else f"replays/viewer.html?r=data/{data.name}")
+        assert f'href="{watch}"' in index, stem
+        assert replay_pack.unpack(data.read_bytes())["frames"]
+    viewer = (dest / "replays" / "viewer.html").read_text()
+    assert "const SAMPLE = null;" in viewer and "loadFromQuery" in viewer

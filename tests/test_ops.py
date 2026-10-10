@@ -221,7 +221,8 @@ def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeyp
                  "backup", "record_phase", "nightly_fuzz", "publish_step"):
         monkeypatch.setattr(ops, name, lambda *a, _n=name, **k: calls.append(_n) or _n)
     monkeypatch.setattr(meta_report, "due_week", lambda *a, **k: None)
-    monkeypatch.setattr(site, "build", lambda *a, **k: calls.append("site") or "site")
+    monkeypatch.setattr(site, "build", lambda *a, **k: calls.append("site") or {"site": "x"})
+    monkeypatch.setattr(site, "bundle_bytes", lambda *a: 1)
     from colosseum import library
     monkeypatch.setattr(library, "build", lambda *a, **k: calls.append("library") or "lib")
     monkeypatch.setattr(ops, "write_alert", lambda *a, **k: calls.append("ALERT"))
@@ -343,3 +344,19 @@ def test_publish_refuses_when_public_main_moved_without_us(tmp_path, bare):
         ops.publish_step(out=tmp_path, remote=str(r), key=key)
     assert subprocess.run(["git", "-C", str(r), "rev-parse", "main"], capture_output=True,
                           text=True, check=True).stdout.strip() == moved
+
+
+def test_a_site_over_budget_is_an_alert_but_the_other_steps_still_run(monkeypatch):
+    from colosseum import library, meta_report, site
+    calls = []
+    for name in ("commit_results", "update_watch", "rotate", "season_report_step",
+                 "backup", "record_phase", "nightly_fuzz", "publish_step"):
+        monkeypatch.setattr(ops, name, lambda *a, _n=name, **k: calls.append(_n) or _n)
+    monkeypatch.setattr(meta_report, "due_week", lambda *a, **k: None)
+    monkeypatch.setattr(library, "build", lambda *a, **k: "lib")
+    monkeypatch.setattr(site, "build", lambda *a, **k: {"site": "x"})
+    monkeypatch.setattr(site, "bundle_bytes", lambda *a: site.SIZE_BUDGET + 1)
+    monkeypatch.setattr(ops, "write_alert", lambda *a, **k: calls.append("ALERT"))
+    problems, results = ops.after_night(commit=True)
+    assert len(problems) == 1 and problems[0].startswith("site:") and "budget" in problems[0]
+    assert "ALERT" in calls and "publish_step" in calls
