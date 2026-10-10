@@ -2624,3 +2624,18 @@ pairs):
 revised** in research/04, the one-page summary (headline 3), the season report line and
 LAUNCH_STATUS. The new verdict is a small, uneven gain that isn't robust. Full tables are in
 `ANALYSIS_annealing.md`.
+
+### Launch ✅ — 2026-10-10 04:37 UTC, https://pelennor.tech
+
+- **First publish:** the founder created `goel12133/swarm-colosseum` (public, empty) and the
+  deploy key. `python3 -m colosseum.ops publish` pushed main `dfa3668` and gh-pages `4ba87cb`
+  in 41 s and recorded both in `out/publish.json`.
+- **Pages:** it switched itself on with the gh-pages push. Custom domain `pelennor.tech`
+  (every build writes `CNAME`); the certificate was approved and HTTPS enforced.
+- **Leak rescan of a fresh public clone:** clean (168 commits, 3,491 file versions; the
+  personal address is in 0 of them).
+- **Test PR #1** (one workshop bot under `bots/submitted/pr/goel12133/`): `static-check`
+  green in 9 s, then closed unmerged and its branch deleted.
+- **Nightly republish:** armed from tonight.
+
+reports/LAUNCH_DONE.md has the URLs, the first-night checklist and what didn't go to plan.

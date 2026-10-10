@@ -21,14 +21,10 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L15 | full rehearsal on a scratch clone (h) | done | `scripts/rehearse.sh`: 10 of 10 steps ok, 36 min; 56 screenshots in out/launch_screens/ |
 | L16 | LAUNCH_READY.md (h) | done | reports/LAUNCH_READY.md: what is ready, screenshots, launch-day order, 5 gaps |
 
-**Launch (2026-10-10, approved in writing): blocked at step 1.** `goel12133/swarm-colosseum`
-does not exist: the API returns 404 to the goel12133 login itself (its newest repo is from
-2026-09-19), and anonymous `git ls-remote` says "Repository not found". No deploy key at
-`~/.ssh/swarm_colosseum_deploy` (none anywhere on the box). Nothing was pushed; I did not
-create the repo or a key on your account. Done meanwhile: leak scan of exactly what would be
-published (clean), the nightly republish step (armed when the key exists), the submissions
-date (2026-10-24) on the site, 3.8 scheduled for that evening.
+**Launched 2026-10-10 04:37 UTC:** <https://pelennor.tech>, code at
+<https://github.com/goel12133/swarm-colosseum>. Leak rescan clean, test PR green, nightly
+republish armed; details and gaps in reports/LAUNCH_DONE.md.
 
-**Waiting on the founder:** the domain (default: github.io) and launch day itself
-(reports/LAUNCH_READY.md). Item G was scrapped as a prompt rewrite; its content-check half is
-done and the prompt stays 2026-10-03.1. **3.8** stays interactive-only, so submissions stay closed.
+**Waiting on the founder:** nothing for launch. **3.8** is interactive-only and scheduled for
+the evening of Sat 2026-10-24; submissions stay closed until it passes. Item G was scrapped as
+a prompt rewrite; its content-check half is done and the prompt stays 2026-10-03.1.
