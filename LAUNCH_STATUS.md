@@ -25,6 +25,9 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 <https://github.com/goel12133/swarm-colosseum>. Leak rescan clean, test PR green, nightly
 republish armed; details and gaps in reports/LAUNCH_DONE.md.
 
+**Build sessions (post-launch, 10-10):** hygiene ok: health ok, 391 tests pass. P5 and W
+are waiting on their gates (ablation done-file; week-2 meta report after night 10-11).
+
 **Waiting on the founder:** nothing for launch. **3.8** is interactive-only and scheduled for
 the evening of Sat 2026-10-24; submissions stay closed until it passes. Item G was scrapped as
 a prompt rewrite; its content-check half is done and the prompt stays 2026-10-03.1.

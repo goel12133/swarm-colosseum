@@ -2705,3 +2705,20 @@ They cover:
   since `season2` changes it.
 - **Season-generic fixes:** the season report's name and its "what changes next" section
   follow `season.NUMBER`, and three tests no longer assume season one.
+
+### 2026-10-10 build session (post-launch): hygiene
+
+- **Gates:** P5 is not open (no `out/ablation_14/done`). W is not open either: `out/meta/`
+  has only WEEK_1, so there is no week-2 meta report yet. 3.13 and 3.14 are not due. That
+  leaves hygiene.
+- **health:** all six ok. Last night 2026-10-10 ok; disk 24% used, 158 GB free, out/ 274 MB.
+- **Night 10-10 (log):** 2 bots accepted, 30,465 tokens, 337.4 s; 2,800 matches, 330 run,
+  2,470 from the cache. The top attacker is now `2026-10-04_attacker_interleaved_shell_ring`,
+  and the top defender is still `convergence_blast_scheduler`.
+- **Tests:** 391 pass in 167.65 s, up from 353 in 77.87 s. A `--durations=8` rerun (391 pass,
+  160.27 s) shows the publish/ops/fold-back tests, which use local bare remotes, take most of
+  the time. The eight slowest add up to about 97 s, led by
+  `test_site.py::test_the_build_writes_the_custom_domain_cname` at 20.08 s. The suite is
+  under the 5-minute line, so no tests were marked slow.
+- Clean tree, no WIP.md, no alert. No code changed. The backup restore still needs an
+  interactive session.
