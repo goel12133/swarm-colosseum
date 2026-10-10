@@ -168,6 +168,8 @@ def test_best_match_replay_prefers_the_target(tmp_path):
 
 
 def test_season_report_draft(tmp_path, monkeypatch):
+    monkeypatch.setattr(season, "NAME", "Season one")      # season one's report, whatever
+    monkeypatch.setattr(season, "NUMBER", 1)               # season the code is in now
     monkeypatch.setattr(season, "FIRST_NIGHT", date(2026, 10, 1))
     monkeypatch.setattr(season, "LAST_NIGHT", date(2026, 10, 28))
     monkeypatch.setattr(season, "ENDS", date(2026, 10, 29))

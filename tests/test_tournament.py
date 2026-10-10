@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from colosseum import rules
+
 from colosseum.elo import Ladders, expected, update
 from colosseum.tournament import run_tournament
 
@@ -56,7 +58,7 @@ def test_tournament_smoke_with_two_seeds(tmp_path):
 
     one = json.loads(replays[0].read_text())
     assert {"meta", "frames", "events"} <= set(one)
-    assert one["meta"]["season"] == 0
+    assert one["meta"]["season"] == rules.SEASON
 
 
 def test_tournament_is_deterministic(tmp_path):

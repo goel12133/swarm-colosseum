@@ -35,6 +35,12 @@ def world(tmp_path):
     git(live, "add", "NEXT_SEASON.txt")
     git(live, *LEAGUE, "commit", "-q", "-m", "next season")
     git(live, "checkout", "-q", "master")
+    report = live / "reports" / f"SEASON_{season.NUMBER}.md"
+    if not report.exists():                     # the code may already be a season ahead
+        report.parent.mkdir(exist_ok=True)
+        report.write_text(f"# {season.NAME} — test\n")
+        git(live, "add", str(report.relative_to(live)))
+        git(live, *LEAGUE, "commit", "-q", "-m", "test: season report")
     (out / "meta").mkdir(parents=True)
     (out / "leaderboard.json").write_text('{"attackers": [], "defenders": []}')
     (out / "matrix.json").write_text('{"matrix": {}}')
