@@ -26,7 +26,8 @@
    and the current `out/site` to `gh-pages`, and records both in `out/publish.json`, which is
    what lets every later night republish on its own. Unlocks the code being public.
 7. **Turn on Pages:** repo → *Settings → Pages → Source: Deploy from a branch → `gh-pages` /
-   root*. Unlocks the site at `https://goel12133.github.io/swarm-colosseum/`.
+   root*, custom domain `pelennor.tech` (the build writes the CNAME file). Unlocks the site at
+   `https://pelennor.tech`.
 8. **Straight after (lead engineer):** clone the public repo fresh and rerun the leak scan
    (hostname, personal email, key shapes, every commit and blob on `main` and `gh-pages`);
    open a test PR that adds `bots/submitted/pr/goel12133/launch_check.py` (a workshop

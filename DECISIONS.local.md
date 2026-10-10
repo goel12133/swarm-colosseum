@@ -104,3 +104,11 @@
   pushes nothing. Merged submission PRs can't be pulled back into master yet: the public
   history is a rewrite of master, so a GitHub merge on top of it can't fast-forward back.
   That fold-back is built with 3.8, before 2026-10-24; until then nobody merges on GitHub.
+
+- 2026-10-10 04:4x (lead engineer), custom domain: README, CITATION.cff, the summary and
+  the site held no absolute URLs (the site links are all relative, which is right under a
+  custom domain), so "update every absolute URL" became adding them: CITATION url +
+  repository-code, one line in README and in the summary. Historical records (PROGRESS,
+  DECISIONS, LAUNCH_READY, DAILY) keep the old github.io mention as written. GitHub Pages
+  was not enabled on the repo (has_pages false); I enable it through the API with
+  source gh-pages / root and cname pelennor.tech, as part of the approved publish.

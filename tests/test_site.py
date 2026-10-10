@@ -214,3 +214,9 @@ def test_nested_list_items_render_as_a_sub_list():
     html = site.md_to_html("- top\n  - child one\n    continued\n  - child two\n- next")
     assert html == ("<ul><li>top<ul><li>child one continued</li><li>child two</li></ul></li>"
                     "<li>next</li></ul>")
+
+
+def test_the_build_writes_the_custom_domain_cname(tmp_path):
+    """GitHub Pages keeps a custom domain only while gh-pages has CNAME at its root."""
+    site.build(tmp_path / "site")
+    assert (tmp_path / "site" / "CNAME").read_text() == "pelennor.tech"

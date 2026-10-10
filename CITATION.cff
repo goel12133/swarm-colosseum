@@ -13,6 +13,8 @@ license:
   - CC-BY-4.0
 authors:
   - name: "Pelennor"
+url: "https://pelennor.tech"
+repository-code: "https://github.com/goel12133/swarm-colosseum"
 keywords:
   - benchmark
   - multi-agent

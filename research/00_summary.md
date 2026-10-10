@@ -51,4 +51,6 @@ been reviewed.
 
 ---
 
+Site: [pelennor.tech](https://pelennor.tech) · Code: [github.com/goel12133/swarm-colosseum](https://github.com/goel12133/swarm-colosseum)
+
 Code: Apache-2.0. Replays, results and research: CC BY 4.0. Built by Pelennor.

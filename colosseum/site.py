@@ -330,6 +330,11 @@ def md_title(text: str, fallback: str) -> str:
     return m.group(1).strip() if m else fallback
 
 
+# The site's custom domain (founder, 2026-10-10). GitHub Pages reads it from a CNAME file at
+# the root of gh-pages; publish.sh pushes the whole build, so every publish keeps it.
+DOMAIN = "pelennor.tech"
+
+
 def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
           seasons: Path = ROOT / "seasons", research: Path = ROOT / "research") -> dict:
     library = library or out / "library"
@@ -340,6 +345,7 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     (site / "bots").mkdir(parents=True)
     (site / "replays").mkdir()
     (site / "style.css").write_text(CSS)
+    (site / "CNAME").write_text(DOMAIN)
 
     replays = sorted((out / "replays").glob("*__*__s*.json"))
     live = {r["name"] for role in ("attackers", "defenders") for r in lb[role]}

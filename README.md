@@ -11,6 +11,9 @@ system, unit or equipment, nothing in it is drawn from non-public information, a
 no claim that a tactic that works here says anything about the real world.
 [ABOUT.md](ABOUT.md) explains the game in plain language.
 
+**Site:** <https://pelennor.tech> (ladders, replays, the tactic library and the research,
+rebuilt every night). **Code:** <https://github.com/goel12133/swarm-colosseum>.
+
 ## What's here
 
 - **A nightly league.** Every night a language model writes new bots in one of four personas
