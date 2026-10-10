@@ -2745,3 +2745,30 @@ LAUNCH_STATUS no longer says "Nothing is public".
   from 167.65 s this morning, so it is worth watching.
 - Clean tree, no WIP.md. No code changed. The backup restore still needs an interactive
   session.
+
+### Design pass ✅ — the founder's reference design, built from live data
+
+- **What changed:**
+  - `colosseum/site_assets/style.css`: the reference's theme block and components, plus
+    rules for rendered Markdown.
+  - `site.js`, and the self-hosted fonts in `assets/fonts/`.
+  - The page chrome: header with the REPLAY indicator, nav with a More menu on phone,
+    footer with a theme button.
+- **Pages:**
+  - Home: the replay channel in the broadcast frame with its overlays, the numbers strip,
+    ladders with movement arrows and "new" tags, last night's recap, result cards, three
+    doors, the season strip.
+  - Ladders: sortable, with CER, matches, kind and first night.
+  - Bot pages: head, figures, head to head, best and worst match, source.
+  - Replay pages, the research index and articles, a new changelog, and submit (with
+    "Build with us" from CONTRIBUTING).
+- **Viewer** (`viewer/template.html`) restyled to the reference: 16:9 stage, overlays,
+  scrub marks, a match sheet, key moments, share. It has three modes: full, embed, and
+  broadcast (the channel). The clip path is unchanged, and the clip tests pass.
+- **Real data everywhere:** rank movement from `out/history`, the recap and changelog from
+  `out/nights.jsonl`, research status and dates from the files and git.
+- **Light mode** follows the system, or the toggle. **Reduced motion:** nothing animates,
+  and the channel waits for a click.
+- **Tests:** 7 new site tests (fonts local, no outside requests, light and reduced-motion
+  rules, nothing claims LIVE, channel replays exist, movement, recap, changelog); 399
+  pass. 25.9 MB. Screenshots: `out/design_pass/before/` (22) and `after/` (25).

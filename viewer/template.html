@@ -3,119 +3,185 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Swarm Colosseum — replay viewer</title>
+<meta name="color-scheme" content="dark light">
+<title>Replay viewer · Swarm Colosseum</title>
 <style>
+  /* the site's theme block (colosseum/site_assets/style.css); fonts load when the viewer
+     is served from the site (replays/viewer.html), and fall back to system fonts elsewhere */
+  @font-face{font-family:"Space Grotesk";src:url(../fonts/SpaceGrotesk-latin.woff2) format("woff2");font-weight:400 600;font-display:swap}
+  @font-face{font-family:"JetBrains Mono";src:url(../fonts/JetBrainsMono-latin.woff2) format("woff2");font-weight:400 700;font-display:swap}
   :root{
-    --bg:#eef1f4; --panel:#fff; --ink:#131a20; --soft:#5e6d79; --rule:#d4dce3;
-    --grid:#c6d1da; --asset:#2f6f4f; --striker:#b23a2c; --decoy:#c8922a;
-    --intercept:#2a6ea8; --blast:#e8643c; --tracer:#7d8b96; --accent:#1f5d8c;
+    --bg:#0b0c0e; --surface:#131519; --surface-2:#1a1d22; --hover:#1e2228; --border:#262a31;
+    --border-2:#353a43; --text:#ecebe6; --text-2:#a9adb4; --text-3:#8a8f98;
+    --accent:#e8a33d; --accent-ink:#0b0c0e; --attacker:#f07a52; --defender:#5aa9e6;
+    --up:#5fbf7f; --down:#e26a6a; --focus:#e8a33d; --tracer:#6b7079;
+    --font-display:"Space Grotesk","Helvetica Neue",Arial,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+    --fs-xs:11px; --fs-sm:13px; --fs-md:15px; --radius:2px;
+    --s1:4px; --s2:8px; --s3:16px; --s4:24px; --gutter:16px; --tap:44px;
+    --ink:var(--text); --soft:var(--text-2);          /* names the clip caption uses */
   }
-  @media (prefers-color-scheme:dark){
-    :root{
-      --bg:#0d1216; --panel:#151d23; --ink:#e6edf3; --soft:#93a4b1; --rule:#25313a;
-      --grid:#22303a; --asset:#4fbd88; --striker:#ff7a66; --decoy:#f0c063;
-      --intercept:#6fb2e6; --blast:#ff9463; --tracer:#54646f; --accent:#7fb3dd;
-    }
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
-  body{background:var(--bg);color:var(--ink);
-       font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif}
-  .wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:18px 32px;
-        display:flex;flex-direction:column;gap:14px}
-  header{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
-  h1{font-size:1.15rem;margin:0;letter-spacing:-.01em}
-  header .sub{color:var(--soft);font-size:.85rem}
-  .main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
-  @media (max-width:760px){.main{grid-template-columns:1fr}}
-  .stage{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px;
-         display:flex;flex-direction:column;gap:10px}
-  canvas{width:100%;aspect-ratio:1/1;max-width:100%;display:block;border-radius:6px;
-         background:transparent;touch-action:none}
-  .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  button{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:7px 13px;
-         font-size:.9rem;cursor:pointer;font-variant-numeric:tabular-nums}
-  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
-  button.ghost[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  input[type=range]{flex:1;min-width:120px;accent-color:var(--accent)}
-  .tick{font-variant-numeric:tabular-nums;color:var(--soft);font-size:.85rem;min-width:7ch}
-  aside{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:14px;
-        display:flex;flex-direction:column;gap:10px;font-size:.87rem}
-  aside h2{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);
-           margin:0;font-weight:600}
-  dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 10px}
-  dt{color:var(--soft)}
-  dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
-  .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:.78rem;
-        font-weight:600}
-  .pill.defended{background:color-mix(in srgb,var(--asset) 18%,transparent);color:var(--asset)}
-  .pill.breached{background:color-mix(in srgb,var(--striker) 18%,transparent);color:var(--striker)}
-  .drop{border:1px dashed var(--rule);border-radius:8px;padding:10px;text-align:center;
-        color:var(--soft);font-size:.82rem}
+  @media (prefers-color-scheme:light){:root:not([data-theme="dark"]){
+    --bg:#f6f5f1; --surface:#fff; --surface-2:#efeee9; --hover:#e9e7e1; --border:#dcdad3;
+    --border-2:#c6c3ba; --text:#16171a; --text-2:#4a4e55; --text-3:#5d626a;
+    --accent:#a35f00; --accent-ink:#fff; --attacker:#b8441c; --defender:#1f62a3;
+    --up:#1d7a3e; --down:#b3261e; --focus:#a35f00; --tracer:#8b8f96}}
+  [data-theme="light"]{
+    --bg:#f6f5f1; --surface:#fff; --surface-2:#efeee9; --hover:#e9e7e1; --border:#dcdad3;
+    --border-2:#c6c3ba; --text:#16171a; --text-2:#4a4e55; --text-3:#5d626a;
+    --accent:#a35f00; --accent-ink:#fff; --attacker:#b8441c; --defender:#1f62a3;
+    --up:#1d7a3e; --down:#b3261e; --focus:#a35f00; --tracer:#8b8f96}
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--text);font:400 var(--fs-md)/1.5 var(--font-display)}
+  :focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+  .t3{color:var(--text-3)} .att{color:var(--attacker)} .def{color:var(--defender)}
+  .label{font:500 var(--fs-xs)/1.4 var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)}
+  .layout{display:grid;gap:0}
+  @media (min-width:900px){.layout{grid-template-columns:minmax(0,1fr) 320px;gap:var(--s3);padding:var(--s3) var(--gutter);max-width:1200px;margin:0 auto}
+    .layout .stage{border:1px solid var(--border)}}
+  .layout>*{min-width:0}
+  .stage{position:relative;aspect-ratio:16/9;background:var(--surface);border-bottom:1px solid var(--border);overflow:hidden}
+  .field{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:32px 32px;opacity:.55}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+  .ov{position:absolute;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+  .ov-bl{left:var(--s2);bottom:var(--s2);background:color-mix(in oklab,var(--bg) 88%,transparent);border:1px solid var(--border);padding:6px 8px;font-size:var(--fs-xs);line-height:1.6;max-width:calc(100% - 16px)}
+  .ov-bl .r{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:8px;align-items:center}
+  .ov-bl .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+  .sw{width:8px;height:8px}.sw.a{background:var(--attacker)}.sw.d{background:var(--defender);border-radius:50%}
+  .ov-bl .sc{color:var(--text);font-weight:600;min-width:3ch;text-align:right}
+  .ov-tr{right:var(--s2);top:var(--s2);display:flex;gap:var(--s2);align-items:center;font-size:var(--fs-xs)}
+  .pill{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:var(--accent-ink);padding:3px 7px;font-weight:700;letter-spacing:.08em;border-radius:var(--radius)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--accent-ink);flex-shrink:0;animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.35}}
+  .clock{background:color-mix(in oklab,var(--bg) 88%,transparent);border:1px solid var(--border);padding:2px 6px;color:var(--text)}
+  .stage-load{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font:var(--fs-sm)/1.6 var(--font-mono);color:var(--text-3);pointer-events:none}
+  .stage-load:empty{display:none}
+  .big-play{position:absolute;inset:0;margin:auto;width:64px;height:64px;border-radius:50%;border:1px solid var(--border-2);background:color-mix(in oklab,var(--bg) 80%,transparent);color:var(--text);font-size:22px;cursor:pointer}
+  .stage-line{font:var(--fs-sm)/1.5 var(--font-mono);color:var(--text-2);padding:var(--s2) var(--gutter);margin:0;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .stage-line b{color:var(--text);font-weight:500}
+  .controls{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:var(--s2);align-items:center;padding:var(--s2) var(--gutter);border-bottom:1px solid var(--border)}
+  @media (min-width:900px){.controls{padding:var(--s2) 0;border:0}}
+  .btn{min-height:var(--tap);min-width:var(--tap);padding:0 var(--s3);background:var(--surface);color:var(--text);border:1px solid var(--border-2);border-radius:var(--radius);font:var(--fs-sm) var(--font-mono);cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+  .btn:hover{background:var(--hover)} .btn[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+  .speeds{display:inline-flex}.speeds .btn{padding:0 10px;border-radius:0;min-width:40px}.speeds .btn+.btn{border-left:0}
+  .scrub{position:relative;height:var(--tap)}
+  .scrub input{width:100%;height:var(--tap);margin:0;accent-color:var(--accent);background:transparent}
+  .ticks{position:absolute;inset:0;pointer-events:none}
+  .ticks i{position:absolute;top:8px;width:1px;height:8px;background:var(--text-3)}
+  .ticks i.a{background:var(--attacker)}.ticks i.d{background:var(--defender)}
+  .tick-count{font:var(--fs-sm) var(--font-mono);color:var(--text-2);white-space:nowrap}
+  .side{padding:var(--s3) var(--gutter)} @media (min-width:900px){.side{padding:0}}
+  dl.meta{display:grid;grid-template-columns:auto 1fr;margin:var(--s2) 0 0;font-size:var(--fs-sm);border:1px solid var(--border);background:var(--surface)}
+  dl.meta dt,dl.meta dd{padding:var(--s2) var(--s3);border-bottom:1px solid var(--border);margin:0}
+  dl.meta dt{color:var(--text-3);font:var(--fs-xs) var(--font-mono);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center}
+  dl.meta dd{font-family:var(--font-mono);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  dl.meta>:nth-last-child(-n+2){border-bottom:0}
+  .events{list-style:none;margin:var(--s3) 0 0;padding:0;border:1px solid var(--border);background:var(--surface)}
+  .events li{display:grid;grid-template-columns:6ch 1fr;gap:var(--s2);padding:var(--s2) var(--s3);border-bottom:1px solid var(--border);font-size:var(--fs-sm);cursor:pointer}
+  .events li:last-child{border-bottom:0}
+  .events .tk{font-family:var(--font-mono);color:var(--text-3)}
+  .events li.past{color:var(--text-2)} .events li.future{color:var(--text-3)}
+  .events li.now{background:var(--surface-2);box-shadow:inset 2px 0 0 var(--accent)}
+  .legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:var(--s3);font:var(--fs-xs)/1.6 var(--font-mono);color:var(--text-3)}
+  .legend i{display:inline-block;width:8px;height:8px;margin-right:4px;vertical-align:0}
+  .drop{display:block;margin-top:var(--s3);border:1px dashed var(--border-2);padding:var(--s2);text-align:center;color:var(--text-3);font:var(--fs-xs)/1.6 var(--font-mono)}
   .drop.over{border-color:var(--accent);color:var(--accent)}
-  .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.78rem;color:var(--soft)}
-  .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px}
+  .share{width:100%;margin-top:var(--s3)}
+  #status{font:var(--fs-xs) var(--font-mono);color:var(--text-3);margin:var(--s2) 0 0}
+  #status:empty{display:none}
+  /* modes: broadcast (the home page's replay channel) and embed (a bot page's figures) */
+  body.broadcast .controls,body.broadcast .side,body.embed .side{display:none}
+  body.broadcast .layout,body.embed .layout{display:block;padding:0}
+  body.broadcast .stage,body.embed .stage{border:0}
+  body:not(.broadcast) .stage-line,body:not(.broadcast) .pill{display:none}
+  body.embed .controls{grid-template-columns:auto minmax(0,1fr) auto;padding:var(--s2)}
+  body.embed .speeds{display:none}
+  @media (min-width:900px){.ov-bl{left:var(--s3);bottom:var(--s3);font-size:var(--fs-sm);padding:8px 12px}
+    .ov-tr{right:var(--s3);top:var(--s3);font-size:var(--fs-sm)}}
+  @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>Swarm Colosseum</h1>
-    <span class="sub">replay viewer · abstract strategy benchmark, arbitrary units</span>
-  </header>
-
-  <div class="main">
-    <div class="stage">
-      <canvas id="cv" width="720" height="720"></canvas>
-      <div class="controls">
-        <button id="play">▶ Play</button>
-        <button class="ghost" data-speed="1" aria-pressed="true">1×</button>
-        <button class="ghost" data-speed="4" aria-pressed="false">4×</button>
-        <button class="ghost" data-speed="16" aria-pressed="false">16×</button>
-        <input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Replay position">
-        <span class="tick" id="tick">t 0</span>
+<div class="layout">
+  <div>
+    <div class="stage" id="stage" role="img" aria-label="Replay of a match">
+      <div class="field"></div>
+      <canvas id="cv" width="720" height="405" aria-hidden="true"></canvas>
+      <div class="ov ov-bl" aria-hidden="true">
+        <div class="r"><span class="sw a"></span><span class="nm" id="ov-a">attacker</span><span class="t3" id="ov-ar">hits</span><span class="sc" id="ov-as">0</span></div>
+        <div class="r"><span class="sw d"></span><span class="nm" id="ov-d">defender</span><span class="t3" id="ov-dr">kills</span><span class="sc" id="ov-ds">0</span></div>
       </div>
-      <div class="legend">
-        <span><i style="background:var(--striker)"></i>striker</span>
-        <span><i style="background:var(--decoy)"></i>decoy</span>
-        <span><i style="background:var(--intercept)"></i>interceptor</span>
-        <span><i style="background:var(--asset)"></i>asset</span>
-        <span>rings: radar 450 u · identification 150 u</span>
-      </div>
-      <label class="drop" id="drop">
-        Drop a replay JSON here, or <input id="file" type="file" accept=".json,.gz" style="display:inline">
-      </label>
-      <p class="sub" id="status"></p>
+      <div class="ov ov-tr"><span class="pill"><span class="dot"></span>REPLAY</span><span class="clock" id="tick">t 0000</span></div>
+      <div class="stage-load" id="load"></div>
     </div>
-
-    <aside>
-      <h2>Match</h2>
-      <div><span class="pill" id="outcome">—</span></div>
-      <dl id="meta"></dl>
-      <h2>Economy</h2>
-      <dl id="econ"></dl>
-    </aside>
+    <p class="stage-line" id="line"></p>
+    <div class="controls">
+      <button class="btn" id="play" type="button" aria-label="Play">▶</button>
+      <div class="speeds" role="group" aria-label="Speed">
+        <button class="btn" type="button" data-speed="1" aria-pressed="true">1×</button>
+        <button class="btn" type="button" data-speed="4" aria-pressed="false">4×</button>
+        <button class="btn" type="button" data-speed="16" aria-pressed="false">16×</button>
+      </div>
+      <div class="scrub"><input id="scrub" type="range" min="0" max="0" value="0" step="1" aria-label="Scrub to tick"><div class="ticks" id="marks"></div></div>
+      <span class="tick-count" id="count">0 / 0</span>
+    </div>
   </div>
+  <aside class="side">
+    <span class="label">Match</span> <span class="label" id="outcome">—</span>
+    <dl class="meta" id="meta"></dl>
+    <ol class="events" id="events" aria-label="Key moments"></ol>
+    <button class="btn share" type="button" id="share">Share this moment · copy link</button>
+    <div class="legend">
+      <span><i style="background:var(--attacker)"></i>striker</span>
+      <span><i style="border:1px solid var(--attacker)"></i>decoy</span>
+      <span><i style="background:var(--defender);border-radius:50%"></i>interceptor</span>
+      <span><i style="border:1px solid var(--defender);transform:rotate(45deg)"></i>asset</span>
+      <span>rings: radar 450 u · identification 150 u · every unit is made up</span>
+    </div>
+    <label class="drop" id="drop">Drop a replay JSON here, or <input id="file" type="file" accept=".json,.gz" style="display:inline;max-width:100%"></label>
+    <p id="status"></p>
+  </aside>
 </div>
 
 <script>
 const SAMPLE = __SAMPLE_REPLAY__;
 
+const Q = new URLSearchParams(location.search);
+const MODE = ({broadcast: 'broadcast', embed: 'embed'})[Q.get('mode')] || 'full';
+document.body.classList.add(MODE);
+// the site's theme, remembered in localStorage by site.js; follows a toggle made elsewhere
+function applyTheme(){
+  let t = null; try { t = localStorage.getItem('sc-theme'); } catch(e) {}
+  if(t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  else delete document.documentElement.dataset.theme;
+}
+applyTheme();
+window.addEventListener('storage', e => { if(e.key === 'sc-theme'){ applyTheme(); draw(); } });
+const REDUCED = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const scrub = document.getElementById('scrub'), tickLabel = document.getElementById('tick');
 const playBtn = document.getElementById('play');
-let replay = null, idx = 0, playing = false, speed = 1, timer = null;
+const $ = id => document.getElementById(id);
+let replay = null, idx = 0, playing = false, speed = 1, timer = null, onEnd = null;
+let hitsAt = [], killsAt = [], moments = [];
 const trails = new Map();
+const ranks = {a: parseInt(Q.get('ar'), 10) || 0, d: parseInt(Q.get('dr'), 10) || 0};
 
 function fit(){
   const dpr = window.devicePixelRatio || 1;
-  const size = cv.clientWidth || 720;
-  cv.width = Math.round(size * dpr); cv.height = Math.round(size * dpr);
+  const w = cv.clientWidth || 720, h = cv.clientHeight || w;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  draw();
+  draw(); tellHeight();
 }
 window.addEventListener('resize', fit);
+// a page that frames the viewer (site.js) sizes the frame to fit it
+function tellHeight(){
+  if(window.parent !== window)
+    window.parent.postMessage({sc: 'height', h: Math.ceil(document.querySelector('.layout').getBoundingClientRect().height) + 2}, location.origin);
+}
 
 function css(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
@@ -126,28 +192,74 @@ function load(data){
   const want = parseInt((location.hash.match(/t=(\d+)/) || [])[1], 10);
   idx = Number.isFinite(want) ? Math.min(Math.max(0, want), replay.frames.length - 1) : 0;
   scrub.value = idx;
+  // running counts for the overlay: strikers that reached the asset, drones destroyed
+  const ev = replay.events;
+  hitsAt = replay.frames.map(f => ev.filter(e => e.kind === 'impact' && e.t <= f.t).length);
+  killsAt = replay.frames.map(f => ev.filter(e => e.kind === 'kill' && e.t <= f.t).length);
+  moments = keyMoments(replay);
   showMeta(); draw();
+}
+
+function frameAt(t){
+  const k = replay.frames.findIndex(f => f.t >= t);
+  return k < 0 ? replay.frames.length - 1 : k;
+}
+
+// at most eight moments a viewer would want to jump to, all read from the replay's events
+function keyMoments(r){
+  const m = r.meta, ev = r.events, out = [];
+  const blast = ev.find(e => e.kind === 'blast');
+  if(blast) out.push([blast.t, 'First interceptor detonates']);
+  const kill = ev.find(e => e.kind === 'kill');
+  if(kill) out.push([kill.t, `First ${kill.dtype} down, by ${kill.by}`]);
+  const launched = ((m.drones_launched || {}).striker || 0) + ((m.drones_launched || {}).decoy || 0);
+  const kills = ev.filter(e => e.kind === 'kill');
+  if(launched && kills.length >= launched / 2)
+    out.push([kills[Math.ceil(launched / 2) - 1].t, 'Half of everything launched is down']);
+  for(const e of ev.filter(e => e.kind === 'impact').slice(0, 4)){
+    const f = r.frames[frameAt(e.t)];
+    out.push([e.t, `A striker reaches the asset · HP ${f ? f.hp : '?'}`]);
+  }
+  out.sort((a, b) => a[0] - b[0]);
+  const last = r.frames[r.frames.length - 1];
+  out.push([last.t, `Ends: ${m.outcome} (${String(m.end_reason).replace(/_/g, ' ')})`]);
+  return out.slice(-8);
 }
 
 function showMeta(){
   const m = replay.meta;
-  const pill = document.getElementById('outcome');
-  pill.textContent = m.outcome; pill.className = 'pill ' + m.outcome;
-  const rows = [
-    ['attacker', m.attacker], ['defender', m.defender], ['seed', m.seed],
-    ['ticks', m.ticks], ['ended', m.end_reason.replace(/_/g,' ')],
+  $('outcome').textContent = m.outcome;
+  $('ov-a').textContent = m.attacker; $('ov-d').textContent = m.defender;
+  $('ov-ar').textContent = ranks.a ? 'ATK #' + ranks.a : 'hits';
+  $('ov-dr').textContent = ranks.d ? 'DEF #' + ranks.d : 'kills';
+  $('stage').setAttribute('aria-label',
+    `Replay: ${m.attacker} (attacker) versus ${m.defender} (defender), seed ${m.seed}, ${m.outcome}`);
+  fillDl($('meta'), [
+    ['attacker', m.attacker], ['defender', m.defender], ['result', m.outcome],
+    ['seed', m.seed], ['ticks', m.ticks], ['ended', String(m.end_reason).replace(/_/g, ' ')],
     ['asset HP', m.asset_hp + ' / ' + m.asset_hp_max],
-  ];
-  fillDl(document.getElementById('meta'), rows);
-  const econ = [
     ['cost exchange', m.cost_exchange_ratio.toFixed(2)],
-    ['value destroyed', m.value_destroyed.toFixed(1)],
     ['defender spent', m.defender_spent.toFixed(1)],
     ['interceptors', m.interceptors_launched], ['shots', m.shots_fired],
-    ['score (def)', m.score_defender.toFixed(3)],
-    ['score (atk)', m.score_attacker.toFixed(3)],
-  ];
-  fillDl(document.getElementById('econ'), econ);
+    ['score atk / def', m.score_attacker.toFixed(3) + ' / ' + m.score_defender.toFixed(3)],
+  ]);
+  $('events').replaceChildren(...moments.map(([t, text]) => {
+    const li = document.createElement('li'), tk = document.createElement('span'),
+          tx = document.createElement('span');
+    tk.className = 'tk'; tk.textContent = String(t).padStart(4, '0'); tx.textContent = text;
+    li.append(tk, tx); li.dataset.t = t;
+    li.onclick = () => { idx = frameAt(t); scrub.value = idx; trails.clear(); draw(); };
+    return li;
+  }));
+  // scrub marks: hits in the attacker's colour, the first kills in the defender's
+  const span = Math.max(1, replay.frames[replay.frames.length - 1].t);
+  const marks = replay.events.filter(e => e.kind === 'impact').map(e => ['a', e.t])
+    .concat(moments.filter(([, s]) => s.startsWith('First') || s.startsWith('Half'))
+                   .map(([t]) => ['d', t]));
+  $('marks').replaceChildren(...marks.map(([c, t]) => {
+    const i = document.createElement('i'); i.className = c;
+    i.style.left = (100 * t / span).toFixed(1) + '%'; return i; }));
+  tellHeight();
 }
 
 // Bot names come from untrusted bot files, so they are only ever set as text, never HTML.
@@ -161,25 +273,33 @@ function fillDl(dl, rows){
 
 function draw(){
   if(!replay) return;
-  const size = cv.clientWidth || 720, R = size/2, scale = R/520;
+  const w = cv.clientWidth || 720, h = cv.clientHeight || w;
+  const size = Math.min(w, h), R = size/2, scale = R/520, cx = w/2, cy = h/2;
   const f = replay.frames[idx]; if(!f) return;
-  const X = x => R + x*scale, Y = y => R - y*scale;
-  const rules = replay.meta.rules || {};
-  ctx.clearRect(0,0,size,size);
+  const X = x => cx + x*scale, Y = y => cy - y*scale;
+  const k = Math.min(2, Math.max(1, size / 420));       // units grow with the frame
+  ctx.clearRect(0,0,w,h);
 
   // range rings
-  ctx.strokeStyle = css('--grid'); ctx.lineWidth = 1;
+  ctx.strokeStyle = css('--border-2'); ctx.lineWidth = 1;
   for(const [r,dash] of [[450,[4,5]],[150,[2,4]]]){
-    ctx.setLineDash(dash); ctx.beginPath(); ctx.arc(R,R,r*scale,0,7); ctx.stroke();
+    ctx.setLineDash(dash); ctx.beginPath(); ctx.arc(cx,cy,r*scale,0,7); ctx.stroke();
   }
   ctx.setLineDash([]);
 
-  // asset + HP ring
-  const hpFrac = f.hp / replay.meta.asset_hp_max;
-  ctx.strokeStyle = css('--asset'); ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(R,R,25*scale,-Math.PI/2,-Math.PI/2 + 2*Math.PI*hpFrac); ctx.stroke();
-  ctx.fillStyle = css('--asset'); ctx.globalAlpha = .25;
-  ctx.beginPath(); ctx.arc(R,R,25*scale,0,7); ctx.fill(); ctx.globalAlpha = 1;
+  // the asset: a square on its corner, outlined as far round as it has HP left
+  const hpFrac = f.hp / replay.meta.asset_hp_max, a = 25*scale*1.25;
+  const corners = [[cx, cy-a], [cx+a, cy], [cx, cy+a], [cx-a, cy], [cx, cy-a]];
+  ctx.strokeStyle = css('--defender'); ctx.globalAlpha = .3; ctx.lineWidth = 1;
+  ctx.beginPath(); corners.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+  ctx.stroke(); ctx.globalAlpha = 1; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(...corners[0]);
+  let left = 4 * hpFrac;
+  for(let k = 0; k < 4 && left > 0; k++, left--){
+    const [x0, y0] = corners[k], [x1, y1] = corners[k+1], u = Math.min(1, left);
+    ctx.lineTo(x0 + (x1-x0)*u, y0 + (y1-y0)*u);
+  }
+  ctx.stroke();
 
   // events in this frame's window
   const t0 = f.t - 1, t1 = f.t;
@@ -187,13 +307,13 @@ function draw(){
     if(e.t < t0 || e.t > t1) continue;
     if(e.kind === 'shot'){
       ctx.strokeStyle = css('--tracer'); ctx.lineWidth = 1; ctx.globalAlpha = .8;
-      ctx.beginPath(); ctx.moveTo(R,R); ctx.lineTo(X(e.x), Y(e.y)); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(X(e.x), Y(e.y)); ctx.stroke();
       ctx.globalAlpha = 1;
     } else if(e.kind === 'blast'){
-      ctx.strokeStyle = css('--blast'); ctx.lineWidth = 2;
+      ctx.strokeStyle = css('--accent'); ctx.lineWidth = 1.5;
       ctx.beginPath(); ctx.arc(X(e.x), Y(e.y), Math.max(4, 10*scale*1.6), 0, 7); ctx.stroke();
     } else if(e.kind === 'impact'){
-      ctx.fillStyle = css('--striker'); ctx.globalAlpha = .5;
+      ctx.fillStyle = css('--attacker'); ctx.globalAlpha = .5;
       ctx.beginPath(); ctx.arc(X(e.x), Y(e.y), 7, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
     }
   }
@@ -203,22 +323,22 @@ function draw(){
   for(const [id,x,y] of f.i){
     live.add(id);
     let tr = trails.get(id) || []; tr.push([x,y]); if(tr.length>4) tr.shift(); trails.set(id,tr);
-    ctx.strokeStyle = css('--intercept'); ctx.globalAlpha = .45; ctx.lineWidth = 1.5;
+    ctx.strokeStyle = css('--defender'); ctx.globalAlpha = .45; ctx.lineWidth = 1.5;
     ctx.beginPath();
     tr.forEach(([tx,ty],k)=>k?ctx.lineTo(X(tx),Y(ty)):ctx.moveTo(X(tx),Y(ty)));
     ctx.stroke(); ctx.globalAlpha = 1;
-    ctx.fillStyle = css('--intercept');
-    ctx.beginPath(); ctx.arc(X(x),Y(y),2.6,0,7); ctx.fill();
+    ctx.fillStyle = css('--defender');
+    ctx.beginPath(); ctx.arc(X(x),Y(y),2.6*k,0,7); ctx.fill();
   }
   for(const id of [...trails.keys()]) if(!live.has(id)) trails.delete(id);
 
-  // drones: strikers are triangles pointing at the asset, decoys are diamonds
+  // drones: strikers are filled triangles pointing at the asset, decoys hollow diamonds
   for(const [id,isStriker,x,y] of f.d){
     const px = X(x), py = Y(y);
-    ctx.fillStyle = isStriker ? css('--striker') : css('--decoy');
+    ctx.fillStyle = ctx.strokeStyle = css('--attacker'); ctx.lineWidth = 1.2;
     if(isStriker){
       // world heading -> screen: y is flipped, so sin is negated on every vertex
-      const a = Math.atan2(-y, -x), s = 5.5;
+      const a = Math.atan2(-y, -x), s = 5.5*k;
       ctx.beginPath();
       ctx.moveTo(px + Math.cos(a)*s,       py - Math.sin(a)*s);
       ctx.lineTo(px + Math.cos(a+2.5)*s,   py - Math.sin(a+2.5)*s);
@@ -226,24 +346,35 @@ function draw(){
       ctx.closePath(); ctx.fill();
     } else {
       ctx.beginPath();
-      ctx.moveTo(px, py-3.5); ctx.lineTo(px+3.5, py); ctx.lineTo(px, py+3.5);
-      ctx.lineTo(px-3.5, py); ctx.closePath(); ctx.fill();
+      const q = 3.5*k;
+      ctx.moveTo(px, py-q); ctx.lineTo(px+q, py); ctx.lineTo(px, py+q);
+      ctx.lineTo(px-q, py); ctx.closePath(); ctx.stroke();
     }
   }
-  tickLabel.textContent = 't ' + f.t;
+  tickLabel.textContent = 't ' + String(f.t).padStart(4, '0');
+  $('count').textContent = f.t + ' / ' + replay.frames[replay.frames.length - 1].t;
+  $('ov-as').textContent = hitsAt[idx] || 0; $('ov-ds').textContent = killsAt[idx] || 0;
+  // the moment we are at is the last one at or before this tick
+  const lis = [...$('events').children];
+  let now = -1; lis.forEach((li, k) => { if(+li.dataset.t <= f.t) now = k; });
+  lis.forEach((li, k) => {
+    li.className = k < now ? 'past' : k === now ? 'now' : 'future';
+    if(k === now) li.setAttribute('aria-current', 'step'); else li.removeAttribute('aria-current');
+  });
 }
 
 function step(){
   if(!replay) return;
   idx = Math.min(replay.frames.length - 1, idx + speed);
   scrub.value = idx; draw();
-  if(idx >= replay.frames.length - 1) setPlaying(false);
+  if(idx >= replay.frames.length - 1){ setPlaying(false); if(onEnd) onEnd(); }
 }
 function setPlaying(on){
-  playing = on; playBtn.textContent = on ? '❚❚ Pause' : '▶ Play';
+  playing = on;
+  playBtn.textContent = on ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', on ? 'Pause' : 'Play');
   if(timer) clearInterval(timer);
   if(on){
-    if(idx >= replay.frames.length - 1){ idx = 0; trails.clear(); }
+    if(idx >= replay.frames.length - 1 && !onEnd){ idx = 0; trails.clear(); }
     timer = setInterval(step, 60);
   }
 }
@@ -256,6 +387,12 @@ for(const b of document.querySelectorAll('[data-speed]')){
       o.setAttribute('aria-pressed', String(o === b)));
   };
 }
+$('share').onclick = () => {
+  const url = location.href.split('#')[0] + '#t=' + idx;
+  const done = () => { $('share').textContent = 'Link copied · t ' + idx; };
+  if(navigator.clipboard) navigator.clipboard.writeText(url).then(done, () => { location.hash = 't=' + idx; });
+  else location.hash = 't=' + idx;
+};
 // Packed replays (colosseum/replay_pack.py, "replay-delta-1"): each frame's positions are
 // changes from that id's previous frame, in tenths of a unit. Unpacks to the plain replay.
 function unpackReplay(doc){
@@ -278,24 +415,81 @@ async function readReplay(blob){
                   : await blob.text();
   return unpackReplay(JSON.parse(text));
 }
+const DATA = /^data\/[A-Za-z0-9_.\-]+\.json\.gz$/;
+async function fetchReplay(path){
+  if(!DATA.test(path)) throw new Error('not a replay of this site');
+  const res = await fetch(path);
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return readReplay(await res.blob());
+}
 // ?r=data/<file>.json.gz opens one packed replay, from this folder's data/ only
 async function loadFromQuery(){
-  const r = new URLSearchParams(location.search).get('r') || '';
-  if(!/^data\/[A-Za-z0-9_.\-]+\.json\.gz$/.test(r)) return;
-  const status = document.getElementById('status');
-  status.textContent = 'Loading the replay…';
+  const r = Q.get('r') || '';
+  if(!DATA.test(r)) return;
+  $('load').textContent = 'Loading match';
   try {
-    const res = await fetch(r);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    load(await readReplay(await res.blob())); fit();
-    status.textContent = '';
-  } catch(err){ status.textContent = 'Could not load this replay: ' + err.message; }
+    load(await fetchReplay(r)); fit();
+    $('load').textContent = ''; $('status').textContent = '';
+  } catch(err){ $('load').textContent = 'Could not load this replay'; $('status').textContent = err.message; }
 }
+
+// The replay channel (?mode=broadcast&channel=channel.json): last night's featured matches,
+// played back to back on a clock everyone shares, so two visitors see the same match at
+// the same moment. Nothing here is live: these matches were played in the sandbox during
+// the night, and the pill says REPLAY.
+const STEP_MS = 60, GAP_MS = 3000;
+let lineTimer = null;
+async function runChannel(){
+  let ch;
+  try { ch = await (await fetch('channel.json')).json(); }
+  catch(err){ $('load').textContent = 'The replay channel is unavailable'; return; }
+  const items = (ch.items || []).filter(it => DATA.test(it.data));
+  if(!items.length){ $('load').textContent = 'No replays from last night'; return; }
+  const dur = it => it.frames * STEP_MS + GAP_MS, total = items.reduce((s, it) => s + dur(it), 0);
+  const epoch = Date.parse(ch.epoch);
+  function where(now){
+    let off = ((now - epoch) % total + total) % total, k = 0;
+    while(off >= dur(items[k])){ off -= dur(items[k]); k++; }
+    return [k, Math.min(items[k].frames - 1, Math.floor(off / STEP_MS))];
+  }
+  function line(k){
+    const nx = items[(k + 1) % items.length];
+    const left = Math.max(0, Math.round(((items[k].frames - 1 - idx) * STEP_MS + GAP_MS) / 1000));
+    const el = $('line'); el.replaceChildren();
+    const b = document.createElement('b'); b.textContent = 'Now showing';
+    const a = document.createElement('span'); a.className = 'att'; a.textContent = nx.a;
+    const d = document.createElement('span'); d.className = 'def'; d.textContent = nx.d;
+    const t = document.createElement('b');
+    t.textContent = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
+    el.append(b, ` · ${items[k].label} · night ${ch.night} · next: `, a, ' v ', d,
+              REDUCED ? '' : ' in ', REDUCED ? '' : t);
+  }
+  async function show(k, frame){
+    ranks.a = items[k].ar || 0; ranks.d = items[k].dr || 0;
+    $('load').textContent = 'Loading match';
+    try { load(await fetchReplay(items[k].data)); }
+    catch(err){ $('load').textContent = 'Could not load this replay'; return; }
+    $('load').textContent = ''; idx = frame; scrub.value = idx; fit(); line(k);
+    if(lineTimer) clearInterval(lineTimer);
+    if(REDUCED){                       // no motion: a still frame and a button to start it
+      const btn = document.createElement('button'); btn.className = 'big-play';
+      btn.type = 'button'; btn.textContent = '▶'; btn.setAttribute('aria-label', 'Play this replay');
+      btn.onclick = () => { btn.remove(); onEnd = null; setPlaying(true); };
+      $('stage').append(btn); return;
+    }
+    lineTimer = setInterval(() => line(k), 1000);
+    onEnd = () => setTimeout(() => { const [k2, f2] = where(Date.now()); show(k2, f2); }, GAP_MS);
+    setPlaying(true);
+  }
+  const [k, f] = where(Date.now());
+  show(k, f);
+}
+
 function readFile(file){
   readReplay(file).then(load).catch(err => alert('Not a replay JSON: ' + err.message));
 }
-document.getElementById('file').onchange = e => e.target.files[0] && readFile(e.target.files[0]);
-const drop = document.getElementById('drop');
+$('file').onchange = e => e.target.files[0] && readFile(e.target.files[0]);
+const drop = $('drop');
 drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
 drop.addEventListener('dragleave', () => drop.classList.remove('over'));
 drop.addEventListener('drop', e => {
@@ -308,7 +502,7 @@ drop.addEventListener('drop', e => {
 // the same as the buttons above: frames advanced per 60 ms step.
 function renderClip(fromTick, toTick, spd){
   const size = 720, strip = 56;
-  cv.style.width = size + 'px'; cv.style.maxWidth = 'none';
+  cv.style.position = 'static'; cv.style.width = size + 'px'; cv.style.height = size + 'px';
   cv.width = size; cv.height = size; ctx.setTransform(1, 0, 0, 1, 0, 0);
   const out = document.createElement('canvas'); out.width = size; out.height = size + strip;
   const o = out.getContext('2d'), m = replay.meta, frames = [];
@@ -342,7 +536,8 @@ if(SAMPLE){
   load(SAMPLE);
   if(clipArgs) renderClip(+clipArgs[1], +clipArgs[2], Math.max(1, +clipArgs[3]));
   else fit();
-} else { fit(); loadFromQuery(); }
+} else if(MODE === 'broadcast' && Q.get('channel') === 'channel.json'){ fit(); runChannel(); }
+else { fit(); loadFromQuery(); }
 </script>
 </body>
 </html>

@@ -110,13 +110,17 @@ def test_every_link_resolves_inside_the_bundle(bundle):
     checked = 0
     for page in dest.rglob("*.html"):
         for target in LINK.findall(page.read_text()):
+            if target == site.REPO_URL:          # the footer's one link out: the code
+                continue
             assert not re.match(r"^([a-z]+:|//)", target), f"external link in {page}: {target}"
             if target.startswith("#"):
                 continue
-            path, _, query = target.split("#")[0].partition("?")
+            from html import unescape
+            from urllib.parse import parse_qs
+            path, _, query = unescape(target).split("#")[0].partition("?")
             resolved = (page.parent / path).resolve()
-            if query.startswith("r="):            # the viewer's on-demand replay
-                data = (resolved.parent / query[2:]).resolve()
+            for r in parse_qs(query).get("r", []):    # the viewer's on-demand replay
+                data = (resolved.parent / r).resolve()
                 assert data.exists(), f"{page.relative_to(dest)} -> {target}"
             assert resolved.exists(), f"{page.relative_to(dest)} -> {target}"
             assert resolved.is_relative_to(dest.resolve())
@@ -138,12 +142,12 @@ def test_the_home_page_starts_newcomers_and_shows_the_top_five(bundle):
     home = (dest / "index.html").read_text()
     assert "everything in the game is made up" in home.lower()
     for href in ("about.html", "replays.html", "library/index.html", "research.html",
-                 "ladders.html"):
-        assert f'class=card href="{href}"' in home or f'href="{href}">Full' in home, href
-    for role in ("attackers", "defenders"):
+                 "ladders.html", "submitting.html", "changelog.html"):
+        assert f'href="{href}"' in home, href
+    for role in ("attackers", "defenders"):               # the top eight of each side
         top = [f'href="bots/{site.slugify(r["name"])}.html"' for r in lb[role]]
-        assert all(t in home for t in top[:5])
-        assert not any(t in home for t in top[5:])
+        assert all(t in home for t in top[:8])
+        assert not any(t in home for t in top[8:])
     assert 'href="research/01_first.html"' in home
     assert "Latest meta report" not in home
 
@@ -173,9 +177,13 @@ def test_untrusted_text_is_escaped_and_no_script_but_the_viewers(bundle):
     assert "<script>x</script>" not in index and "&lt;script&gt;" in index
     assert "https://example.com" not in index                  # external link dropped
     for page in dest.rglob("*.html"):
-        n = page.read_text().count("<script")
-        # the shared viewer is the only page with a script; full pages embed it in an iframe
-        assert n == (1 if page.relative_to(dest).as_posix() == "replays/viewer.html" else 0), page
+        text = page.read_text()
+        scripts = re.findall(r"<script([^>]*)>", text)
+        if page.relative_to(dest).as_posix() == "replays/viewer.html":
+            assert scripts == [""], page                   # the viewer's own, inline
+        else:                                              # site.js only, never inline
+            assert len(scripts) == 1 and re.fullmatch(r' src="(\.\./)*site\.js" defer',
+                                                      scripts[0]), (page, scripts)
 
 
 def test_markdown_renderer_escapes_everything():
@@ -243,3 +251,79 @@ def test_every_replay_is_packed_and_opens_from_the_index(bundle):
         assert replay_pack.unpack(data.read_bytes())["frames"]
     viewer = (dest / "replays" / "viewer.html").read_text()
     assert "const SAMPLE = null;" in viewer and "loadFromQuery" in viewer
+
+
+# --- the design pass (2026-10-10) -------------------------------------------------
+
+def test_fonts_are_served_with_the_site_and_nothing_loads_from_elsewhere(bundle):
+    dest, _, _ = bundle
+    assert sorted(p.name for p in (dest / "fonts").glob("*.woff2")) == [
+        "JetBrainsMono-latin.woff2", "SpaceGrotesk-latin.woff2"]
+    assert len(list((dest / "fonts").glob("OFL-*.txt"))) == 2      # the fonts' licences
+    css = (dest / "style.css").read_text()
+    assert "url(fonts/SpaceGrotesk-latin.woff2)" in css and "googleapis" not in css
+    for page in dest.rglob("*.html"):
+        assert "googleapis" not in page.read_text() and "gstatic" not in page.read_text()
+
+
+def test_light_mode_and_reduced_motion_in_the_site_and_the_viewer(bundle):
+    dest, _, _ = bundle
+    for text in ((dest / "style.css").read_text(), (dest / "replays" / "viewer.html").read_text()):
+        assert "prefers-color-scheme" in text and 'data-theme="light"' in text
+        assert "prefers-reduced-motion: reduce" in text.replace("motion:reduce", "motion: reduce")
+    viewer = (dest / "replays" / "viewer.html").read_text()
+    assert "REDUCED" in viewer and "big-play" in viewer        # the channel waits for a click
+    js = (dest / "site.js").read_text()
+    assert "sc-theme" in js and "sc-theme" in viewer               # one remembered choice
+
+
+def test_nothing_claims_to_be_live(bundle):
+    dest, _, _ = bundle
+    for page in dest.rglob("*.html"):
+        text = re.sub(r"<script.*?</script>", "", page.read_text(), flags=re.S)
+        assert ">LIVE<" not in text and "Live now" not in text, page
+    home = (dest / "index.html").read_text()
+    assert ">REPLAY<" in home and "not a live feed" in home
+
+
+def test_the_channel_lists_real_replays_of_the_bundle(bundle):
+    dest, _, _ = bundle
+    ch = json.loads((dest / "replays" / "channel.json").read_text())
+    assert ch["items"] and ch["items"][0]["label"] == "#1 v #1"
+    for it in ch["items"]:
+        assert (dest / "replays" / it["data"]).exists() and it["frames"] > 0
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T03:30:00Z", ch["epoch"])
+
+
+def test_movement_arrows_and_new_tags():
+    before = [{"name": "a"}, {"name": "b"}, {"name": "c"}]
+    now = [{"name": "c"}, {"name": "a"}, {"name": "n"}, {"name": "b"}]
+    assert site.movement(now, before) == {"c": 2, "a": -1, "n": None, "b": -2}
+    assert "▲ 2" in site.mv_html(2) and "▼ 1" in site.mv_html(-1) and "– 0" in site.mv_html(0)
+    rows = [dict(name=n, elo=1000, win_rate=.5, mean_cer=1.0, matches=10) for n in "can"]
+    html = site.ladder_rows(rows, {"c": 2, "a": -1, "n": None}, {})
+    assert html.count("tag new") == 1 and 'aria-label="up 2"' in html
+
+
+def test_the_recap_is_read_from_the_ledger():
+    lb = lambda a, d: {"attackers": [dict(name=a, mean_cer=1)], "defenders": [dict(name=d, mean_cer=.5)]}
+    hist = [("2026-10-01", lb("x", "y")), ("2026-10-02", lb("z", "y"))]
+    rec = {"date": "2026-10-02", "status": "ok", "cache": {"matches": 20, "ran": 4},
+           "house_positions": {"2026-10-02_attacker_z": dict(role="attacker", persona="counter_meta",
+                                                             target="y", beat_target=True, rank=1)}}
+    text = site.recap(rec, hist)
+    assert "Night 2 (2026-10-02)" in text and "and beat it" in text and "counter-meta" in text
+    assert "took the top attacker place from" in text and "held the top defender place for a second night" in text
+    assert "20 matches" in text and "4 of" in text
+
+
+def test_the_changelog_has_an_entry_per_night_newest_first(tmp_path):
+    recs = [{"date": "2026-10-01", "status": "ok", "cache": {"matches": 10, "ran": 10},
+             "house_positions": {}},
+            {"date": "2026-10-02", "status": "failed", "reason": "generator timed out"}]
+    hist = [("2026-10-01", {}), ("2026-10-02", {})]
+    site.write_changelog(tmp_path, recs, hist)
+    text = (tmp_path / "changelog.html").read_text()
+    assert text.count('<section class="night">') == 2
+    assert text.index("2026-10-02 · night 2") < text.index("2026-10-01 · night 1")
+    assert "didn&#x27;t complete: generator timed out" in text or "didn't complete: generator timed out" in text

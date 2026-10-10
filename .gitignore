@@ -11,3 +11,4 @@ __pycache__/
 *.gif
 # The build session's declared item (colosseum/daily.py); never committed.
 SESSION_ITEM
+design_ref/

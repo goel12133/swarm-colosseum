@@ -154,3 +154,23 @@
   boundary fails, that night's league is skipped rather than playing a 29th season-one
   night. A one-seed rehearsal of season two's first night on today's roster: 280 matches,
   no bot scoring zero, so no baseline needs re-tuning.
+
+- 2026-10-10 08:xx (lead engineer), design pass from goel12133/swarm-design-ref. Notes:
+  - There was no zip in the repo: the plain HTML and CSS were in
+    swarm-colosseum-source/public/site/ (next to a React scaffold), so that folder is
+    design_ref/, gitignored.
+  - "Live": nothing in Swarm Colosseum is live (the league plays at 03:30 UTC, sandboxed),
+    and there was no live channel in the code. The header indicator and the broadcast
+    frame are therefore a replay channel of last night's featured matches (#1 v #1, each
+    new bot's best match, the night's upset), played on a clock every visitor shares and
+    labelled REPLAY, with a line saying it is not a live feed.
+  - Fonts are self-hosted (OFL), not Google Fonts: no outside request from any page, as
+    before.
+  - One small site.js (theme, sorting, frame height, header line); every page works
+    without it.
+  - Theme follows the system until the visitor picks one (the reference defaulted to
+    dark).
+  - Kept from the founder's earlier instructions over the mock-up's wording: the licence
+    footer text, and the abstract-only sentence on the home page.
+  - "Counters found unaided" has no data source here, so the figure is "house bots that
+    beat the bot they were written to beat" (from the ledger).
