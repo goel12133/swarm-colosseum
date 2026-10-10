@@ -1,7 +1,8 @@
-# 04 · Does an optimiser beat a greedy rule? Not here.
+# 04 · Does an optimiser beat a greedy rule? A little, unevenly.
 
-*Swarm Colosseum, season one, nights 2026-09-30 to 10-03 (four nights; preliminary).
-Numbers are from the league's ladders (`out/history/`) and the latest matrix.*
+*Swarm Colosseum, season one, nights 2026-09-30 to 10-10 (eleven nights). This replaces a
+four-night preliminary cut that said "not here"; with the full field, that was too strong.
+The full tables are in `ANALYSIS_annealing.md`, made by `scripts/ablation_annealing.py`.*
 
 **The question.** Every tick a defender decides which threats to send interceptors at and
 where to point its gun. The `annealed_assignment` defenders write that decision as a small
@@ -12,42 +13,51 @@ just taking the best options one at a time?
 **The control.** `greedy_value_model` uses the *same* value model (identical code, enforced
 by a test) and replaces the annealer with a greedy pick: the best-valued threats in turn, up
 to the cap, skipping any inside the blast radius of one already chosen. The only difference
-between the two bots is the search. An eager variant of the optimiser (longer horizon,
-cheaper interceptors in its energy) is included for context.
+between the two bots is the search.
 
 ## Results
 
-| | annealed (optimiser) | greedy (same model) | eager (optimiser) |
-|---|---|---|---|
-| mean score, nights 09-30 to 10-02 | **0.608** | 0.582 | 0.599 |
-| mean score, night 10-03 | 0.556 | 0.571 | **0.608** |
-| rank among defenders, 10-03 | #11 of 13 | #8 | #7 |
-| mean cost exchange ratio | 0.71 | 0.67 | 0.70 |
-| median / p99 time per tick | 0.72 / 2.06 ms | 0.63 / 1.82 ms | — |
+Each attacker played both bots on the same ten seeds, giving 140 paired matches. The score
+is the defender's, from 0 to 1, higher is better; the difference is optimiser minus greedy.
 
-Against each attacker on the latest night (score; higher is better for the defender), the
-optimiser's lead over greedy:
-- trickle **+0.10**, multi_axis +0.02, decoy_screen +0.02, flanker +0.01, rush 0.00
-- the two synchronised-wave attackers +0.00 and +0.05: both bots lose badly to them
-- **depth_shell_saturation −0.34** (0.144 against 0.483), a new attacker written on 10-03
+| | optimiser | greedy |
+|---|---|---|
+| attackers it beats the other on (of 14) | **9** | 1 (4 level) |
+| mean paired difference | **+0.037** | |
+| 95% interval on that difference | −0.038 to +0.106 | |
+| ladder on 10-10 (of 20 defenders) | **#4**, Elo 1087 | #16, Elo 1020 |
+| nights with the higher mean score (of 11) | **10** | 1 |
+| median / p99 time per tick | 0.87 / 4.99 ms | 0.64 / 4.19 ms |
+
+The biggest differences:
+- **interleaved_shell_ring +0.27**, staggered_trishell_blast_denial +0.25, shadow_pair_ring
+  +0.11, trickle +0.10;
+- **depth_shell_saturation −0.34**: the optimiser lost the asset in 10 of 10 matches,
+  greedy in 3.
 
 ## What this says
 
-- **The value model does the work.** Against the baseline greedy defender `layered`, the
-  annealed bot gained about +0.30 in mean score. Swapping its optimiser for a greedy pick
-  keeps almost all of that.
-- **The optimiser's gain is small and narrow.** It is clearest against trickle attacks, where
-  many small threats arrive at once and choosing them jointly matters.
-- **It isn't robust.** On the first night a new attacker appeared, the optimiser variant fell
-  from the top half to #11 of 13. The greedy variant with the same model held up better. One
-  attacker is enough to wipe out its whole lead.
-- **It costs nothing measurable.** Per-tick time is dominated by the sandbox round trip, not
-  the search (0.72 ms against 0.63 ms median).
+- **The value model still does most of the work.** Against the baseline greedy defender
+  `layered`, the value model gained about +0.30 in mean score. The search adds about a tenth
+  of that on average.
+- **The optimiser is usually ahead, but not by a dependable amount.** It is ahead against 9
+  attackers and behind against 1 (a sign test gives p = 0.02), yet the average lead's
+  interval includes zero. Its largest wins are against three league-written wave attacks and
+  plain trickle; why those in particular hasn't been tested.
+- **It isn't robust.** One attacker breaks it completely while greedy mostly holds. A
+  defender that is better on average but has a catastrophic case is a real trade-off, not a
+  free improvement.
+- **It costs almost nothing.** The search adds about 0.2 ms a tick, against a 2 s limit.
 
-**Bottom line:** on this game and this field, joint optimisation adds no reliable value over
-a greedy pick with the same model. That is the result, and it is reported as one. Four
-nights is a preliminary sample; the comparison will be rerun on the full season for the
-season report.
+**Bottom line:** on this game, joint optimisation gives a small, uneven gain over a greedy
+pick with the same model. It is more often ahead than behind, it is not reliably large, and
+one attack breaks it. The four-night version of this page said it added no reliable value;
+more data moved that, and this page says so. The comparison is rerun at the end of the
+season.
+
+**Limits.** The 14 attackers are the league's own field, not a random sample, and several
+were written against defenders already on the ladder. There is one value model, one game and
+ten seeds per pairing.
 
 ---
 

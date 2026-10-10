@@ -37,7 +37,7 @@ Details in BALANCE.md.
 - 01 · The league found two counters it wasn't told about (`research/01_unaided_discovery.md`)
 - 02 · What a self-play league teaches you about your own game (`research/02_balance_findings.md`)
 - 03 · Does persona diversity help? Not measurably, yet. (`research/03_persona_ablation.md`)
-- 04 · Does an optimiser beat a greedy rule? Not here. (`research/04_annealed_defenders.md`)
+- 04 · Does an optimiser beat a greedy rule? A little, unevenly. (`research/04_annealed_defenders.md`)
 
 ## Coverage at the end
 

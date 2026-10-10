@@ -2604,3 +2604,23 @@ owner's own login) and there is no deploy key on the box, so nothing was pushed.
   remote; the after-night test now stubs it so a test can never push.
 - **Submissions open 2026-10-24** on SUBMITTING, ABOUT, README and the summary; 3.8 is
   scheduled for that evening, and opening depends on it.
+
+### 3.5 Optimiser ablation ✅ — and the preliminary L4 result revised
+
+`scripts/ablation_annealing.py` (3 tests) pairs `annealed_assignment` against
+`greedy_value_model` by attacker and seed from the result cache (current engine and rules
+only), adds the nightly ladder series, and with `--timing N` times each defender `act()`
+round trip in the sandbox. Run on 2026-10-10 after the night (11 nights, 14 attackers, 140
+pairs):
+- the optimiser is ahead against 9 attackers, greedy against 1, and 4 are level (sign test
+  p = 0.02);
+- mean paired difference +0.037, 95% bootstrap over attackers −0.038 to +0.106;
+- greatest differences: interleaved_shell_ring +0.27 and depth_shell_saturation −0.34 (the
+  optimiser was breached 10 of 10 times, greedy 3);
+- ladder on 10-10: #4 against #16;
+- median time per tick 0.87 against 0.64 ms.
+
+**The four-night L4 cut said "adds no reliable value". That was too strong, and it is
+revised** in research/04, the one-page summary (headline 3), the season report line and
+LAUNCH_STATUS. The new verdict is a small, uneven gain that isn't robust. Full tables are in
+`ANALYSIS_annealing.md`.

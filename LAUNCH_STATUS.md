@@ -7,7 +7,7 @@ Nothing is public. (s) = unattended build session; (h) = lead engineer, interact
 | L1 | unaided-discovery write-up (h) | done | research/01; clips in out/research/clips |
 | L2 | balance-findings write-up (h) | done | night-7 status written: answered in play; defenders now 62% |
 | L3 | persona ablation, early cut (h) | done | prelim, 5 nights: no measurable difference; 14-night rerun: own 05:00 session from night 14, ~3 slots a night under the cap |
-| L4 | annealing ablation (h) | done | preliminary, 4 nights: optimiser adds no reliable value |
+| L4 | annealing ablation (h) | done | superseded by 3.5 (11 nights, 2026-10-10): optimiser ahead vs 9 of 14 attackers, mean +0.037 (CI includes 0), one attacker breaks it |
 | L5 | `make reproduce` (h) | done | fresh clone: REPRODUCED in 364 s |
 | L6 | site redesign (s) | done | home page (intro, start-here, top 5s, research); full ladders on ladders.html; research/ as pages |
 | L7 | five clips, mp4 + gif (s) | done | `colosseum.clip --showcase`: 5 captioned clips, 1x, each ≤0.21 MB; render on live out/ once |

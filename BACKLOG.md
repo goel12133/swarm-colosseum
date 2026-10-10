@@ -17,7 +17,7 @@ From the operating charter, section 3, in order. Status: todo / doing / done / b
 | 3.2 | Generator token discipline | done | prompts −15..−73%; budgets in .meta.json |
 | 3.3 | Daily engineering session (manual run first, then cron) | done | first run watched 2026-10-03; cron 05:00 UTC from 2026-10-04 |
 | 3.4 | Persona ablation (after 14 real nights) | waiting | not before night 2026-10-11 |
-| 3.5 | Optimiser ablation (after 7 nights of greedy_value_model) | waiting | not before night 2026-10-05 |
+| 3.5 | Optimiser ablation (after 7 nights of greedy_value_model) | done | `ANALYSIS_annealing.md` + research/04 revised: small, uneven gain (9 of 14 attackers, mean +0.037, CI −0.04..+0.11), one attacker breaks it; +0.2 ms/tick |
 | 3.6 | Season report | waiting | at the boundary, 2026-10-26 |
 | 3.7 | Tactic library export | done | 20 cards, 9 families; writes out/library/; nightly rebuild comes with 3.10 |
 | 3.8 | Sandbox hardening and validator testing (defensive, inert inputs) + SECURITY.md | **scheduled** | interactive with the founder, evening of Sat 2026-10-24 (default 19:00 his time); submissions open only if it passes -- human-gated, the build session must not touch this |

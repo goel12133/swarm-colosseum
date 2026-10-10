@@ -29,8 +29,9 @@ record, about 408,000 model tokens.
 2. **Self-play exposes the designer's mistakes.** Four design findings, from an unlimited
    fallback that made waiting free to identification so early that deception was worthless,
    led to a tested, measured rules change for season two. ([02](02_balance_findings.md))
-3. **Two honest negative results.** A joint optimiser was no better than a greedy pick using
-   the same value model ([04](04_annealed_defenders.md)), and writing bots through four
+3. **Two modest results, reported as found.** A joint optimiser beat a greedy pick using the
+   same value model against 9 of 14 attackers, but its average lead is small and uncertain
+   and one attacker breaks it ([04](04_annealed_defenders.md)); and writing bots through four
    personas did no measurably better than writing them all one way
    ([03](03_persona_ablation.md), preliminary).
 
