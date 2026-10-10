@@ -1,17 +1,17 @@
-# Daily — 2026-10-10 (first build session of the day: hygiene)
+# Daily — 2026-10-10 (post-launch build session: hygiene)
 
-**Night 10-10:** not in the snapshot yet; health still shows last night 10-09 ok
-(2 bots accepted, 89,491 tokens, 1100.6 s from one 889 s generator call).
-Tops unchanged: `synchronized_ring` / `convergence_blast_scheduler`.
+**Night 10-10:** ok. 2 bots accepted, 30,465 tokens, 337.4 s (2,470 of 2,800 matches
+from the cache). New top attacker: `interleaved_shell_ring`. Top defender is still
+`convergence_blast_scheduler`.
 **Alert:** none.
 **Done:** hygiene only. No code changed.
-- health: all six ok; disk 23% used, 158 GB free, out/ 250 MB.
-- 353 tests pass in 77.87 s. Clean tree, no WIP.md.
+- health: all six ok; disk 24% used, out/ 274 MB.
+- 391 tests pass in 167.65 s (yesterday 77.87 s). The publish/fold-back tests account for
+  most of the rise. Still under 5 min, so no tests marked slow.
 
-**Next:** nothing in scope is unblocked. 3.4 after night 10-11, 3.6 on 10-26.
-Yesterday had ten empty sessions; pausing build sessions until then would save runs.
-**Waiting on you:** the domain (default github.io), launch day, whether to pause
-build sessions, and ROADMAP line 30 ("a paid API"). Also: the slow generator call on
-10-09 (a per-call time cap?) and the cut-off "attacker_attacker" bot file name, both out of scope.
-**Open stops:** 3.8 is held for an interactive run, so submissions stay closed.
-Backup restore needs an interactive session.
+**Next:** W once the week-2 meta report is written (after night 10-11). P5 once
+`out/ablation_14/done` exists. 3.13 after night 11-01. 3.14 after 3.8 and the boundary.
+**Waiting on you:** ROADMAP line 30 ("a paid API"); a per-call time cap for slow generator
+calls (889 s on 10-09); the cut-off "attacker_attacker" bot name. The last two are out of scope.
+**Open stops:** 3.8 is held for the interactive run on 10-24, so submissions stay closed.
+The backup restore needs an interactive session.
