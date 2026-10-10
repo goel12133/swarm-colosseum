@@ -2827,3 +2827,16 @@ LAUNCH_STATUS no longer says "Nothing is public".
 - **Tests:** 399 pass in 177.07 s. Under 5 minutes.
 - The tree was clean at the start, with no WIP.md. No code changed. The backup restore
   still needs an interactive session.
+
+### 2026-10-10 build session (post-launch, seventh): hygiene
+
+- **Alert:** the session prompt's out/ALERT.md still shows the 06:06 PROGRESS.md rebase
+  conflict, already resolved in 65983ac and written up; `health` printed `alert none`.
+- **Gates:** P5 is not open (`ls out/ablation_14`: no such directory). W is not open
+  (`ls out/meta`: SEASON_1.md, WEEK_1.md, two WEEK_1 clips, clips.json; no week-2 report).
+  3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 24% used / 158 GB free / out/
+  274 MB, last-night 2026-10-10 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 399 pass in 157.34 s. Under 5 minutes.
+- The tree was clean at the start, with no WIP.md. No code changed. The backup restore
+  still needs an interactive session.

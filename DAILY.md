@@ -1,14 +1,14 @@
-# Daily — 2026-10-10 (post-launch build session, sixth: hygiene)
+# Daily — 2026-10-10 (post-launch build session, seventh: hygiene)
 
 **Night 10-10:** ok. 2 bots accepted, 30,465 tokens, 337.4 s (2,470 of 2,800 matches
 from the cache). Top attacker: `interleaved_shell_ring`. Top defender: still
 `convergence_blast_scheduler`.
 **Alert:** the session prompt still shows the 06:00 PROGRESS.md rebase conflict. It was
-resolved on master (65983ac) and has been written up; `health` now says `alert none`.
+resolved on master (65983ac) and has been written up; `health` says `alert none`.
 **Done:** hygiene only. No code changed.
 - health: all seven ok; disk 24% used, out/ 274 MB; season2 still merges cleanly.
-- 399 tests pass in 177.07 s. Under 5 min.
-- P5 and W gates still closed (no `out/ablation_14/`; no week-2 meta report).
+- 399 tests pass in 157.34 s. Under 5 min.
+- P5 and W gates still closed (no `out/ablation_14/`; no week-2 meta report in out/meta).
 
 **Next:** W once the week-2 meta report is written (after night 10-11). P5 once
 `out/ablation_14/done` exists. 3.13 after night 11-01. 3.14 after 3.8 and the boundary.
