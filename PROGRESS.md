@@ -2728,3 +2728,20 @@ both sides appended (my P4 entries landed while it ran). I resolved it by keepin
 ran the suite on daily-wip (392 pass) and fast-forwarded master, so the next session
 starts fresh. out/ALERT.md, which records it, clears after the next good night.
 LAUNCH_STATUS no longer says "Nothing is public".
+
+### 2026-10-10 build session (post-launch, second): hygiene
+
+- **Alert written up:** the session prompt's out/ALERT.md (2026-10-10T06:06:33) records the
+  06:00 session's rebase conflict in PROGRESS.md. Cause: the session and the lead engineer
+  both appended to PROGRESS.md. It was already resolved on master in 65983ac; nothing left
+  to fix in scope. Any lasting fix (e.g. per-session progress files) would be in the
+  wrapper, `colosseum/daily.py`, which is protected, so it is not attempted here. The
+  snapshot `out/` has no ALERT.md, and `health` printed `alert none`.
+- **Gates:** P5 is not open (no `out/ablation_14/`). W is not open (`out/meta/` holds only
+  WEEK_1 and SEASON_1). 3.13 and 3.14 are not due.
+- **health:** all seven checks ok (docker, cli-login, cron, disk 24% used / 158 GB free /
+  out/ 274 MB, last-night 2026-10-10 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 392 pass in 185.39 s. Under 5 minutes, so no tests marked slow; it has risen
+  from 167.65 s this morning, so it is worth watching.
+- Clean tree, no WIP.md. No code changed. The backup restore still needs an interactive
+  session.
