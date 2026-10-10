@@ -143,3 +143,14 @@
   night. P1-P3 were done interactively today. P4 (the boundary) is a scripted after-night
   step, not a session item: it needs a branch merge, which sessions may not make, and a
   rules change should come from a branch that was reviewed and tested in advance.
+
+- 2026-10-10 06:xx (lead engineer), the boundary runs at the start of the 2026-10-26 night,
+  not after the 10-25 night: SEASON.md says candidate A merges "on 2026-10-26, not before".
+  The prepared branch is `season2` (current master + `s2-a-imperfect-id` + the bumps: rules
+  SEASON = 1, sim and tournament write `season: 1`, season.py and SEASON.md for 10-26 to
+  11-22); not `season2-candidates`, which has the write-ups but not A's code, and not
+  `s2-a-economy` (the gun-rate lever the founder declined). "Reset Elo" needs no step: Elo
+  is rebuilt from 1000 each night and every match replays under the new rules. If the
+  boundary fails, that night's league is skipped rather than playing a 29th season-one
+  night. A one-seed rehearsal of season two's first night on today's roster: 280 matches,
+  no bot scoring zero, so no baseline needs re-tuning.

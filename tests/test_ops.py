@@ -360,3 +360,28 @@ def test_a_site_over_budget_is_an_alert_but_the_other_steps_still_run(monkeypatc
     problems, results = ops.after_night(commit=True)
     assert len(problems) == 1 and problems[0].startswith("site:") and "budget" in problems[0]
     assert "ALERT" in calls and "publish_step" in calls
+
+
+def test_health_boundary_reports_a_clean_or_conflicting_next_season(tmp_path):
+    import subprocess
+    from colosseum import boundary
+    r = tmp_path / "r"
+
+    def g(*a):
+        subprocess.run(["git", "-C", str(r), "-c", "user.name=t", "-c", "user.email=t@t", *a],
+                       check=True, capture_output=True)
+    subprocess.run(["git", "init", "-q", "-b", "master", str(r)], check=True)
+    (r / "f.txt").write_text("base\n")
+    g("add", "f.txt"); g("commit", "-q", "-m", "base")
+    assert health.check_boundary(r) == (False, f"branch {boundary.NEXT_BRANCH} is missing")
+    g("checkout", "-q", "-b", boundary.NEXT_BRANCH)
+    (r / "f.txt").write_text("next season\n")
+    g("commit", "-q", "-am", "next")
+    g("checkout", "-q", "master")
+    assert health.check_boundary(r)[0] is True
+    (r / "f.txt").write_text("master moved\n")
+    g("commit", "-q", "-am", "clash")
+    ok, detail = health.check_boundary(r)
+    assert not ok and "f.txt" in detail
+    boundary.archive(r).mkdir(parents=True)
+    assert health.check_boundary(r)[0] is True

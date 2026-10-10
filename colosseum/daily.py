@@ -66,7 +66,8 @@ PROTECTED = ("scripts/publish.sh", "scripts/rewrite_identity.sh", "scripts/audit
              "colosseum/ops.py", "colosseum/sandbox.py", "colosseum/sandbox_runner.py",
              "colosseum/submit.py", "colosseum/submit_pr.py", "colosseum/policy.py",
              "colosseum/rules.py", "colosseum/sim.py", "colosseum/season.py",
-             "colosseum/boundary.py", "scripts/nightly.sh", "SEASON.md", ".github/",
+             "colosseum/boundary.py", "colosseum/tournament.py", "scripts/nightly.sh",
+             "SEASON.md", ".github/",
              "CHARTER.md")
 SESSION_ITEM = "SESSION_ITEM"             # one line, written by the session before it starts
 NO_PROGRESS_LIMIT = 2                     # consecutive non-merged sessions -> item frozen

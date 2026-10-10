@@ -2680,3 +2680,28 @@ They cover:
 - that it ships switched off.
 
 383 tests pass.
+
+### P4 Season boundary: armed for 2026-10-26
+
+- **`colosseum/boundary.py`** runs from `scripts/nightly.sh` before the league, from the
+  first night of the next season. It:
+  1. writes the final season report;
+  2. freezes `seasons/S1/` (ladders, matrix, breaches, BALANCE, SEASON, meta reports and
+     clips, the season report, every bot's source and metadata);
+  3. merges branch `season2`;
+  4. runs the full suite;
+  5. fast-forwards master.
+
+  Any failure leaves master alone and skips that night's league with an alert. 6 tests on
+  a scratch clone.
+- **Branch `season2`** is current master, plus candidate A, plus SEASON = 1 everywhere a
+  replay or a ladder records the season, plus season two's dates in season.py and
+  SEASON.md. 392 tests pass on it.
+- **Rehearsal of season two's first night** (one seed, sandboxed): 280 matches, no
+  zero-score bot. Top attacker synchronized_ring (1103), top defender
+  class_gated_magazine_keeper (1033).
+- **Health check `boundary`:** `season2` still merges cleanly into master (dry
+  `git merge-tree`). `colosseum/tournament.py` is now protected from build sessions too,
+  since `season2` changes it.
+- **Season-generic fixes:** the season report's name and its "what changes next" section
+  follow `season.NUMBER`, and three tests no longer assume season one.

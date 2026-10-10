@@ -91,8 +91,28 @@ def check_alert(out: Path = DEFAULT_OUT):
     return (not alert.exists(), "none" if not alert.exists() else "out/ALERT.md is present")
 
 
+def check_boundary(root: Path = None):
+    """Until the season boundary has run: the prepared next-season branch must still merge
+    into master without conflicts, or the scripted boundary (colosseum/boundary.py) would
+    stop and skip a night. A dry merge; nothing is written to any branch."""
+    from . import boundary
+    root = root or boundary.ROOT
+    if boundary.archive(root).exists():
+        return True, f"done ({boundary.archive(root).relative_to(root)} exists)"
+    if _run(["git", "-C", str(root), "rev-parse", "--verify", "-q",
+             boundary.NEXT_BRANCH]).returncode:
+        return False, f"branch {boundary.NEXT_BRANCH} is missing"
+    merge = _run(["git", "-C", str(root), "merge-tree", "--write-tree", "--name-only",
+                  "master", boundary.NEXT_BRANCH])
+    if merge.returncode == 0:
+        return True, f"{boundary.NEXT_BRANCH} merges cleanly into master"
+    files = [l for l in merge.stdout.splitlines()[1:] if l.strip()][:5]
+    return False, f"{boundary.NEXT_BRANCH} conflicts with master: {files}"
+
+
 CHECKS = (("docker", check_docker), ("cli-login", check_cli_login), ("cron", check_cron),
-          ("disk", check_disk), ("last-night", check_last_night), ("alert", check_alert))
+          ("disk", check_disk), ("last-night", check_last_night), ("alert", check_alert),
+          ("boundary", check_boundary))
 
 
 def checks():
