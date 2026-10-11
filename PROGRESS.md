@@ -2931,3 +2931,15 @@ built. See DECISIONS.local.md.
   306 MB, last-night 2026-10-11 ok, alert none, boundary: season2 merges cleanly).
 - **Tests:** 399 pass in 176.49 s. Under 5 minutes.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-11 build session (post-launch, fifth): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; tree clean at start.
+- **Gates:** P5 is still closed (`ls out/ablation_14`: no such directory). W week 3 is due
+  after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  306 MB, last-night 2026-10-11 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 399 pass in 202.33 s. Under 5 minutes, but this is the slowest run so far
+  (164–192 s in today's earlier sessions). Worth watching against the 5-minute line.
+- Repo root has no untracked files apart from this session's SESSION_ITEM. No code changed.
+  The backup restore still needs an interactive session.
