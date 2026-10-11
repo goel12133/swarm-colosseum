@@ -2882,3 +2882,9 @@ LAUNCH_STATUS no longer says "Nothing is public".
 - **Tests:** 399 pass in 164.29 s. Under 5 minutes.
 - The tree was clean at the start, with no WIP.md. No code changed. The backup restore
   still needs an interactive session.
+
+### SPEC-4 — stopped (safety classifier), 2026-10-11
+
+My response to the SPEC-4 brief was stopped by a safety classifier. Under the standing
+safety-stop rule, the item is stopped and written up, not rephrased; nothing from it was
+built. See DECISIONS.local.md.

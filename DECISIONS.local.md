@@ -174,3 +174,8 @@
     footer text, and the abstract-only sentence on the home page.
   - "Counters found unaided" has no data source here, so the figure is "house bots that
     beat the bot they were written to beat" (from the ledger).
+
+- 2026-10-11 (lead engineer) — SAFETY STOP: SPEC-4 (the Lab arena and mechanics queue) was
+  stopped by a safety classifier while I was responding to it. Under the standing rule it is
+  stopped as a whole, written up here, and not rephrased or retried in parts. Nothing from
+  it was built or committed. The founder decides what, if anything, replaces it.
