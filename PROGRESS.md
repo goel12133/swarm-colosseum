@@ -2888,3 +2888,9 @@ LAUNCH_STATUS no longer says "Nothing is public".
 My response to the SPEC-4 brief was stopped by a safety classifier. Under the standing
 safety-stop rule, the item is stopped and written up, not rephrased; nothing from it was
 built. See DECISIONS.local.md.
+
+### Products brief — stopped (safety classifier), 2026-10-11
+
+My response to the products brief was stopped by a safety classifier. Under the standing
+safety-stop rule, the item is stopped and written up, not rephrased; nothing from it was
+built. See DECISIONS.local.md.

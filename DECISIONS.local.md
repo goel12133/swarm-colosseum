@@ -179,3 +179,9 @@
   stopped by a safety classifier while I was responding to it. Under the standing rule it is
   stopped as a whole, written up here, and not rephrased or retried in parts. Nothing from
   it was built or committed. The founder decides what, if anything, replaces it.
+
+- 2026-10-11 (lead engineer) — SAFETY STOP: the products brief (datasets, packaged
+  environment, balance harness) was stopped by a safety classifier while I was responding to
+  it. Under the standing rule it is stopped as a whole, written up here, and not rephrased
+  or retried in parts. Nothing from it was built or committed. The founder decides what, if
+  anything, replaces it.
