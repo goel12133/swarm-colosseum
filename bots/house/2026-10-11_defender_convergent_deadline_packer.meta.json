@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-10-11",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [
+      "top_three"
+    ],
+    "included": [
+      "matrix (cut)"
+    ],
+    "used": 3000
+  },
+  "model": "opus",
+  "name": "2026-10-11_defender_convergent_deadline_packer",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-11T033320_cli_defender_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.65,
+    "rank": 3
+  },
+  "role": "defender",
+  "target": "field",
+  "tokens": {
+    "input": 7483,
+    "output": 7774
+  }
+}
