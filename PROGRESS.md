@@ -2894,3 +2894,19 @@ built. See DECISIONS.local.md.
 My response to the products brief was stopped by a safety classifier. Under the standing
 safety-stop rule, the item is stopped and written up, not rephrased; nothing from it was
 built. See DECISIONS.local.md.
+
+### 2026-10-11 build session (post-launch, second): W
+
+- **Alert:** out/ALERT.md none. Snapshot includes night 10-11 (league log: ok, 2 bots
+  accepted, 33,764 tokens, 347.1 s; 3,150 matches, 350 run, 2,800 from the cache).
+- **Gate:** W is open (`ls out/meta` shows WEEK_2.md). P5 is still closed (`ls out/ablation_14`:
+  no such directory). 3.13 and 3.14 are not due.
+- **W:** wrote `reports/FOUNDER_WEEK_2.md` (10 lines plus the week's safety stops). Sources:
+  out/meta/WEEK_2.md (tops, personas verbatim, tokens 283,487 week / 561,412 season, cache
+  89%, health), out/BALANCE.md (defenders 2113/3150 = 67%), the league log (ablation calls
+  10-11 05:01–05:15, 9 calls, 119,523 tokens summed), DECISIONS.local.md (stops). Build-session
+  token totals are not in the snapshot, and the report says so.
+- **Finding for the founder:** the S0-3 watch closed as a meta, but the defender lean grew
+  from 61.6% to 67%. That's asked as a yes/no in the report. Nothing is acted on.
+- **Tests:** 399 pass in 191.68 s. Under 5 minutes.
+- No code changed. BACKLOG W line and LAUNCH_STATUS updated.

@@ -25,9 +25,8 @@ Public since 2026-10-10: <https://pelennor.tech>. (s) = unattended build session
 <https://github.com/goel12133/swarm-colosseum>. Leak rescan clean, test PR green, nightly
 republish armed; details and gaps in reports/LAUNCH_DONE.md.
 
-**Build sessions (post-launch, 10-11, first today):** hygiene ok: health ok, 399 tests pass
-(164.29 s); 10-10 rebase conflict already resolved. P5 and W are waiting on their gates
-(ablation done-file; week-2 meta report after night 10-11).
+**Build sessions (post-launch, 10-11, second today):** W done: `reports/FOUNDER_WEEK_2.md`
+(next: week 3 after night 10-18). P5 is waiting on `out/ablation_14/done`.
 
 **Waiting on the founder:** nothing for launch. **3.8** is interactive-only and scheduled for
 the evening of Sat 2026-10-24; submissions stay closed until it passes. Item G was scrapped as

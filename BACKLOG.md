@@ -19,7 +19,7 @@ sessions in a row that don't merge is frozen and written up.
 | P3 | 3.8 runbook | — | done | `reports/RUNBOOK_3.8.md`; intake wired behind the fold-back switch (done) |
 | P4 | Season boundary | 2026-10-26, before that night's league | **armed** | `colosseum/boundary.py` from nightly.sh: final season report, freeze `seasons/S1/`, merge branch `season2` (candidate A + SEASON = 1 + season two dates), full suite; on failure master is untouched and that night's league is skipped with an alert. Health check `boundary` warns daily if `season2` stops merging cleanly. Not a session item |
 | P5 (s) | 14-night persona ablation → research/03, superseding the preliminary | `out/ablation_14/done` exists | waiting | the ablation session runs on its own from 10-11 |
-| W (s) | Weekly founder report, `reports/FOUNDER_WEEK_<n>.md` (charter "Reporting") | the week's meta report is written | next: week 2 after night 10-11 | |
+| W (s) | Weekly founder report, `reports/FOUNDER_WEEK_<n>.md` (charter "Reporting") | the week's meta report is written | week 2 done 2026-10-11; next: week 3 after night 10-18 | `reports/FOUNDER_WEEK_2.md` |
 | 3.13 (s) | `seasons/S2/WEEK1.md` | seven nights of season two (night 2026-11-01 committed) | waiting | |
 | 3.14 (s) | Submission dry run | 3.8 passed and the boundary done | waiting | |
 
