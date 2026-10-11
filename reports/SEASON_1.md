@@ -1,25 +1,25 @@
-# Season one — draft, 13 of 28 nights (2026-09-28 to 2026-10-10)
+# Season one — draft, 14 of 28 nights (2026-09-28 to 2026-10-11)
 
 The season ends 2026-10-26; every number below is from the nights so far and is rewritten when this report is rerun.
 
 ## The season in numbers
 
-- Nights: 13 of 28, none failed.
-- House bots written: 22 (9 attackers, 13 defenders); 22 still on the ladder, 0 retired. Rejected before the ladder: 6.
-- Matches: 18,490 in 13 nightly round-robins; 3,970 distinct results in the cache.
-- Tokens: 527,648.
+- Nights: 14 of 28, none failed.
+- House bots written: 24 (10 attackers, 14 defenders); 24 still on the ladder, 0 retired. Rejected before the ladder: 6.
+- Matches: 21,640 in 14 nightly round-robins; 4,320 distinct results in the cache.
+- Tokens: 561,412.
 
 ## Top of the ladders
 
-#1 attacker interleaved_shell_ring (h) (Elo 1240); #1 defender convergence_blast_scheduler (h) (Elo 1199).
+#1 attacker blast_proof_depth_interleave (h) (Elo 1332); #1 defender convergence_blast_scheduler (h) (Elo 1158).
 
 ## The five best ideas
 
-1. **interleaved_shell_ring (h)** (generalist, attacker): “Stage all thirty strikers on a slowly rotating three-shell ring, then release them together so they arrive in one wave in which no two strikers ever come within two blast radii of each other.” #1 attacker, Elo 1240, wins 72%.
-2. **convergence_blast_scheduler (h)** (counter_meta, defender): “Hold the interceptor magazine until a synchronized ring has squeezed itself so tight that neighbouring strikers sit inside one blast radius, then fire on an earliest-deadline schedule so each interceptor kills two or three strikers instead of one.” #1 defender, Elo 1199, wins 93%.
-3. **synchronized_ring (h)** (counter_meta, attacker): “Park every striker just outside the defender's identification gate, spread evenly round a ring, then release them together so the launch cap and the magazine run out before the ring does.” #2 attacker, Elo 1162, wins 74%.
-4. **deadline_cluster_ledger (h)** (generalist, defender): “Earliest-deadline backscheduling on a worst-case "rush now" clock, filling each forced launch with the confirmed striker whose predicted blast point catches the most other uncovered strikers, and ignoring every unidentified track outside id range.” #2 defender, Elo 1108, wins 82%.
-5. **depth_shell_saturation (h)** (counter_meta, attacker): “Park all 30 strikers just outside gun range in three interleaved depth shells, then release them on one tick so that no two strikers ever share a blast radius and every interceptor kills at most one.” #3 attacker, Elo 1106, wins 41%.
+1. **blast_proof_depth_interleave (h)** (counter_meta, attacker): “Park all 30 strikers motionless on a far staging ring where the scheduler ignores them, then dive in two interleaved shells offset 12 units in depth, so the ring converges with every pair of strikers more than one blast radius apart yet all of them arrive within a three-tick window.” #1 attacker, Elo 1332, wins 88%.
+2. **convergence_blast_scheduler (h)** (counter_meta, defender): “Hold the interceptor magazine until a synchronized ring has squeezed itself so tight that neighbouring strikers sit inside one blast radius, then fire on an earliest-deadline schedule so each interceptor kills two or three strikers instead of one.” #1 defender, Elo 1158, wins 88%.
+3. **synchronized_ring (h)** (counter_meta, attacker): “Park every striker just outside the defender's identification gate, spread evenly round a ring, then release them together so the launch cap and the magazine run out before the ring does.” #2 attacker, Elo 1187, wins 75%.
+4. **cluster_blast_column_breaker (h)** (exploiter, defender): “Treat a single-bearing stream as one target, and spend each interceptor on whichever track has the most uncovered threat inside its blast radius.” #2 defender, Elo 1151, wins 78%.
+5. **interleaved_shell_ring (h)** (generalist, attacker): “Stage all thirty strikers on a slowly rotating three-shell ring, then release them together so they arrive in one wave in which no two strikers ever come within two blast radii of each other.” #3 attacker, Elo 1186, wins 70%.
 
 ## Rules findings
 
@@ -41,7 +41,7 @@ Details in BALANCE.md.
 
 ## Coverage at the end
 
-- 14 attackers × 20 defenders, 10 seeds a pairing.
+- 15 attackers × 21 defenders, 10 seeds a pairing.
 - Defenders nobody gets through: none.
 - Attackers no defender stops: none.
 - Unique coverage: none.
