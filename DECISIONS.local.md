@@ -185,3 +185,11 @@
   it. Under the standing rule it is stopped as a whole, written up here, and not rephrased
   or retried in parts. Nothing from it was built or committed. The founder decides what, if
   anything, replaces it.
+
+- 2026-10-11 (lead engineer) — re-theme brief. Its last step asks for SPEC-4 and the products
+  brief, both stopped by a safety classifier today, to be re-issued in new vocabulary as my
+  own rewrites. Declined: the standing safety-stop rule says a stopped item is not rephrased
+  to get past the stop, and renaming the pieces doesn't change what those items would build.
+  The re-theme itself is held, not started: as briefed, it is the first step of that
+  re-issue. If the founder wants a new skin for its own sake, it can be decided separately;
+  until then season two ships at the boundary as already prepared.
