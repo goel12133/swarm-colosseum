@@ -3132,3 +3132,16 @@ built. See DECISIONS.local.md.
   see the P5 gate open. The log shows 05:00 cli calls on 10-11 (9) and 10-12 (4), which fit
   the ablation session running. Worth checking what the wrapper copies into out/.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-12 build session (post-launch, ninth of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/ablation_14`: no such file or directory). W week 3 is
+  due after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  302 MB, last-night 2026-10-12 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 399 pass in 175.00 s (194.28 s last session).
+- **Snapshot:** `ls out/` lists no house_raw and no ablation_14 directory, so the open
+  question from the eighth session about what the wrapper copies still stands.
+- No code changed. The backup restore still needs an interactive session.
