@@ -1,13 +1,13 @@
-# Season one — draft, 14 of 28 nights (2026-09-28 to 2026-10-11)
+# Season one — draft, 15 of 28 nights (2026-09-28 to 2026-10-12)
 
 The season ends 2026-10-26; every number below is from the nights so far and is rewritten when this report is rerun.
 
 ## The season in numbers
 
-- Nights: 14 of 28, none failed.
-- House bots written: 24 (10 attackers, 14 defenders); 24 still on the ladder, 0 retired. Rejected before the ladder: 6.
+- Nights: 15 of 28, none failed.
+- House bots written: 24 (10 attackers, 14 defenders); 24 still on the ladder, 0 retired. Rejected before the ladder: 8.
 - Matches: 21,640 in 14 nightly round-robins; 4,320 distinct results in the cache.
-- Tokens: 561,412.
+- Tokens: 619,028.
 
 ## Top of the ladders
 
