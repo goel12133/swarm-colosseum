@@ -3145,3 +3145,16 @@ built. See DECISIONS.local.md.
 - **Snapshot:** `ls out/` lists no house_raw and no ablation_14 directory, so the open
   question from the eighth session about what the wrapper copies still stands.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-12 build session (post-launch, tenth of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/` lists no ablation_14). W week 3 is due after night
+  10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  302 MB, last-night 2026-10-12 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 399 pass in 181.39 s (175.00 s last session).
+- **Snapshot:** still no house_raw and no ablation_14 in `ls out/`; the question of what the
+  wrapper copies is unchanged.
+- No code changed. The backup restore still needs an interactive session.
