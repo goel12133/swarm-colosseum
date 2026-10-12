@@ -3044,3 +3044,19 @@ built. See DECISIONS.local.md.
   founder or the interactive session: read out/house_raw/2026-10-12T033145_* and
   2026-10-12T033504_*. If it happens again tonight it's a pattern, not noise.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-12 build session (post-launch, third of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/ablation_14`: no such file or directory). W week 3 is
+  due after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  302 MB, last-night 2026-10-12 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 399 pass in 210.75 s. Still under 5 minutes, but the slowest run so far in
+  this stretch (167.83 to 202.33 s across the last ten sessions). If it passes about 270 s,
+  the charter's rule applies: mark the slow tests and run them nightly.
+- **Night 10-12:** nothing new to add. out/house_raw/ is not in this snapshot (`ls
+  out/house_raw`: no such file or directory), so the two "no code block" replies are still
+  unread. Tonight's night (10-13) will show whether it repeats.
+- No code changed. The backup restore still needs an interactive session.
