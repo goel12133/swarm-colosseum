@@ -3103,3 +3103,15 @@ built. See DECISIONS.local.md.
 - **Night 10-12:** unchanged. `ls out/house_raw` still says no such file or directory, so
   the two "no code block" replies remain unread; night 10-13 will show whether it repeats.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-12 build session (post-launch, seventh of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/ablation_14`: no such file or directory). W week 3 is
+  due after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  302 MB, last-night 2026-10-12 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 399 pass in 206.85 s (207.83 s last session). Still under the ~270 s mark.
+- **Night 10-12:** unchanged; `ls out/house_raw` still says no such file or directory.
+- No code changed. The backup restore still needs an interactive session.
