@@ -1,17 +1,19 @@
-# Daily — 2026-10-12 (post-launch build session, first of the day: hygiene)
+# Daily — 2026-10-12 (post-launch build session, second of the day: hygiene)
 
-**Night 10-11:** ok. 2 bots accepted, 33,764 tokens, 347.1 s (2,800 of 3,150 matches from
-the cache). Top attacker: `blast_proof_depth_interleave` (Elo 1332). Top defender:
-`convergence_blast_scheduler`. Night 10-12 isn't in this session's snapshot yet.
+**Night 10-12:** status ok, but **no bots written**. Both calls returned "no code block"
+(attacker reply 299 chars, defender reply 381 chars), 57,616 tokens, tournament not rerun.
+Single-side rejections like this happened on 10-01, 10-02, 10-05 and 10-07. This is the
+first night with both sides rejected. Top attacker is still `blast_proof_depth_interleave`
+and top defender `convergence_blast_scheduler`.
 **Alert:** none.
-**Done:** hygiene. `health` all seven ok (disk 23% used, out/ 306 MB; season2 merges
-cleanly). 399 tests pass in 187.49 s. No code changed.
+**Done:** hygiene. `health` all seven ok (disk 23% used, out/ 302 MB; season2 merges
+cleanly). 399 tests pass in 195.05 s. Wrote up night 10-12. No code changed.
 
-**Next:** P5 once `out/ablation_14/done` exists. The directory itself is still missing,
-although the 05:00 ablation session made calls on 10-11. Worth a look if it isn't there
-tomorrow. W week 3 after night 10-18. 3.13 after night 11-01. 3.14 after 3.8 and the
-boundary. This is the eleventh empty session in a row: pausing build sessions until a gate
-opens would cost nothing.
+**Next:** P5 once `out/ablation_14/done` exists (directory still missing). W week 3 after
+night 10-18. 3.13 after night 11-01. 3.14 after 3.8 and the boundary.
+**Worth a look:** the raw replies in out/house_raw/2026-10-12T0331* and T0335* (not in my
+snapshot). If they are refusals, leave them alone per the standing rule. If it repeats tonight,
+it's a pattern.
 **Waiting on you:** the yes/no lines in `reports/FOUNDER_WEEK_2.md`, and whether you want a
 re-theme for its own sake (it's held).
 **Open stops:** SPEC-4 and the products brief were stopped by a classifier, and the re-theme

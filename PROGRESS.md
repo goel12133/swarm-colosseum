@@ -3022,3 +3022,25 @@ built. See DECISIONS.local.md.
 - No code changed. The backup restore still needs an interactive session.
 - Eleventh hygiene-only session in a row. Nothing in scope can start until the P5 marker
   appears or night 10-18 is in.
+
+### 2026-10-12 build session (post-launch, second of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/ablation_14`: no such file or directory). W week 3 is
+  due after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  302 MB, last-night 2026-10-12 ok, alert none, boundary: season2 merges cleanly).
+- **Tests:** 399 pass in 195.05 s. Under 5 minutes.
+- **Night 10-12 wrote no bots (written up, not worked on).** The log shows both calls
+  rejected with "model returned no code block": attacker (generalist) reply 299 chars from
+  8,323 output tokens, defender (contrarian vs `blast_proof_depth_interleave`) reply 381 chars
+  from 17,264 output tokens; 57,616 tokens, tournament not rerun, status ok, so no alert.
+  out/nights.jsonl shows one-sided "no code block" rejections on 10-01, 10-02, 10-05 and
+  10-07; 10-12 is the first night with both sides rejected. The raw replies
+  (out/house_raw/) are not in this snapshot, so I can't tell whether these were refusals,
+  truncation or a format slip. The generator is outside this session's scope, and if the
+  replies are safety refusals the standing rule says not to rephrase around them. For the
+  founder or the interactive session: read out/house_raw/2026-10-12T033145_* and
+  2026-10-12T033504_*. If it happens again tonight it's a pattern, not noise.
+- No code changed. The backup restore still needs an interactive session.
