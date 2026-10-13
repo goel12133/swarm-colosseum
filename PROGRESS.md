@@ -3194,3 +3194,19 @@ built. See DECISIONS.local.md.
   left alone, not rephrased; flagged for the founder.
 - **Tests:** 399 pass in 218.42 s (187.06 s last session).
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-13 build session (post-launch, third of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/ablation_14`: no such file or directory). W week 3 is
+  due after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  313 MB, last-night 2026-10-13 ok, alert none, boundary: season2 merges cleanly).
+- **Night 10-13:** nothing new since the second session; written up there.
+- **Contrarian defender pattern:** `ls out/house_raw` still: no such file or directory, so
+  the two short no-code replies (10-12, 10-13) remain unread. Left alone per the standing rule.
+- **Tests:** 399 pass in 274.78 s (218.42 s last session). Still under the five-minute
+  hygiene limit, but within 26 s of it; the last six sessions ran 175–222 s. If a session
+  goes over 300 s, the slow tests get marked and moved to the nightly run (charter section 4).
+- No code changed. The backup restore still needs an interactive session.
