@@ -48,7 +48,8 @@ ALLOWLIST_SHA = "scripts/daily_allowlist.sha256"
 LEAGUE_AUTHOR = ["-c", "user.name=Swarm Colosseum league", "-c", "user.email=league@localhost"]
 OUT_COPY = ("leaderboard.json", "matrix.json", "BALANCE.md", "breaches.json", "nights.jsonl",
             "WATCH.md", "watch.jsonl", "house_history.json", "replays", "history", "cache",
-            "meta")
+            "meta",
+            "ablation_14/done")     # P5's gate: only the marker, not the ablation's evidence
 
 
 # Launch sprint (founder, 2026-10-04): unattended sessions take the mechanical sprint items.
@@ -190,6 +191,7 @@ def copy_out(src: Path, dest: Path):
             continue
         if d.exists():
             shutil.rmtree(d) if d.is_dir() else d.unlink()
+        d.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(s, d) if s.is_dir() else shutil.copy2(s, d)
 
 

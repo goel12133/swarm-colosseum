@@ -1,4 +1,4 @@
-# Launch status — sprint day 6 (2026-10-09), target day 10 = 2026-10-13: all 16 done
+# Launch status — sprint complete (16 of 16, 2026-10-08); launched 2026-10-10
 
 Public since 2026-10-10: <https://pelennor.tech>. (s) = unattended build session; (h) = lead engineer, interactive.
 
@@ -9,7 +9,7 @@ Public since 2026-10-10: <https://pelennor.tech>. (s) = unattended build session
 | L3 | persona ablation, early cut (h) | done | prelim, 5 nights: no measurable difference; 14-night rerun: own 05:00 session from night 14, ~3 slots a night under the cap |
 | L4 | annealing ablation (h) | done | superseded by 3.5 (11 nights, 2026-10-10): optimiser ahead vs 9 of 14 attackers, mean +0.037 (CI includes 0), one attacker breaks it |
 | L5 | `make reproduce` (h) | done | fresh clone: REPRODUCED in 364 s |
-| L6 | site redesign (s) | done | home page (intro, start-here, top 5s, research); full ladders on ladders.html; research/ as pages |
+| L6 | site redesign (s) | done | superseded 2026-10-11 by the founder's reference design (replay channel, ladders with movement, recap, changelog), live on pelennor.tech |
 | L7 | five clips, mp4 + gif (s) | done | `colosseum.clip --showcase`: 5 captioned clips, 1x, each ≤0.21 MB; render on live out/ once |
 | L8 | README, CITATION, CONTRIBUTING, licences (s) | done | Apache-2.0 (code) + CC BY 4.0 (replays, research): LICENSE, LICENSE-CC-BY-4.0, LICENSING.md, CITATION, site footer |
 | L9 | submissions via PR + workflow (s) | done | PR adds `bots/submitted/pr/<login>/<NAME>.py`; CI check is static only (never runs the bot); `submit_pr intake` = sandbox gate after merge; not run on GitHub yet |
@@ -17,7 +17,7 @@ Public since 2026-10-10: <https://pelennor.tech>. (s) = unattended build session
 | L11 | secret and history audit (h) | done | no secrets; hostname rewritten in the publish clone (approved), live repo untouched |
 | L12 | workshop README for teachers (s) | done | `workshop/TEACHERS.md`: who it's for, needs, files in order, 3-step setup, safety; linked from README |
 | L13 | one-page summary (h) | done | research/00_summary.md, 520 words; on the site as research/00_summary.html |
-| L14 | season report draft (h) | done | rewritten every night by after-night (draft until night 28, then final with clips, committed); now 12 of 28 |
+| L14 | season report draft (h) | done | rewritten and committed every night by after-night; draft until night 28, then final with clips (the nights so far: first line of reports/SEASON_1.md) |
 | L15 | full rehearsal on a scratch clone (h) | done | `scripts/rehearse.sh`: 10 of 10 steps ok, 36 min; 56 screenshots in out/launch_screens/ |
 | L16 | LAUNCH_READY.md (h) | done | reports/LAUNCH_READY.md: what is ready, screenshots, launch-day order, 5 gaps |
 
@@ -28,8 +28,13 @@ republish armed; details and gaps in reports/LAUNCH_DONE.md.
 **Build sessions (post-launch, 10-13, sixth today):** hygiene: health all ok, 399 tests pass (239 s).
 Night 10-13 ok: 1 attacker accepted (rank 7). The contrarian defender returned no code block
 for the second night in a row (same target). W done: `reports/FOUNDER_WEEK_2.md` (next: week 3
-after night 10-18). P5 is waiting on `out/ablation_14/done` (missing; the snapshot may not copy it).
+after night 10-18). P5 is waiting on `out/ablation_14/done`: the ablation is 20 of 28 slots in (nights 09-29 to 10-08) and
+should finish on the 10-14 or 10-15 morning run. The build session's snapshot now carries that
+marker (it didn't before, so P5 could never have opened; fixed 10-13).
 
 **Waiting on the founder:** nothing for launch. **3.8** is interactive-only and scheduled for
 the evening of Sat 2026-10-24; submissions stay closed until it passes. Item G was scrapped as
 a prompt rewrite; its content-check half is done and the prompt stays 2026-10-03.1.
+
+**Stopped or held (DECISIONS.local.md, 10-11):** SPEC-4 (Lab arena) and the products brief
+were stopped by a safety classifier and are not started; the re-theme is held. Yours to decide.

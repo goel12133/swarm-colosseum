@@ -210,3 +210,16 @@ def test_the_protected_list_covers_publishing_auditing_and_the_sandbox():
     for path in ("scripts/publish.sh", "scripts/audit_secrets.py", "colosseum/foldback.py",
                  "colosseum/sandbox.py", "colosseum/ops.py", "colosseum/rules.py", ".github/"):
         assert path in daily.PROTECTED, path
+
+
+def test_the_snapshot_carries_p5s_gate_but_not_the_ablation_evidence(tmp_path):
+    """Regression (2026-10-13): out/ablation_14/done was never copied, so P5 could not open."""
+    src, dest = tmp_path / "out", tmp_path / "snap"
+    (src / "ablation_14" / "evidence").mkdir(parents=True)
+    (src / "ablation_14" / "done").write_text("2026-10-15\n")
+    (src / "ablation_14" / "evidence" / "big.json").write_text("{}")
+    daily.copy_out(src, dest)
+    assert (dest / "ablation_14" / "done").read_text() == "2026-10-15\n"
+    assert not (dest / "ablation_14" / "evidence").exists()
+    daily.copy_out(src, dest)                      # a second copy replaces, doesn't fail
+    assert (dest / "ablation_14" / "done").exists()

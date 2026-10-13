@@ -3255,3 +3255,13 @@ built. See DECISIONS.local.md.
   two short no-code replies remain unread and are left alone per the standing rule.
 - **Tests:** 399 pass in 239.37 s (231.30 s last session), under the 300 s limit.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-13, lead engineer: P5's gate was invisible to build sessions; LAUNCH_STATUS refreshed
+
+The daily wrapper copies a fixed list of `out/` entries into the session's snapshot, and
+`out/ablation_14/` wasn't on it, so a session could never see `done` and P5 would never have
+opened. The snapshot now carries just that marker, not the ablation's evidence (regression
+test in test_daily). The ablation itself is fine: 20 of 28 slots in (nights 09-29 to 10-08),
+each 05:00 run stopping cleanly at its budget. It should finish on the 10-14 or 10-15 run,
+re-render research/03 and commit it. LAUNCH_STATUS: header, L6 and L14 brought up to date, and
+the three stopped or held items are now on the dashboard.
