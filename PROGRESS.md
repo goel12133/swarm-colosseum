@@ -3158,3 +3158,19 @@ built. See DECISIONS.local.md.
 - **Snapshot:** still no house_raw and no ablation_14 in `ls out/`; the question of what the
   wrapper copies is unchanged.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-13 build session (post-launch, first of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/` lists no ablation_14). W week 3 is due after night
+  10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  302 MB, last-night 2026-10-12 ok, alert none, boundary: season2 merges cleanly).
+- **Night 10-13:** not in the snapshot. `health` reports last-night 2026-10-12 and
+  out/nights.jsonl has no 2026-10-13 line, so I can say nothing about it yet.
+- **Tests:** 399 pass in 187.06 s (181.39 s last session).
+- **Snapshot:** still no house_raw and no ablation_14 in `ls out/`. Every build session in
+  `git log` since 10-11 (seventh), 15 counting this one, was hygiene-only on this question; until someone checks what the
+  wrapper copies into out/, these sessions cannot reach P5.
+- No code changed. The backup restore still needs an interactive session.
