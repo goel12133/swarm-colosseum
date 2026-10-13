@@ -3265,3 +3265,19 @@ test in test_daily). The ablation itself is fine: 20 of 28 slots in (nights 09-2
 each 05:00 run stopping cleanly at its budget. It should finish on the 10-14 or 10-15 run,
 re-render research/03 and commit it. LAUNCH_STATUS: header, L6 and L14 brought up to date, and
 the three stopped or held items are now on the dashboard.
+
+### 2026-10-13 build session (post-launch, seventh of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** SESSION_ITEM was written as P5 first, on the strength of the lead engineer's
+  commit, then `ls out/ablation_14` printed no such file or directory, so P5's gate is still
+  closed (the snapshot now carries the marker once it exists; the ablation hasn't finished).
+  No P5 work done; hygiene added as the session's item. W week 3 is due after night 10-18.
+  3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  313 MB, last-night 2026-10-13 ok, alert none, boundary: season2 merges cleanly).
+- **Night 10-13:** nothing new since the second session.
+- **Tests:** 400 pass in 210.20 s (one more than last session: the lead engineer's snapshot
+  regression test in test_daily), under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session.
