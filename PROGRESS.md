@@ -3294,3 +3294,16 @@ the three stopped or held items are now on the dashboard.
 - **Night 10-13:** nothing new since the second session.
 - **Tests:** 400 pass in 202.47 s, under the 300 s limit.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-13 build session (post-launch, ninth of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** SESSION_ITEM written as P5 first; `ls out/ablation_14` printed no such file or
+  directory, so P5's gate is still closed. Hygiene added as the session's item. W week 3 is
+  due after night 10-18; 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  313 MB, last-night 2026-10-13 ok, alert none, boundary: season2 merges cleanly).
+- **Night 10-13:** nothing new since the second session.
+- **Tests:** 400 pass in 188.49 s, under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session.
