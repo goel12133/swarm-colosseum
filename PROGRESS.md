@@ -3241,3 +3241,17 @@ built. See DECISIONS.local.md.
   two short no-code replies remain unread and are left alone per the standing rule.
 - **Tests:** 399 pass in 231.30 s (216.21 s last session), under the 300 s limit.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-13 build session (post-launch, sixth of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/ablation_14`: no such file or directory). W week 3 is
+  due after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  313 MB, last-night 2026-10-13 ok, alert none, boundary: season2 merges cleanly).
+- **Night 10-13:** nothing new since the second session.
+- **Contrarian defender pattern:** `ls out/house_raw` still: no such file or directory; the
+  two short no-code replies remain unread and are left alone per the standing rule.
+- **Tests:** 399 pass in 239.37 s (231.30 s last session), under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session.
