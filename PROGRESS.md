@@ -3174,3 +3174,23 @@ built. See DECISIONS.local.md.
   `git log` since 10-11 (seventh), 15 counting this one, was hygiene-only on this question; until someone checks what the
   wrapper copies into out/, these sessions cannot reach P5.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-13 build session (post-launch, second of the day): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** P5 still closed (`ls out/ablation_14`: no such file or directory). W week 3 is
+  due after night 10-18. 3.13 and 3.14 are not due.
+- **health:** all seven ok (docker, cli-login, cron, disk 23% used / 159 GB free / out/
+  313 MB, last-night 2026-10-13 ok, alert none, boundary: season2 merges cleanly).
+- **Night 10-13:** now in the snapshot (one line in out/nights.jsonl). From the league log:
+  attacker (generalist vs field) `column_free_tiered_ring_dive` accepted, rank 7, Elo 976.2,
+  field mean 0.411; defender (contrarian vs `blast_proof_depth_interleave`) rejected, "model
+  returned no code block" (322-char reply). 3360 matches in 76.3 s, 210 sandboxed, 3150
+  cached. Tops unchanged: `blast_proof_depth_interleave`, `convergence_blast_scheduler`.
+- **Pattern:** the contrarian defender call against that same target returned a short reply
+  with no code two nights running (10-12: 381 chars, 10-13: 322 chars). I cannot read
+  out/house_raw (not in the snapshot). If these are refusals, per the standing rule they are
+  left alone, not rephrased; flagged for the founder.
+- **Tests:** 399 pass in 218.42 s (187.06 s last session).
+- No code changed. The backup restore still needs an interactive session.
