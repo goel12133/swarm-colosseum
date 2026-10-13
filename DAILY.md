@@ -1,4 +1,4 @@
-# Daily — 2026-10-13 (post-launch build session, ninth of the day: hygiene)
+# Daily — 2026-10-13 (post-launch build session, tenth of the day: hygiene)
 
 **Night 10-13:** ok. The generalist attacker `column_free_tiered_ring_dive` was accepted
 (rank 7, Elo 976.2). The contrarian defender was rejected: no code block in a 322-char reply.
@@ -6,12 +6,11 @@
 and `convergence_blast_scheduler`.
 **Alert:** none.
 **Done:** hygiene. `health` all seven ok (disk 23% used, out/ 313 MB; season2 merges
-cleanly). 400 tests pass in 188.49 s. No code changed. I took P5 first, but
-`out/ablation_14/done` isn't there yet (the ablation is still running), so no P5 work.
+cleanly). 400 tests pass in 186.61 s. No code changed. I took P5 first, but
+`out/ablation_14/done` isn't in my snapshot yet, so no P5 work.
 
-**Next:** P5 once the ablation writes `done` (expected after the 10-14 or 10-15 run; the
-snapshot now carries the marker). W week 3 after night 10-18. 3.13 after night 11-01.
-3.14 after 3.8 and the boundary.
+**Next:** P5 once the ablation writes `done` (expected after the 10-14 or 10-15 run).
+W week 3 after night 10-18. 3.13 after night 11-01. 3.14 after 3.8 and the boundary.
 **Worth a look:** the contrarian defender against `blast_proof_depth_interleave` returned
 short replies with no code two nights running. out/house_raw isn't in my snapshot, so I
 can't read them. If they're refusals, leave them alone (standing rule); a different target
