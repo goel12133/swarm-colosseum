@@ -1,15 +1,11 @@
-# Daily — 2026-10-14 (post-launch build session: P5 done, hygiene)
+# Daily — 2026-10-14 (post-launch build session, third: hygiene)
 
 **Night 10-14:** ok. One exploiter defender was accepted (`parked_hover_ring_doublecover`, rank 3,
 Elo 1119.1, beat its target). The contrarian attacker returned no code block. Tops are unchanged.
 **Alert:** none.
-**Done:** **P5.** The persona ablation finished and committed research/03. I checked it: the run
-covers 13 persona nights (09-28 had no personas), and the persona-arm counts match the league record.
-The generalist arm is as generated, because its result.json isn't in my snapshot. I fixed one bug:
-the page said "preliminary" near the top, so the site would have labelled the final run that way.
-The result: personas made bots **no stronger** (mean 0.574 vs 0.578, top fives 10 vs 10). They gave
-a small edge in narrow coverage (3 vs 0), which is a hint, not proof. research/00 is updated.
-Hygiene: `health` all seven ok. 401 tests pass in 182.65 s.
+**Done:** hygiene only; nothing else is open. `health` all seven ok (disk 24%, season2 merges
+cleanly). 401 tests pass in 204.15 s. P5 (persona ablation) was finished earlier today:
+personas made bots no stronger (mean 0.574 vs 0.578), a small hint of narrower coverage (3 vs 0).
 
 **Next:** W week 3 after night 10-18. 3.13 after night 11-01. 3.14 after 3.8 and the boundary.
 **Worth a look:** contrarian slots keep returning short replies with no code: the defender on

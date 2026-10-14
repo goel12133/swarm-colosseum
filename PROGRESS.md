@@ -3366,3 +3366,14 @@ the three stopped or held items are now on the dashboard.
 - **Night 10-14:** ok. 1 defender accepted (`parked_hover_ring_doublecover`, exploiter, rank 3,
   Elo 1119.1, beat its target); the contrarian attacker returned no code block (251 chars).
 - **Tests:** 401 pass in 182.65 s, under the 300 s limit.
+
+### 2026-10-14 build session (post-launch, third): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** W week 3 closed (`ls out/meta`: WEEK_1, WEEK_2, SEASON_1 only); 3.13 (night
+  11-01) and 3.14 (3.8 + boundary) not due. P5 done earlier today. Only hygiene is open.
+- **Hygiene:** `health`: all seven ok (disk 24% used, 158 GB free, out/ 323 MB, last-night
+  2026-10-14 ok, alert none, season2 merges cleanly). Repo root: no stray files (`ls -a`).
+- **Tests:** 401 pass in 204.15 s, under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session.
