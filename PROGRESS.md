@@ -3388,3 +3388,15 @@ the three stopped or held items are now on the dashboard.
   2026-10-14 ok, alert none, season2 merges cleanly). Repo root: no stray files (`ls -la`).
 - **Tests:** 401 pass in 211.94 s, under the 300 s limit.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-14 build session (post-launch, fifth): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** W week 3 closed (`ls out/meta`: WEEK_1, WEEK_2, SEASON_1 only); 3.13 (night
+  11-01) and 3.14 (3.8 + boundary) not due. Only hygiene is open.
+- **Hygiene:** `health`: all seven ok (disk 24% used, 158 GB free, out/ 323 MB, last-night
+  2026-10-14 ok, alert none, season2 merges cleanly). Repo root: no untracked files
+  (`git status --ignored`: only caches, out/ and SESSION_ITEM, all ignored).
+- **Tests:** 401 pass in 217.12 s, under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session.
