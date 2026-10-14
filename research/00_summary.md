@@ -31,9 +31,10 @@ record, about 408,000 model tokens.
    led to a tested, measured rules change for season two. ([02](02_balance_findings.md))
 3. **Two modest results, reported as found.** A joint optimiser beat a greedy pick using the
    same value model against 9 of 14 attackers, but its average lead is small and uncertain
-   and one attacker breaks it ([04](04_annealed_defenders.md)); and writing bots through four
-   personas did no measurably better than writing them all one way
-   ([03](03_persona_ablation.md), preliminary).
+   and one attacker breaks it ([04](04_annealed_defenders.md)). Over 13 nights, writing bots
+   through four personas made them no stronger than writing them all as a generalist (mean
+   score 0.574 vs 0.578, 10 top-five places each), with a small edge in narrow coverage
+   (3 opponents only its bots beat, vs 0) ([03](03_persona_ablation.md)).
 
 **What is honest about its limits.** The discoveries are *directed* search: the persona that
 found them was handed its target's source code. A plain generalist found the first one too,
@@ -44,7 +45,7 @@ defenders currently win about two matches in three, a lean the league is being g
 answer. And it is a game. Nothing here describes, models or predicts any real system.
 
 **What is next.** Season two (from 2026-10-26) makes identification take time and sometimes
-be wrong, so that deception matters. A full 14-night persona comparison starts on 2026-10-11. A
+be wrong, so that deception matters. A
 90-minute workshop lets first-time Python students write and test a bot on their own laptop,
 and outside submissions open through pull requests on 2026-10-24, once the sandbox has
 been reviewed.

@@ -142,14 +142,20 @@ def retired_share(nights):
 
 def render(result: dict) -> str:
     """The page, from result.json only: a table and the standing caveats. No narrative is
-    generated; the preliminary write-up's narrative stays in git history."""
+    generated; the early cut's narrative stays in git history. The status word the site
+    looks for (site.paper_info) must not appear near the top: this is the final run."""
     p, g, n = result["persona"], result["generalist"], result["nights"]
     rr, rn = result.get("retired_persona", (0, 0))
     return f"""# 03 · Does persona diversity help? ({len(n)}-night run)
 
 *Generated automatically from `out/ablation_14/result.json` after real night 14. Nights
-{n[0]} to {n[-1]}, {result['slots']} generator slots per arm, 10 seeds per pairing. The
-five-night preliminary write-up, with its worked example, is in this file's git history.*
+{n[0]} to {n[-1]} (every persona night among the league's first 14), {result['slots']}
+generator slots per arm, 10 seeds per pairing. The five-night early cut, with its worked
+example, is in this file's git history.*
+
+**Bottom line:** persona mix vs all-generalist: mean score {p['mean_score']} vs
+{g['mean_score']}, top-five places {len(p['top_five'])} vs {len(g['top_five'])}, unique
+coverage held in at least 8 of 10 seeds {p['unique_coverage_8']} vs {g['unique_coverage_8']}.
 
 **The test.** Every slot the real league filled was refilled by the *generalist* persona
 from the same evidence snapshot, through the same generator, validation and sandbox smoke

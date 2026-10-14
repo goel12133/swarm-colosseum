@@ -211,6 +211,18 @@ def test_the_ablation_page_renders_from_the_result_alone():
                            slots=26, real_league=dict(written=22, slots=26),
                            generation=dict(written=24, calls=26), retired_persona=[3, 22]))
     assert "(2-night run)" in text and "22 / 26" in text and "3 of 22" in text
+    # Regression (2026-10-14): the page said "preliminary" in its header, so the site
+    # (paper_info) labelled the final run preliminary.
+    assert "preliminary" not in text[:600].lower()
+    assert "**Bottom line:**" in text
+
+
+def test_the_committed_persona_page_is_the_final_run():
+    from pathlib import Path
+    from colosseum import site
+    page = Path(__file__).resolve().parents[1] / "research" / "03_persona_ablation.md"
+    assert "preliminary" not in page.read_text().lower()
+    assert site.paper_info(page)["status"] == "final"
 
 
 def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeypatch):
