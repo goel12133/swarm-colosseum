@@ -3334,3 +3334,35 @@ the three stopped or held items are now on the dashboard.
   last-night reads 10-13).
 - **Tests:** 400 pass in 192.93 s, under the 300 s limit.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-14 build session (post-launch, second): P5 done, then hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **P5 gate open:** `ls out/ablation_14` printed `done` (contents `2026-10-14`). The ablation
+  session committed research/03 at af47f5c.
+- **Check, numbers:** the run covers 13 nights (09-29 to 10-11), not 14, because the first 14
+  league nights in out/nights.jsonl start on 09-28, which ops.ablation_session drops (before
+  `ABLATION_FROM`, no personas). That's consistent; the page now says so. The persona arm's
+  "22 / 26" and "0 of 22 retired" match the record: 22 house bots dated 09-29..10-11 (none in
+  RETIRED) plus 4 rejected slots in nights.jsonl on those nights. The generalist arm's numbers
+  and the tournament figures come from out/ablation_14/result.json, which the snapshot does
+  not carry (only the `done` marker), so I could not recheck them; they are as generated.
+- **Check, wording (bug):** the header said "five-night preliminary write-up". site.paper_info
+  marks a paper "preliminary" if that word is in its first 600 characters, so the site would
+  have labelled the final run preliminary. Changed to "early cut" in both the render template
+  (scripts/ablation_personas.py) and the committed page. I added a `**Bottom line:**` (numbers
+  only, which the site uses as the summary) and a hand-written "What it says" paragraph: no
+  difference in strength (mean 0.574 vs 0.578, top fives 10 vs 10); narrow unique coverage
+  3 vs 0 at ≥ 8 of 10 seeds, about one bot's worth, so a hint and not proof. The reading is
+  hand-added and isn't in render(); render won't rerun now that `done` exists.
+  research/00_summary.md: "preliminary" and the stale "starts on 2026-10-11" sentence
+  replaced with the result.
+- **Tests:** two regressions in tests/test_ops.py: the rendered header has no "preliminary"
+  and has a bottom line; the committed page reads as `final` via site.paper_info.
+- **Hygiene:** W week 3 gate closed (`ls out/meta`: WEEK_1, WEEK_2, SEASON_1 only); 3.13
+  and 3.14 not due. `health`: all seven ok (disk 24% used, 158 GB free, out/ 323 MB,
+  last-night 2026-10-14 ok, alert none, season2 merges cleanly).
+- **Night 10-14:** ok. 1 defender accepted (`parked_hover_ring_doublecover`, exploiter, rank 3,
+  Elo 1119.1, beat its target); the contrarian attacker returned no code block (251 chars).
+- **Tests:** 401 pass in 182.65 s, under the 300 s limit.
