@@ -1,11 +1,10 @@
-# Daily — 2026-10-14 (post-launch build session, third: hygiene)
+# Daily — 2026-10-14 (post-launch build session, fourth: hygiene)
 
 **Night 10-14:** ok. One exploiter defender was accepted (`parked_hover_ring_doublecover`, rank 3,
 Elo 1119.1, beat its target). The contrarian attacker returned no code block. Tops are unchanged.
 **Alert:** none.
 **Done:** hygiene only; nothing else is open. `health` all seven ok (disk 24%, season2 merges
-cleanly). 401 tests pass in 204.15 s. P5 (persona ablation) was finished earlier today:
-personas made bots no stronger (mean 0.574 vs 0.578), a small hint of narrower coverage (3 vs 0).
+cleanly). 401 tests pass in 211.94 s. P5 (persona ablation) was finished earlier today.
 
 **Next:** W week 3 after night 10-18. 3.13 after night 11-01. 3.14 after 3.8 and the boundary.
 **Worth a look:** contrarian slots keep returning short replies with no code: the defender on
