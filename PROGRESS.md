@@ -3478,3 +3478,21 @@ the three stopped or held items are now on the dashboard.
 - **Tests:** 401 pass in 210.15 s, under the 300 s limit.
 - No code changed. Night 10-15 is not in the snapshot (last-night still 10-14). The backup
   restore still needs an interactive session. Nothing in scope opens before night 10-18.
+
+### 2026-10-15 build session (post-launch, second): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Night 10-15** (league log): ok. Exploiter attacker accepted
+  (`2026-10-15_attacker_2026_10_15_attacker_dark_ring_release`, rank 7, 0.927 vs
+  nearest_first); counter-meta defender rejected, "model returned no code block" (167-char
+  reply). 3740 matches, 220 in the sandbox, 110.0 s. Top defender is now
+  `2026-10-11_defender_convergent_deadline_packer`; top attacker unchanged.
+- **Gates:** W week 3 closed (`ls out/meta`: WEEK_1, WEEK_2, SEASON_1 only); 3.13 (night
+  11-01) and 3.14 (3.8 + boundary) not due. Only hygiene is open.
+- **Hygiene:** `health`: all seven ok (disk 24% used, 158 GB free, out/ 348 MB, last-night
+  2026-10-15 ok, alert none, season2 merges cleanly). Repo root: no untracked files
+  (`git status --ignored --short`: only caches, out/ and SESSION_ITEM, all ignored).
+- **Tests:** 401 pass in 231.82 s, under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session. Nothing in scope
+  opens before night 10-18.

@@ -1,14 +1,15 @@
-# Daily — 2026-10-15 (post-launch build session: hygiene)
+# Daily — 2026-10-15 (post-launch build session, second: hygiene)
 
-**Night:** night 10-15 is not in this session's snapshot; `health` reports last night 10-14 ok.
-Tops unchanged since 10-14. **Alert:** none.
-**Done:** hygiene only; nothing else is open. `health` all seven ok (disk 24%, season2 merges
-cleanly). 401 tests pass in 210.15 s. No code changed.
+**Night 10-15:** ok. 1 attacker accepted (exploiter, `dark_ring_release`, rank 7, 0.927 vs
+nearest_first); the counter-meta defender returned no code block. New top defender:
+`2026-10-11_defender_convergent_deadline_packer`; top attacker unchanged. **Alert:** none.
+**Done:** hygiene only; nothing else is open. `health` all seven ok (disk 24%, out/ 348 MB,
+season2 merges cleanly). 401 tests pass in 231.82 s. No code changed.
 
 **Next:** W week 3 after night 10-18. 3.13 after night 11-01. 3.14 after 3.8 and the boundary.
-**Worth a look:** contrarian slots keep returning short replies with no code (defender 10-12
-and 10-13, attacker 10-14). If they're refusals, leave them alone (standing rule). Sessions
-have only hygiene to do until 10-18; you may want fewer of them until then.
+**Worth a look:** short no-code replies keep coming: contrarian 10-12, 10-13, 10-14, and now
+counter-meta defender 10-15. If they're refusals, leave them alone (standing rule). Test time
+is creeping up (195 → 232 s, limit 300 s). Sessions have only hygiene until 10-18.
 **Waiting on you:** the yes/no lines in `reports/FOUNDER_WEEK_2.md`, and whether you want a
 re-theme for its own sake (on hold).
 **Open stops:** a safety classifier stopped SPEC-4 and the products brief, and the re-theme is
