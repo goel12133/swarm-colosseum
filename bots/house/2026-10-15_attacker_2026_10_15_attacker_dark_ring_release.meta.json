@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-10-15",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 1500,
+    "dropped": [],
+    "included": [
+      "lopsided",
+      "target_doc"
+    ],
+    "used": 409
+  },
+  "model": "opus",
+  "name": "2026-10-15_attacker_2026_10_15_attacker_dark_ring_release",
+  "persona": "exploiter",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-15T033113_cli_attacker_exploiter.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.519,
+    "rank": 7,
+    "score_vs_target": 0.927
+  },
+  "role": "attacker",
+  "target": "nearest_first",
+  "tokens": {
+    "input": 2773,
+    "output": 4402
+  }
+}
