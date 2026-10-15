@@ -3509,3 +3509,15 @@ the three stopped or held items are now on the dashboard.
 - **Tests:** 401 pass in 222.58 s, under the 300 s limit.
 - No code changed. The backup restore still needs an interactive session. Nothing in scope
   opens before night 10-18.
+
+### 2026-10-15 build session (post-launch, fourth): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Gates:** W week 3 closed (`ls out/meta`: WEEK_1, WEEK_2, SEASON_1 only); 3.13 (night
+  11-01) and 3.14 (3.8 + boundary) not due. Only hygiene is open.
+- **Hygiene:** `health`: all seven ok (disk 24% used, 158 GB free, out/ 348 MB, last-night
+  2026-10-15 ok, alert none, season2 merges cleanly).
+- **Tests:** 401 pass in 227.88 s, under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session. Nothing in scope
+  opens before night 10-18.
