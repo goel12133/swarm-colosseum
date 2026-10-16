@@ -54,3 +54,37 @@ def test_a_non_local_remote_is_refused_without_live(tmp_path, remote):
     _, site = remote
     p = publish("git@github.com:goel12133/swarm-colosseum.git", site)
     assert p.returncode == 2 and "refusing" in p.stderr and "--live" in p.stderr
+
+
+PRIVATE = ("CLAUDE.md", "FOUNDER_TODO.md", "DECISIONS.local.md")
+
+
+def test_the_private_files_never_reach_the_public_mirror(tmp_path, remote):
+    """Founder (2026-10-16): CLAUDE.md, FOUNDER_TODO.md and DECISIONS.local.md stay out of
+    every commit after scripts/public_private_since; history up to it is unchanged."""
+    import shutil
+    r, site = remote
+    live = tmp_path / "live"
+    subprocess.run(["git", "clone", "-q", "-b", "master", str(ROOT), str(live)], check=True)
+    for rel in ("scripts/rewrite_identity.sh", "scripts/publish.sh", "scripts/audit_secrets.py",
+                "scripts/public_identity", "scripts/public_private_since"):
+        shutil.copy2(ROOT / rel, live / rel)
+    for name in PRIVATE:
+        (live / name).write_text(f"private: {name}\n")
+    lg = ["-c", "user.name=Swarm Colosseum league", "-c", "user.email=league@localhost"]
+    git(live, "add", "-A")
+    git(live, *lg, "commit", "-q", "-m", "after the cut-off")
+    p = subprocess.run([str(live / "scripts" / "publish.sh"), "--site", str(site), str(r)],
+                       capture_output=True, text=True, timeout=600)
+    assert p.returncode == 0, p.stderr
+    files = git(r, "ls-tree", "-r", "--name-only", "main").split()
+    assert not set(PRIVATE) & set(files)
+    since = (ROOT / "scripts" / "public_private_since").read_text().strip()
+    msg = git(ROOT, "log", "-1", "--format=%s", since).strip()
+    old = [c for c in git(r, "rev-list", "main").split()
+           if git(r, "log", "-1", "--format=%s", c).strip() == msg]
+    assert old, "the cut-off commit is in the public history"
+    for c in git(r, "rev-list", f"{old[0]}..main").split():        # everything newer
+        assert not set(PRIVATE) & set(git(r, "ls-tree", "-r", "--name-only", c).split()), c
+    # up to the cut-off nothing changed: what was public stays as it was, so main fast-forwards
+    assert "DECISIONS.local.md" in git(r, "ls-tree", "-r", "--name-only", old[0]).split()

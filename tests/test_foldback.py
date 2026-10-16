@@ -29,7 +29,8 @@ def world(tmp_path):
     live, remote, out = tmp_path / "live", tmp_path / "public.git", tmp_path / "out"
     subprocess.run(["git", "clone", "-q", "-b", "master", str(ROOT), str(live)], check=True)
     for rel in ("scripts/publish.sh", "scripts/rewrite_identity.sh", "scripts/audit_secrets.py",
-                "scripts/public_identity", "colosseum/foldback.py", "colosseum/ops.py"):
+                "scripts/public_identity", "scripts/public_private_since",
+                "colosseum/foldback.py", "colosseum/ops.py"):
         shutil.copy2(ROOT / rel, live / rel)
     git(live, "add", "-A")
     git(live, *LEAGUE, "commit", "-q", "--allow-empty", "-m", "test: current scripts")
