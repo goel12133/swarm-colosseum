@@ -3616,3 +3616,19 @@ the three stopped or held items are now on the dashboard.
   (`git status --ignored --short`: only caches, out/ and SESSION_ITEM, all ignored).
 - **Tests:** 401 pass in 211.07 s, under the 300 s limit.
 - No code changed. The backup restore still needs an interactive session.
+
+### 2026-10-16 build session (post-launch, second): hygiene
+
+- **Alert:** out/ALERT.md none; `health` printed `alert none`. No WIP.md; `git status` clean
+  at start.
+- **Night:** 10-16 is now in the snapshot (`health`: `last-night 2026-10-16: ok`). League log:
+  1 defender accepted (generalist, `type_ledger_retarget_first`, rank 7); the counter-meta
+  attacker returned no code block (422-char response). Tournament 3910 matches in 62.9 s,
+  170 in the sandbox.
+- **Gates:** W week 3 closed (`ls out/meta`: WEEK_1, WEEK_2, SEASON_1 only); 3.13 (night
+  11-01) and 3.14 (3.8 + boundary) not due. Only hygiene is open.
+- **Hygiene:** `health`: all seven ok (disk 24% used, 158 GB free, out/ 358 MB, last-night
+  2026-10-16 ok, alert none, season2 merges cleanly). Repo root: no untracked files
+  (`git status --ignored --short`: only caches, out/ and SESSION_ITEM, all ignored).
+- **Tests:** 401 pass in 230.79 s, under the 300 s limit.
+- No code changed. The backup restore still needs an interactive session.
