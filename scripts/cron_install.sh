@@ -14,7 +14,7 @@ crontab -l > "$CUR" 2>/dev/null || true
 if diff -u "$CUR" "$NEW" >/dev/null; then echo "crontab already matches scripts/crontab.txt"; exit 0; fi
 diff -u --label installed --label scripts/crontab.txt "$CUR" "$NEW" || true
 [ "${1:-}" = "--apply" ] || { echo "(dry run: nothing installed)"; exit 0; }
-YES="${2:?--apply needs a note of the founder's written yes}"
+YES="${2:?--apply needs a note of where the founder said yes}"
 mkdir -p "$ROOT/out/cron"
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 cp "$CUR" "$ROOT/out/cron/crontab.$stamp.bak"
