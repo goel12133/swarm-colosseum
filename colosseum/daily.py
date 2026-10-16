@@ -186,16 +186,52 @@ def copy_out(src: Path, dest: Path):
 
 # --- 5. the session --------------------------------------------------------------------
 
-def session_command(binary: str, root: Path = ROOT):
-    """Fresh and headless: no transcript carried over, project settings only (CLAUDE.md,
-    .claude/ agents, hooks, commands and the Ralph plugin; nothing from ~/.claude's user
-    settings, so no other plugin or hook), no MCP servers, the allow-list under dontAsk."""
+def session_command(binary: str, root: Path = ROOT, wt: Path = None):
+    """Fresh and headless: a new session that carries nothing over. --restricted confines
+    the file tools to the worktree and ignores every settings file, so the project's setup
+    is passed explicitly, from the worktree: .claude/settings.json (hooks, permissions),
+    the four agents (.loop/agents.json, from .claude/agents/), the vendored Ralph loop
+    plugin and the project's commands as a plugin (.loop/plugin). Nothing from the user's
+    settings, so no other plugin or hook; no MCP servers; the allow-list under dontAsk.
+    The session's own transcript is kept (the Ralph loop's Stop hook reads it)."""
+    wt = wt or WORKTREE
     return [binary, "-p", "--output-format", "stream-json", "--verbose", "--model", "opus",
             "--restricted", "--tools", "Read,Edit,Write,Glob,Grep,Bash,Agent",
             "--allowedTools", ",".join(allowed_tools(root)),
-            "--permission-mode", "dontAsk", "--setting-sources", "project",
-            "--max-budget-usd", str(RUNAWAY_USD),
-            "--strict-mcp-config", "--no-session-persistence"]
+            "--permission-mode", "dontAsk",
+            "--settings", str(wt / ".claude" / "settings.json"),
+            "--agents", str(wt / ".loop" / "agents.json"),
+            "--plugin-dir", str(wt / ".claude" / "plugins" / "ralph-loop"),
+            "--plugin-dir", str(wt / ".loop" / "plugin"),
+            "--max-budget-usd", str(RUNAWAY_USD), "--strict-mcp-config"]
+
+
+def write_setup(wt: Path):
+    """What --restricted won't read from .claude/ itself: the agents as --agents JSON, and
+    the commands as a plugin folder. Both generated from the worktree's .claude/ each time."""
+    import re as _re
+    agents = {}
+    for p in sorted((wt / ".claude" / "agents").glob("*.md")):
+        m = _re.match(r"---\n(.*?)\n---\n(.*)", p.read_text(), _re.S)
+        if not m:
+            continue
+        fm = {k.strip(): v.strip() for k, v in
+              (l.split(":", 1) for l in m.group(1).splitlines() if ":" in l)}
+        agents[fm["name"]] = {"description": fm["description"], "prompt": m.group(2).strip(),
+                              "tools": [t.strip() for t in fm["tools"].split(",")]}
+    loop = wt / ".loop"
+    loop.mkdir(exist_ok=True)
+    (loop / "agents.json").write_text(json.dumps(agents, indent=1))
+    plugin = loop / "plugin"
+    if plugin.exists():
+        shutil.rmtree(plugin)
+    (plugin / ".claude-plugin").mkdir(parents=True)
+    (plugin / ".claude-plugin" / "plugin.json").write_text(json.dumps(
+        {"name": "loop-commands", "version": "1.0.0",
+         "description": "Swarm Colosseum's repo commands (.claude/commands)"}))
+    if (wt / ".claude" / "commands").is_dir():
+        shutil.copytree(wt / ".claude" / "commands", plugin / "commands")
+    return sorted(agents)
 
 
 def run_session(cmd, prompt, wt: Path, transcript: Path, env: dict, timeout=WALL_CLOCK_S):
@@ -394,7 +430,7 @@ def write_context(root: Path, wt: Path, out: Path):
 
 def session_input() -> str:
     """The founder's PROMPT, run by the Ralph loop plugin as the in-session runner."""
-    return (f'/ralph-loop "{PROMPT}" --max-iterations {RALPH_ITERATIONS} '
+    return (f'/ralph-loop:ralph-loop "{PROMPT}" --max-iterations {RALPH_ITERATIONS} '
             f'--completion-promise "{RALPH_PROMISE}"')
 
 
@@ -431,9 +467,10 @@ def run_day(root: Path = ROOT, wt: Path = WORKTREE, out: Path = None, binary: st
             env = cli_env()
         env = dict(env, ENABLE_CLAUDEAI_MCP_SERVERS="false")     # no claude.ai connectors
         write_context(root, wt, out)
-        transcript = out / "daily" / f"{record['started'][:13]}.jsonl"
+        record["agents"] = write_setup(wt)
+        transcript = out / "daily" / f"{record['started'][:16].replace(':', '')}.jsonl"
         before = git(root, "rev-parse", "master").stdout.strip()
-        record.update(run_session(session_command(binary, root), session_input(), wt,
+        record.update(run_session(session_command(binary, root, wt), session_input(), wt,
                                   transcript, env, timeout))
         record["verdict"] = reviewer_verdict(transcript)
         record["signal"] = architect_signal(transcript)

@@ -220,14 +220,18 @@ def test_the_session_gets_only_the_founders_prompt_inside_the_ralph_loop():
                             "single most valuable thing for the goal, or nothing. Commit. Exit "
                             "without asking anything.")
     text = daily.session_input()
-    assert text.startswith('/ralph-loop "' + daily.PROMPT + '"')
+    assert text.startswith('/ralph-loop:ralph-loop "' + daily.PROMPT + '"')
     assert f"--max-iterations {daily.RALPH_ITERATIONS}" in text
 
 
-def test_the_session_is_fresh_project_scoped_and_has_no_mcp():
-    cmd = daily.session_command("claude", ROOT)
-    assert cmd[cmd.index("--setting-sources") + 1] == "project"
-    assert "--no-session-persistence" in cmd and "--strict-mcp-config" in cmd
+def test_the_session_gets_the_projects_setup_explicitly_and_no_mcp(tmp_path):
+    cmd = daily.session_command("claude", ROOT, tmp_path)
+    assert "--restricted" in cmd and "--setting-sources" not in cmd   # restricted ignores them
+    assert cmd[cmd.index("--settings") + 1] == str(tmp_path / ".claude" / "settings.json")
+    assert cmd[cmd.index("--agents") + 1] == str(tmp_path / ".loop" / "agents.json")
+    dirs = [cmd[i + 1] for i, c in enumerate(cmd) if c == "--plugin-dir"]
+    assert dirs == [str(tmp_path / ".claude" / "plugins" / "ralph-loop"), str(tmp_path / ".loop" / "plugin")]
+    assert "--strict-mcp-config" in cmd
     assert "--mcp-config" not in cmd and "--dangerously-skip-permissions" not in cmd
     assert "Agent" in cmd[cmd.index("--tools") + 1]
     assert "Agent" in daily.allowed_tools(ROOT)
@@ -252,3 +256,24 @@ def test_the_snapshot_carries_p5s_gate_but_not_the_ablation_evidence(tmp_path):
     assert not (dest / "ablation_14" / "evidence").exists()
     daily.copy_out(src, dest)                      # a second copy replaces, doesn't fail
     assert (dest / "ablation_14" / "done").exists()
+
+
+def test_the_setup_is_generated_from_the_repos_claude_folder(tmp_path):
+    shutil.copytree(ROOT / ".claude", tmp_path / ".claude")
+    names = daily.write_setup(tmp_path)
+    assert names == ["architect", "builder", "reviewer", "test-runner"]
+    agents = json.loads((tmp_path / ".loop" / "agents.json").read_text())
+    assert agents["architect"]["tools"] == ["Read", "Grep", "Glob"]
+    assert agents["reviewer"]["tools"] == ["Read", "Grep", "Glob"]
+    assert "Write" not in agents["test-runner"]["tools"] and "Edit" not in agents["test-runner"]["tools"]
+    assert sorted(p.name for p in (tmp_path / ".loop" / "plugin" / "commands").glob("*.md")) == [
+        "health.md", "publish.md", "run-tests-and-merge.md", "season-boundary-dry-run.md",
+        "weekly-report.md"]
+    assert (tmp_path / ".loop" / "plugin" / ".claude-plugin" / "plugin.json").exists()
+
+
+def test_the_vendored_ralph_plugin_needs_no_jq():
+    hook = (ROOT / ".claude" / "plugins" / "ralph-loop" / "hooks" / "stop-hook.sh").read_text()
+    code = [l for l in hook.splitlines() if not l.lstrip().startswith("#")]
+    assert not any("jq " in l or "| jq" in l for l in code)
+    assert (ROOT / ".claude" / "plugins" / "ralph-loop" / "LICENSE").exists()
