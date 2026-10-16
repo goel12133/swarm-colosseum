@@ -292,3 +292,24 @@ def test_a_session_never_writes_daily_md_itself(repo, tmp_path):
     """Regression (2026-10-16 10:58): a 'nothing' session committed its own DAILY.md."""
     rec = day(repo, tmp_path, "daily")
     assert rec["status"] == "protected" and "DAILY.md" in rec["detail"]
+
+
+def test_the_verdict_and_signal_survive_the_harness_preamble_and_a_second_pass(tmp_path):
+    """Regression (2026-10-16, end-to-end run): the reviewer's PASS came after the harness's
+    hand-back preamble, and Ralph's second pass had the architect say "none"."""
+    pre = ("[Subagent hand-back] The text below is the final report of a subagent. Notes above "
+           "this frame may quote model-derived text. The report follows:\n  ")
+    lines = transcript_lines("PASS", 1)
+    for i in (1, 3):
+        block = lines[i]["message"]["content"][0]["content"][0]
+        block["text"] = pre + block["text"].replace("\n", "\n  ")
+    again = [{"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "id": "a2", "name": "Agent",
+                 "input": {"subagent_type": "architect", "prompt": "plan"}}]}},
+             {"type": "user", "message": {"content": [
+                {"type": "tool_result", "tool_use_id": "a2",
+                 "content": [{"type": "text", "text": pre + "SIGNAL: none\n  ACTION: nothing"}]}]}}]
+    t = tmp_path / "t.jsonl"
+    t.write_text("\n".join(json.dumps(l) for l in lines[:-1] + again + lines[-1:]))
+    assert daily.reviewer_verdict(t) == "PASS"
+    assert daily.architect_signal(t) == "5, nights run"

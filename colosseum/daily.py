@@ -265,6 +265,14 @@ def run_session(cmd, prompt, wt: Path, transcript: Path, env: dict, timeout=WALL
 
 # --- 6-7. merge, publish, record --------------------------------------------------------
 
+def _report(text: str) -> str:
+    """A subagent's own report, without the harness's hand-back preamble (which ends with
+    "The report follows:") and without the indentation the harness adds."""
+    if "The report follows:" in text:
+        text = text.split("The report follows:", 1)[1]
+    return "\n".join(l.strip() for l in text.strip().splitlines())
+
+
 def reviewer_verdict(transcript: Path):
     """The last reviewer subagent's verdict in a stream-json transcript: "PASS", "BLOCK"
     or None (never ran). Read from the Agent tool's result, not from anything the session
@@ -287,13 +295,15 @@ def reviewer_verdict(transcript: Path):
                 content = block.get("content")
                 text = content if isinstance(content, str) else " ".join(
                     c.get("text", "") for c in content or [] if isinstance(c, dict))
-                first = text.strip().splitlines()[0].strip() if text.strip() else ""
+                report = _report(text)
+                first = report.splitlines()[0] if report else ""
                 verdict = "PASS" if first.startswith("PASS") else "BLOCK"
     return verdict
 
 
 def architect_signal(transcript: Path):
-    """The architect's SIGNAL line, for the record and DAILY.md."""
+    """The architect's SIGNAL line, for the record and DAILY.md: the first one that names a
+    number (a later Ralph pass that finds nothing more to do says "none")."""
     calls, signal = {}, None
     if not transcript.exists():
         return None
@@ -312,9 +322,11 @@ def architect_signal(transcript: Path):
                 content = block.get("content")
                 text = content if isinstance(content, str) else " ".join(
                     c.get("text", "") for c in content or [] if isinstance(c, dict))
-                for l in text.splitlines():
-                    if l.strip().startswith("SIGNAL:"):
-                        signal = l.strip()[7:].strip()
+                for l in _report(text).splitlines():
+                    if l.startswith("SIGNAL:"):
+                        found = l[7:].strip()
+                        if signal is None or (signal == "none" and found != "none"):
+                            signal = found
     return signal
 
 
