@@ -7,7 +7,8 @@
 #
 #   scripts/rewrite_identity.sh SOURCE_REPO DEST_MIRROR "Public Name" "public@email"
 #
-# Founder (2026-10-16): CLAUDE.md, FOUNDER_TODO.md and DECISIONS.local.md stay private. They
+# Founder (2026-10-16): CLAUDE.md, FOUNDER_TODO.md and DECISIONS.local.md stay private, and so
+# does the loop's .claude/ (agents, hooks, permissions; the audit forbids .claude/ paths). They
 # are dropped from every commit after scripts/public_private_since (the last commit
 # published before the rule); earlier commits keep what was already public, so the
 # rewritten history of those commits, and so the public main, is unchanged and still
@@ -21,7 +22,7 @@ cd "$DEST"
 export PUB_NAME="$NAME" PUB_EMAIL="$EMAIL" FILTER_BRANCH_SQUELCH_WARNING=1 PRIVATE_SINCE="$SINCE"
 git filter-branch -f --index-filter '
   git merge-base --is-ancestor "$GIT_COMMIT" "$PRIVATE_SINCE" 2>/dev/null ||
-    git rm -q --cached --ignore-unmatch -- CLAUDE.md FOUNDER_TODO.md DECISIONS.local.md
+    git rm -r -q --cached --ignore-unmatch -- CLAUDE.md FOUNDER_TODO.md DECISIONS.local.md .claude
 ' --env-filter '
   case "$GIT_AUTHOR_EMAIL" in root@*) GIT_AUTHOR_NAME="$PUB_NAME"; GIT_AUTHOR_EMAIL="$PUB_EMAIL";; esac
   case "$GIT_COMMITTER_EMAIL" in root@*) GIT_COMMITTER_NAME="$PUB_NAME"; GIT_COMMITTER_EMAIL="$PUB_EMAIL";; esac

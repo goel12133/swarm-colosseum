@@ -56,7 +56,8 @@ def test_a_non_local_remote_is_refused_without_live(tmp_path, remote):
     assert p.returncode == 2 and "refusing" in p.stderr and "--live" in p.stderr
 
 
-PRIVATE = ("CLAUDE.md", "FOUNDER_TODO.md", "DECISIONS.local.md")
+PRIVATE = ("CLAUDE.md", "FOUNDER_TODO.md", "DECISIONS.local.md", ".claude/settings.json",
+           ".claude/agents/builder.md")
 
 
 def test_the_private_files_never_reach_the_public_mirror(tmp_path, remote):
@@ -70,6 +71,7 @@ def test_the_private_files_never_reach_the_public_mirror(tmp_path, remote):
                 "scripts/public_identity", "scripts/public_private_since"):
         shutil.copy2(ROOT / rel, live / rel)
     for name in PRIVATE:
+        (live / name).parent.mkdir(parents=True, exist_ok=True)
         (live / name).write_text(f"private: {name}\n")
     lg = ["-c", "user.name=Swarm Colosseum league", "-c", "user.email=league@localhost"]
     git(live, "add", "-A")
