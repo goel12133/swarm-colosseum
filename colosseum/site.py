@@ -40,6 +40,7 @@ import os
 import re
 import shutil
 import sys
+from datetime import date
 from pathlib import Path
 from urllib.parse import unquote
 
@@ -704,7 +705,8 @@ def write_home(site, lb, moves, firsts, rec, recs, hist, papers, ch, live, seaso
             f'<div class="frame">{frame}</div>{line}</section>', '<div class="wrap">']
     submitted = sum(1 for d in ("attacker", "defender")
                     for _ in (ROOT / "bots" / "submitted" / d).glob("*.py"))
-    day = len([n for n, _ in hist if n >= season.FIRST_NIGHT.isoformat()])
+    day = (date.fromisoformat(hist[-1][0]) - season.FIRST_NIGHT).days + 1 if hist else 0
+    day = max(0, min(day, season.LENGTH_NIGHTS))
     nums = [("ladders.html", f"{lb.get('matches', 0):,}", "matches on last night's ladder"),
             ("ladders.html", f"{len(live)}", "bots in the arena"),
             ("changelog.html", f"{night}", "nights run"),

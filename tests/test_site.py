@@ -317,6 +317,22 @@ def test_the_recap_is_read_from_the_ledger():
     assert "20 matches" in text and "4 of" in text
 
 
+def test_the_season_day_is_the_calendar_day_of_the_last_night(tmp_path):
+    out = tmp_path / "out"
+    run_tournament(seeds=1, out=out, write_replays=False, quiet=True, workers=1)
+    board = (out / "leaderboard.json").read_text()
+    for d in range(29, 31):                                # 09-28 backfilled: no folder
+        (out / "history" / f"2026-09-{d}").mkdir(parents=True)
+        (out / "history" / f"2026-09-{d}" / "leaderboard.json").write_text(board)
+    for d in range(1, 17):
+        (out / "history" / f"2026-10-{d:02d}").mkdir(parents=True)
+        (out / "history" / f"2026-10-{d:02d}" / "leaderboard.json").write_text(board)
+    dest = tmp_path / "site"
+    site.build(dest, out, seasons=tmp_path / "no-seasons", research=tmp_path / "no-research")
+    home = (dest / "index.html").read_text()
+    assert "day <b>19</b> of 28" in home and 'aria-valuenow="19"' in home
+
+
 def test_the_changelog_has_an_entry_per_night_newest_first(tmp_path):
     recs = [{"date": "2026-10-01", "status": "ok", "cache": {"matches": 10, "ran": 10},
              "house_positions": {}},
