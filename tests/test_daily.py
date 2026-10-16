@@ -176,6 +176,10 @@ def test_nothing_merges_without_the_reviewers_pass(repo, tmp_path):
 
 def test_the_verdict_is_read_from_the_reviewer_agent_not_from_files(tmp_path):
     t = tmp_path / "t.jsonl"
+    # regression (2026-10-16 10:00): a line whose "message" is a plain string crashed the parse
+    odd = [{"type": "system", "message": "Permission to use Bash has been denied"}, "text", 3]
+    t.write_text("\n".join(json.dumps(l) for l in odd + transcript_lines("PASS", 1)))
+    assert daily.reviewer_verdict(t) == "PASS" and daily.architect_signal(t) == "5, nights run"
     lines = transcript_lines("PASS", 1)
     lines[2]["message"]["content"][0]["input"]["subagent_type"] = "builder"   # not the reviewer
     t.write_text("\n".join(json.dumps(l) for l in lines))

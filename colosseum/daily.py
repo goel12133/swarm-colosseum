@@ -240,7 +240,8 @@ def reviewer_verdict(transcript: Path):
             ev = json.loads(line)
         except json.JSONDecodeError:
             continue
-        for block in ((ev.get("message") or {}).get("content") or []):
+        msg = ev.get("message") if isinstance(ev, dict) else None
+        for block in ((msg.get("content") if isinstance(msg, dict) else None) or []):
             if not isinstance(block, dict):
                 continue
             if block.get("type") == "tool_use" and block.get("name") in ("Agent", "Task"):
@@ -264,7 +265,8 @@ def architect_signal(transcript: Path):
             ev = json.loads(line)
         except json.JSONDecodeError:
             continue
-        for block in ((ev.get("message") or {}).get("content") or []):
+        msg = ev.get("message") if isinstance(ev, dict) else None
+        for block in ((msg.get("content") if isinstance(msg, dict) else None) or []):
             if not isinstance(block, dict):
                 continue
             if block.get("type") == "tool_use" and block.get("name") in ("Agent", "Task"):
