@@ -77,7 +77,8 @@ PROTECTED = ("scripts/publish.sh", "scripts/rewrite_identity.sh", "scripts/audit
              "SEASON.md", ".github/", "CHARTER.md",
              # the loop's own setup: agents, hooks, settings, plugin, schedule
              ".claude/", "scripts/daily.sh", "scripts/cron_install.sh", "scripts/crontab.txt",
-             "scripts/fmt.py", "scripts/stop_check.sh", "scripts/public_private_since")
+             "scripts/fmt.py", "scripts/stop_check.sh", "scripts/public_private_since",
+             "DAILY.md")              # the wrapper writes it, on master, from the record
 # CLAUDE.md is the one file the loop may grow: by lines added to its Lessons section only.
 LESSONS = "## Lessons"
 
@@ -336,8 +337,8 @@ def claude_md_ok(root: Path, branch: str = BRANCH):
 
 
 def finish(root: Path, wt: Path, test_cmd: str, transcript: Path = None):
-    """Returns (status, detail). status in merged / nothing / unreviewed / blocked / wip /
-    dirty / protected / claude-md / red / conflict."""
+    """Returns (status, detail). status in merged / nothing / trailer / unreviewed / blocked /
+    wip / dirty / protected / claude-md / red / conflict."""
     if (wt / "WIP.md").exists():
         return "wip", "WIP.md present; continuing next session"
     dirty = _dirty(wt)
@@ -346,6 +347,9 @@ def finish(root: Path, wt: Path, test_cmd: str, transcript: Path = None):
     ahead = int(git(root, "rev-list", "--count", f"master..{BRANCH}").stdout.strip() or 0)
     if ahead == 0:
         return "nothing", "no commits"
+    bodies = git(root, "log", "--format=%B", f"master..{BRANCH}").stdout
+    if "co-authored-by" in bodies.lower():
+        return "trailer", "a commit carries a Co-Authored-By trailer (none allowed); not merged"
     verdict = reviewer_verdict(transcript) if transcript else None
     if verdict is None:
         return "unreviewed", "commits but no reviewer verdict in the transcript; not merged"
@@ -481,7 +485,7 @@ def run_day(root: Path = ROOT, wt: Path = WORKTREE, out: Path = None, binary: st
                                            f"{before}..master").stdout.splitlines()
         record["daily_published"] = write_daily(root, record)
         _write_record(out, record, alert=status in (
-            "red", "conflict", "dirty", "protected", "claude-md", "unreviewed")
+            "red", "conflict", "dirty", "protected", "claude-md", "unreviewed", "trailer")
             or record.get("exit") not in (0, None))
     except Refused as exc:
         record.update(status="refused", detail=str(exc))

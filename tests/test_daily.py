@@ -50,6 +50,10 @@ SCENARIOS = {
                   "git -c user.name=s -c user.email=s@s commit -q -m p", "PASS"),
     "dotclaude": ("mkdir -p .claude && echo '{}' > .claude/settings.json && git add .claude && "
                   "git -c user.name=s -c user.email=s@s commit -q -m c", "PASS"),
+    "trailer": ("echo w > w.txt && git add w.txt && git -c user.name=s -c user.email=s@s commit -q "
+                "-m 'work' -m 'Co-Authored-By: Someone <x@y>'", "PASS"),
+    "daily": ("echo me > DAILY.md && git add DAILY.md && "
+              "git -c user.name=s -c user.email=s@s commit -q -m daily", "PASS"),
     "lesson": ("printf -- '- a new lesson\\n' >> CLAUDE.md && git add CLAUDE.md && "
                "git -c user.name=s -c user.email=s@s commit -q -m lesson", "PASS"),
     "rewrite_rules": ("sed -i 's/Rule one/Rule ONE/' CLAUDE.md && git add CLAUDE.md && "
@@ -277,3 +281,14 @@ def test_the_vendored_ralph_plugin_needs_no_jq():
     code = [l for l in hook.splitlines() if not l.lstrip().startswith("#")]
     assert not any("jq " in l or "| jq" in l for l in code)
     assert (ROOT / ".claude" / "plugins" / "ralph-loop" / "LICENSE").exists()
+
+
+def test_no_commit_with_a_trailer_merges(repo, tmp_path):
+    rec = day(repo, tmp_path, "trailer")
+    assert rec["status"] == "trailer" and not (repo / "w.txt").exists()
+
+
+def test_a_session_never_writes_daily_md_itself(repo, tmp_path):
+    """Regression (2026-10-16 10:58): a 'nothing' session committed its own DAILY.md."""
+    rec = day(repo, tmp_path, "daily")
+    assert rec["status"] == "protected" and "DAILY.md" in rec["detail"]
