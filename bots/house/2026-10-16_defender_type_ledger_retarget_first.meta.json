@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-10-16",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [
+      "top_three"
+    ],
+    "included": [
+      "matrix (cut)"
+    ],
+    "used": 3000
+  },
+  "model": "opus",
+  "name": "2026-10-16_defender_type_ledger_retarget_first",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-16T033250_cli_defender_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.604,
+    "rank": 7
+  },
+  "role": "defender",
+  "target": "field",
+  "tokens": {
+    "input": 7469,
+    "output": 7796
+  }
+}
