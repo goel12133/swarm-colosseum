@@ -31,8 +31,8 @@ numbers match the league record (22 bots + 4 rejected = 26 slots, 0 retired). I 
 "preliminary" (the site was labelling the final run with it), added a bottom line and a
 reading, and updated research/00. Night 10-14 ok: 1 defender accepted (rank 3); the contrarian
 attacker returned no code block. Later sessions (to 10-15) ran hygiene only: health all ok, 401
-tests pass (latest 196.86 s, 10-15, tenth). Night 10-15 ok (1 attacker accepted, rank 7; defender
-returned no code block). W week 3 after night 10-18.
+tests pass (latest 211.07 s, 10-16). Night 10-15 ok (1 attacker accepted, rank 7; defender
+returned no code block); night 10-16 not yet in the session snapshot. W week 3 after night 10-18.
 
 **Waiting on the founder:** nothing for launch. **3.8** is interactive-only and scheduled for
 the evening of Sat 2026-10-24; submissions stay closed until it passes. Item G was scrapped as
