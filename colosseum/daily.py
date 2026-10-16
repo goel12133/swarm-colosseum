@@ -1,27 +1,32 @@
-"""The build session (charter section 2, scoped by the founder 2026-10-03): unattended
-`claude -p` every three hours, restricted to build-only items (BUILD_ITEMS).
+"""The autonomous loop (founder, 2026-10-16): a fresh `claude -p` every three hours.
 
-    scripts/daily.sh            # what cron runs at 05:00 UTC; it calls run_day()
+    scripts/daily.sh            # what cron runs; it calls run_day()
 
-The wrapper, not the agent, owns branches and master:
+Each session gets only the founder's PROMPT (no transcript, no item list), loads the
+repo's CLAUDE.md and .claude/ (the four agents, the hooks, the slash commands, the Ralph
+loop plugin) and nothing from the user's settings, runs architect -> builder -> test runner
+-> reviewer, and exits. The wrapper, not the agent, owns branches and master:
 
-  1. refuse to start if the allow-list's sha256 is not the approved one, if yesterday's
+  1. refuse to start if the allow-list's sha256 is not the approved one, if the last
      session went over the token cap, or if another session holds the lock
   2. commit last night's new house bots on master (pathspec commit, league author)
   3. worktree /srv/swarm-daily on branch daily-wip: continue it (rebased on master) if it
-     holds unmerged work from yesterday, otherwise start it fresh from master; refuse if
-     a previous session left uncommitted changes (nothing is ever silently discarded)
-  4. copy the live out/ data the tests read into the worktree
+     holds unmerged work, otherwise start it fresh from master; refuse if a previous
+     session left uncommitted changes (nothing is ever silently discarded)
+  4. copy the live out/ data the tests read into the worktree, and write .loop/context.md
+     (git log, health, last night, the live site's home page, FOUNDER_TODO, decisions)
+     for the read-only architect
   5. run the session: --restricted (file tools confined to the worktree), dontAsk with
-     the allow-list, no settings/MCP/plugins/hooks/slash commands/CLAUDE.md, 2 h wall clock;
-     the full stream-json transcript goes to out/daily/<date>.jsonl
-  6. merge only if: no WIP.md, nothing left uncommitted, rebased cleanly on master, and the
-     full test suite is green -- then master is fast-forwarded. Otherwise the branch waits
-     for tomorrow, and a failed session writes out/ALERT.md
-  7. publish the session's DAILY.md on master either way, and record tokens/time
+     the allow-list, project settings only, no MCP servers, 2 h wall clock; the full
+     stream-json transcript goes to out/daily/<date>T<hour>.jsonl
+  6. merge only if: the reviewer's verdict in the transcript is PASS, nothing is left
+     uncommitted, no protected file is touched, CLAUDE.md changed only by added Lessons
+     lines, it rebased cleanly on master, and the full test suite is green -- then master
+     is fast-forwarded. Otherwise the branch waits, and a failed session writes ALERT.md
+  7. write DAILY.md on master from the session's record, and record tokens and time
 
 The token cap is enforced after the fact: claude -p has no token limit for an agentic
-session, so a session that used more than TOKEN_CAP blocks the next day's from starting.
+session, so a session that used more than TOKEN_CAP blocks the next one from starting.
 """
 import argparse
 import hashlib
@@ -52,12 +57,13 @@ OUT_COPY = ("leaderboard.json", "matrix.json", "BALANCE.md", "breaches.json", "n
             "ablation_14/done")     # P5's gate: only the marker, not the ablation's evidence
 
 
-# Launch sprint (founder, 2026-10-04): unattended sessions take the mechanical sprint items.
-# Post-launch (founder, 2026-10-10), in BACKLOG.md order: P5 the persona-ablation write-up,
-# W the weekly founder report, then SPEC-3 3.13 and 3.14. Human-gated and never a build
-# item: 3.8, G, and switching fold-back on. The season boundary (P4) is a scripted step,
-# not a session item, because it needs a branch merge the session may not make.
-BUILD_ITEMS = ("P5", "W", "3.13", "3.14", "hygiene")
+# The session's only input (founder, 2026-10-16), verbatim. It runs inside the Ralph loop
+# plugin (/ralph-loop), capped at RALPH_ITERATIONS, as the in-session runner.
+PROMPT = ("Read CLAUDE.md. Look at the repository, the git log, the live site and last "
+          "night\u2019s league log as if for the first time. Do the single most valuable thing "
+          "for the goal, or nothing. Commit. Exit without asking anything.")
+RALPH_ITERATIONS = 2
+RALPH_PROMISE = "SESSION DONE"
 # Since launch every merge to master is public the next night, so a session may not touch
 # what publishes, audits, sandboxes or admits code; the wrapper refuses to merge a branch
 # that does (finish(), "protected").
@@ -68,29 +74,12 @@ PROTECTED = ("scripts/publish.sh", "scripts/rewrite_identity.sh", "scripts/audit
              "colosseum/submit.py", "colosseum/submit_pr.py", "colosseum/policy.py",
              "colosseum/rules.py", "colosseum/sim.py", "colosseum/season.py",
              "colosseum/boundary.py", "colosseum/tournament.py", "scripts/nightly.sh",
-             "SEASON.md", ".github/",
-             "CHARTER.md")
-SESSION_ITEM = "SESSION_ITEM"             # one line, written by the session before it starts
-NO_PROGRESS_LIMIT = 2                     # consecutive non-merged sessions -> item frozen
-
-
-def frozen_items(out: Path):
-    """Items whose last NO_PROGRESS_LIMIT sessions all ended without a merge."""
-    path = out / "daily" / "sessions.jsonl"
-    if not path.exists():
-        return []
-    by_item = {}
-    for line in path.read_text().splitlines():
-        try:
-            rec = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        for item in (rec.get("item") or "").split(","):
-            if item:
-                by_item.setdefault(item, []).append(rec.get("status"))
-    return sorted(i for i, sts in by_item.items()
-                  if len(sts) >= NO_PROGRESS_LIMIT
-                  and all(st != "merged" for st in sts[-NO_PROGRESS_LIMIT:]))
+             "SEASON.md", ".github/", "CHARTER.md",
+             # the loop's own setup: agents, hooks, settings, plugin, schedule
+             ".claude/", "scripts/daily.sh", "scripts/cron_install.sh", "scripts/crontab.txt",
+             "scripts/fmt.py", "scripts/stop_check.sh", "scripts/public_private_since")
+# CLAUDE.md is the one file the loop may grow: by lines added to its Lessons section only.
+LESSONS = "## Lessons"
 
 
 class Refused(RuntimeError):
@@ -104,7 +93,7 @@ def git(repo, *args, check=True):
 
 def _dirty(wt: Path):
     return [l[3:] for l in git(wt, "status", "--porcelain").stdout.splitlines()
-            if not l[3:].startswith("out/") and l[3:] != SESSION_ITEM]
+            if not l[3:].startswith(("out/", ".loop/", ".claude/ralph-loop"))]
 
 
 # --- 1. preconditions ---------------------------------------------------------------
@@ -197,79 +186,16 @@ def copy_out(src: Path, dest: Path):
 
 # --- 5. the session --------------------------------------------------------------------
 
-def build_prompt(root: Path, wt: Path, out: Path, frozen=()) -> str:
-    def text(p):
-        return p.read_text() if p.exists() else "(none)"
-    log = out / "house_league.log"
-    tail = "\n".join(log.read_text().splitlines()[-40:]) if log.exists() else "(no log)"
-    recent = git(root, "log", "--oneline", "-15").stdout
-    return f"""You are the daily engineering session for Swarm Colosseum. Follow the charter
-below exactly. Today is {date.today().isoformat()}.
-
-Where you are: a git worktree at {wt} on branch {BRANCH}. Work only here. Commit your work
-on this branch with clear messages, and no Co-Authored-By or other attribution trailers
-(the founder asked for none). Do not create, switch or merge branches; the wrapper
-that started you merges this branch into master after you exit, and only if the full test
-suite is green and there is no WIP.md. If you cannot finish an item, write WIP.md at the
-worktree root describing the exact state and commit it; tomorrow's session continues
-from it. Untrusted bots never run on the host (tests included). The live league data is
-copied into out/ for you; it is a snapshot, not the live directory.
-
-SCOPE (post-launch, founder 2026-10-10). You may work ONLY on: {", ".join(BUILD_ITEMS)}
-("hygiene" = charter section 4, including writing up a stuck item), in BACKLOG.md order,
-each only once its gate in BACKLOG.md has passed. Item G and item 3.8 are human-gated:
-never touch them, and never switch fold-back on. The site and repo are public: everything
-you merge is published the next night. The wrapper refuses to merge any change to these
-files: {", ".join(PROTECTED)}. If an item needs one, write it up instead. Before
-anything else, use the Write tool (not the shell) to write the id of the item you are taking
-(one of {", ".join(BUILD_ITEMS)}) as the first line of a file named {SESSION_ITEM} at the
-worktree root. If you finish it with time left, take the next unblocked in-scope item and
-add its id as a new line before starting it. The wrapper refuses to merge anything else.
-LAUNCH_STATUS.md is the founder's dashboard: update your items' lines (one phone screen).
-
-How to run commands. Your shell already starts in the worktree root: never use `cd`,
-`git -C`, redirection (`>`), pipes into other commands, or `&&` chains. Use the file tools
-(Read, Write, Edit, Glob, Grep) for files. Only these shell command forms are allowed; any
-other form is refused, which does not mean the shell is unavailable:
-{chr(10).join("  " + t for t in allowed_tools(root) if t.startswith("Bash("))}
-Frozen items (two sessions in a row without a merge; do not work on them, write them up
-under hygiene instead): {", ".join(frozen) or "none"}.
-
-Order: 1) if ALERT.md below shows a failure in the night or in a previous session, write it
-up and fix it if it falls within scope;
-2) otherwise take the next unblocked in-scope item in BACKLOG.md; 3) run python3 -m pytest tests -q;
-4) append to PROGRESS.md; 5) rewrite DAILY.md (one phone screen: date, night status, what
-was done, what is next, open stops); 6) commit everything and exit. Before you exit,
-`git status` must show nothing to commit, and no document may contain a placeholder for a
-result you haven't got: report only what a command you ran printed. Anything left
-uncommitted blocks the merge.
-
-Stop conditions in charter section 1 apply: write them up in DAILY.md and PROGRESS.md and
-do not work around them.
-
-===== CHARTER.md =====
-{text(root / "CHARTER.md")}
-===== BACKLOG.md =====
-{text(wt / "BACKLOG.md")}
-===== DAILY.md (yesterday) =====
-{text(root / "DAILY.md")}
-===== WIP.md =====
-{text(wt / "WIP.md")}
-===== out/ALERT.md =====
-{text(out / "ALERT.md")}
-===== last 40 lines of the league log =====
-{tail}
-===== recent commits on master =====
-{recent}"""
-
-
 def session_command(binary: str, root: Path = ROOT):
+    """Fresh and headless: no transcript carried over, project settings only (CLAUDE.md,
+    .claude/ agents, hooks, commands and the Ralph plugin; nothing from ~/.claude's user
+    settings, so no other plugin or hook), no MCP servers, the allow-list under dontAsk."""
     return [binary, "-p", "--output-format", "stream-json", "--verbose", "--model", "opus",
-            "--restricted", "--tools", "Read,Edit,Write,Glob,Grep,Bash",
+            "--restricted", "--tools", "Read,Edit,Write,Glob,Grep,Bash,Agent",
             "--allowedTools", ",".join(allowed_tools(root)),
-            "--permission-mode", "dontAsk", "--setting-sources", "",
+            "--permission-mode", "dontAsk", "--setting-sources", "project",
             "--max-budget-usd", str(RUNAWAY_USD),
-            "--strict-mcp-config", "--disable-slash-commands", "--no-session-persistence"]
+            "--strict-mcp-config", "--no-session-persistence"]
 
 
 def run_session(cmd, prompt, wt: Path, transcript: Path, env: dict, timeout=WALL_CLOCK_S):
@@ -302,42 +228,98 @@ def run_session(cmd, prompt, wt: Path, transcript: Path, env: dict, timeout=WALL
 
 # --- 6-7. merge, publish, record --------------------------------------------------------
 
-def session_items(wt: Path):
-    """The items a session declared, in order (one per line)."""
-    p = wt / SESSION_ITEM
-    if not p.exists():
-        return []
-    return [l.strip() for l in p.read_text().splitlines() if l.strip()]
+def reviewer_verdict(transcript: Path):
+    """The last reviewer subagent's verdict in a stream-json transcript: "PASS", "BLOCK"
+    or None (never ran). Read from the Agent tool's result, not from anything the session
+    writes, so a session cannot pass itself."""
+    calls, verdict = {}, None
+    if not transcript.exists():
+        return None
+    for line in transcript.read_text().splitlines():
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        for block in ((ev.get("message") or {}).get("content") or []):
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_use" and block.get("name") in ("Agent", "Task"):
+                calls[block.get("id")] = (block.get("input") or {}).get("subagent_type")
+            elif block.get("type") == "tool_result" and calls.get(block.get("tool_use_id")) == "reviewer":
+                content = block.get("content")
+                text = content if isinstance(content, str) else " ".join(
+                    c.get("text", "") for c in content or [] if isinstance(c, dict))
+                first = text.strip().splitlines()[0].strip() if text.strip() else ""
+                verdict = "PASS" if first.startswith("PASS") else "BLOCK"
+    return verdict
 
 
-def session_item(wt: Path):
-    items = session_items(wt)
-    return ",".join(items) if items else None
+def architect_signal(transcript: Path):
+    """The architect's SIGNAL line, for the record and DAILY.md."""
+    calls, signal = {}, None
+    if not transcript.exists():
+        return None
+    for line in transcript.read_text().splitlines():
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        for block in ((ev.get("message") or {}).get("content") or []):
+            if not isinstance(block, dict):
+                continue
+            if block.get("type") == "tool_use" and block.get("name") in ("Agent", "Task"):
+                calls[block.get("id")] = (block.get("input") or {}).get("subagent_type")
+            elif block.get("type") == "tool_result" and calls.get(block.get("tool_use_id")) == "architect":
+                content = block.get("content")
+                text = content if isinstance(content, str) else " ".join(
+                    c.get("text", "") for c in content or [] if isinstance(c, dict))
+                for l in text.splitlines():
+                    if l.strip().startswith("SIGNAL:"):
+                        signal = l.strip()[7:].strip()
+    return signal
 
 
-def finish(root: Path, wt: Path, test_cmd: str, frozen=()):
-    """Returns (status, detail). status in merged / nothing / wip / dirty / red / conflict /
-    out-of-scope / protected."""
-    items = session_items(wt)
-    bad = [i for i in items if i not in BUILD_ITEMS]
-    if not items or bad:
-        return "out-of-scope", (f"{SESSION_ITEM} lists {items!r}; allowed: {BUILD_ITEMS}")
-    stuck = [i for i in items if i in frozen]
-    if stuck:
-        return "out-of-scope", f"item(s) {stuck} are frozen (no mergeable progress twice running)"
+def claude_md_ok(root: Path, branch: str = BRANCH):
+    """CLAUDE.md may change only by lines added inside its Lessons section."""
+    old = git(root, "show", f"master:CLAUDE.md", check=False).stdout
+    new = git(root, "show", f"{branch}:CLAUDE.md", check=False).stdout
+    if old == new:
+        return True
+    if LESSONS not in old or LESSONS not in new:
+        return False
+    head_old, tail_old = old.split(LESSONS, 1)
+    head_new, tail_new = new.split(LESSONS, 1)
+    if head_old != head_new:
+        return False
+    old_lines = [l for l in tail_old.splitlines() if l.strip()]
+    new_lines = [l for l in tail_new.splitlines() if l.strip()]
+    it = iter(new_lines)
+    return all(any(l == m for m in it) for l in old_lines)      # nothing removed or changed
+
+
+def finish(root: Path, wt: Path, test_cmd: str, transcript: Path = None):
+    """Returns (status, detail). status in merged / nothing / unreviewed / blocked / wip /
+    dirty / protected / claude-md / red / conflict."""
     if (wt / "WIP.md").exists():
-        return "wip", "WIP.md present; continuing tomorrow"
+        return "wip", "WIP.md present; continuing next session"
     dirty = _dirty(wt)
     if dirty:
         return "dirty", f"uncommitted changes left: {dirty[:5]}"
     ahead = int(git(root, "rev-list", "--count", f"master..{BRANCH}").stdout.strip() or 0)
     if ahead == 0:
         return "nothing", "no commits"
+    verdict = reviewer_verdict(transcript) if transcript else None
+    if verdict is None:
+        return "unreviewed", "commits but no reviewer verdict in the transcript; not merged"
+    if verdict != "PASS":
+        return "blocked", "the reviewer blocked the change; not merged"
     touched = git(root, "diff", "--name-only", f"master...{BRANCH}").stdout.split()
     hit = sorted(p for p in touched if any(p == x or (x.endswith("/") and p.startswith(x))
                                            for x in PROTECTED))
     if hit:
-        return "protected", f"touches {hit[:5]}: protected since launch; not merged"
+        return "protected", f"touches {hit[:5]}: protected; not merged"
+    if "CLAUDE.md" in touched and not claude_md_ok(root):
+        return "claude-md", "CLAUDE.md changed outside added Lessons lines; not merged"
     try:
         rebase(wt)                           # master may have moved during the session
     except Refused as exc:
@@ -350,17 +332,68 @@ def finish(root: Path, wt: Path, test_cmd: str, frozen=()):
     return "merged", f"{ahead} commit(s) fast-forwarded onto master"
 
 
-def publish_daily(root: Path, wt: Path):
-    src = wt / "DAILY.md"
-    if not src.exists():
+def write_daily(root: Path, record: dict):
+    """DAILY.md on master, one phone screen, from the session's record (the wrapper writes
+    it, so it says only what happened)."""
+    lines = [f"# Loop session {record.get('started', '')[:16].replace('T', ' ')} UTC", "",
+             f"**Status:** {record.get('status')} — {record.get('detail') or ''}",
+             f"**Signal:** {record.get('signal') or 'none'}",
+             f"**Reviewer:** {record.get('verdict') or 'did not run'}",
+             f"**Tokens:** {record.get('tokens', 0):,} (cap {TOKEN_CAP:,}); "
+             f"**time:** {record.get('seconds', 0)} s; exit {record.get('exit')}"]
+    if record.get("merged_commits"):
+        lines += ["", "**Merged:**"] + [f"- {c}" for c in record["merged_commits"]]
+    lines += ["", "Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl."]
+    text = "\n".join(lines) + "\n"
+    path = root / "DAILY.md"
+    if path.exists() and path.read_text() == text:
         return False
-    if (root / "DAILY.md").exists() and (root / "DAILY.md").read_bytes() == src.read_bytes():
-        return False
-    shutil.copy2(src, root / "DAILY.md")
+    path.write_text(text)
     git(root, "add", "--", "DAILY.md")
     git(root, *LEAGUE_AUTHOR, "commit", "-q", "-m",
-        f"DAILY.md for {date.today().isoformat()}", "--", "DAILY.md")
+        f"DAILY.md: loop session {record.get('started', '')[:13]} {record.get('status')}",
+        "--", "DAILY.md")
     return True
+
+
+def write_context(root: Path, wt: Path, out: Path):
+    """.loop/context.md in the worktree: what the read-only architect can't run itself."""
+    def run(*cmd, cwd=root):
+        try:
+            return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True,
+                                  timeout=60).stdout.strip()
+        except (OSError, subprocess.SubprocessError) as exc:
+            return f"(unavailable: {exc})"
+    def tail(p: Path, n: int):
+        return "\n".join(p.read_text().splitlines()[-n:]) if p.exists() else "(none)"
+    home = out / "site" / "index.html"
+    site = ""
+    if home.exists():
+        import html as _h
+        import re as _re
+        site = _re.sub(r"\s+", " ", _h.unescape(_re.sub(r"<(script|style)[^>]*>.*?</\1>|<[^>]+>",
+                                                       " ", home.read_text(), flags=_re.S)))[:4000]
+    import sys as _sys
+    parts = [("git log (master, newest first)", run("git", "log", "--oneline", "-30", "master")),
+             ("health", run(_sys.executable, "-m", "colosseum.health")),
+             ("last night's league log (tail)", tail(out / "house_league.log", 40)),
+             ("last night's ledger record", tail(out / "nights.jsonl", 1)),
+             ("last publish", (out / "publish.json").read_text().strip()
+              if (out / "publish.json").exists() else "(none)"),
+             ("the live site's home page, as text (out/site/index.html)", site or "(not built)"),
+             ("FOUNDER_TODO.md", (root / "FOUNDER_TODO.md").read_text()
+              if (root / "FOUNDER_TODO.md").exists() else "(none)"),
+             ("DECISIONS.local.md (tail)", tail(root / "DECISIONS.local.md", 30)),
+             ("the last five loop sessions", tail(out / "daily" / "sessions.jsonl", 5))]
+    d = wt / ".loop"
+    d.mkdir(exist_ok=True)
+    (d / "context.md").write_text("\n\n".join(f"## {k}\n\n{v}" for k, v in parts) + "\n")
+
+
+def session_input() -> str:
+    """The founder's PROMPT, run by the Ralph loop plugin as the in-session runner."""
+    return (f'/ralph-loop "{PROMPT}" --max-iterations {RALPH_ITERATIONS} '
+            f'--completion-promise "{RALPH_PROMISE}"')
 
 
 def run_day(root: Path = ROOT, wt: Path = WORKTREE, out: Path = None, binary: str = None,
@@ -394,20 +427,23 @@ def run_day(root: Path = ROOT, wt: Path = WORKTREE, out: Path = None, binary: st
         if env is None:
             from .house_league import cli_env
             env = cli_env()
-        frozen = frozen_items(out)
-        record["frozen"] = frozen
-        if (wt / SESSION_ITEM).exists():
-            (wt / SESSION_ITEM).unlink()           # each session declares its own
-        prompt = build_prompt(root, wt, out, frozen)
-        transcript = out / "daily" / f"{record['date']}.jsonl"
-        record.update(run_session(session_command(binary, root), prompt, wt, transcript,
-                                  env, timeout))
-        status, detail = finish(root, wt, test_cmd, frozen)
-        record.update(status=status, detail=detail, item=session_item(wt),
-                      daily_published=publish_daily(root, wt))
-        _write_record(out, record, alert=status in ("red", "conflict", "dirty",
-                                                    "out-of-scope", "protected")
-                      or record.get("exit") != 0)
+        env = dict(env, ENABLE_CLAUDEAI_MCP_SERVERS="false")     # no claude.ai connectors
+        write_context(root, wt, out)
+        transcript = out / "daily" / f"{record['started'][:13]}.jsonl"
+        before = git(root, "rev-parse", "master").stdout.strip()
+        record.update(run_session(session_command(binary, root), session_input(), wt,
+                                  transcript, env, timeout))
+        record["verdict"] = reviewer_verdict(transcript)
+        record["signal"] = architect_signal(transcript)
+        status, detail = finish(root, wt, test_cmd, transcript)
+        record.update(status=status, detail=detail)
+        if status == "merged":
+            record["merged_commits"] = git(root, "log", "--format=%h %s",
+                                           f"{before}..master").stdout.splitlines()
+        record["daily_published"] = write_daily(root, record)
+        _write_record(out, record, alert=status in (
+            "red", "conflict", "dirty", "protected", "claude-md", "unreviewed")
+            or record.get("exit") not in (0, None))
     except Refused as exc:
         record.update(status="refused", detail=str(exc))
         _write_record(out, record, alert=True)

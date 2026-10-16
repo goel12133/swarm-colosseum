@@ -38,30 +38,49 @@ def repo(tmp_path):
 
 
 SCENARIOS = {
-    # what the fake session does inside the worktree
-    "commit": "echo P5 > SESSION_ITEM && echo work > feature.txt && git add feature.txt && "
-              "git -c user.name=s -c user.email=s@s commit -q -m feature && "
-              "echo 'today: did the feature' > DAILY.md && git add DAILY.md && "
-              "git -c user.name=s -c user.email=s@s commit -q -m daily",
-    "wip": "echo 3.13 > SESSION_ITEM && echo half > half.txt && echo 'state: halfway' > WIP.md && git add -A && "
-           "git -c user.name=s -c user.email=s@s commit -q -m wip",
-    "dirty": "echo P5 > SESSION_ITEM && echo forgot > forgot.txt",
-    "nothing": "echo hygiene > SESSION_ITEM",
-    "protected": "echo hygiene > SESSION_ITEM && mkdir -p scripts && echo x >> scripts/publish.sh && "
-                 "git add scripts/publish.sh && git -c user.name=s -c user.email=s@s commit -q -m p",
-    "gated": "echo 3.8 > SESSION_ITEM && echo x > x.txt && git add x.txt && "
-             "git -c user.name=s -c user.email=s@s commit -q -m x",
-    "red3_11": "echo 3.13 > SESSION_ITEM && echo y > y.txt && git add y.txt && "
-               "git -c user.name=s -c user.email=s@s commit -q -m y",
+    # what the fake session does inside the worktree, then which verdict its reviewer gives
+    "commit": ('echo work > feature.txt && git add feature.txt && git -c user.name=s -c user.email=s@s commit -q -m feature', "PASS"),
+    "blocked": ('echo work > feature.txt && git add feature.txt && git -c user.name=s -c user.email=s@s commit -q -m feature', "BLOCK: does more than the action"),
+    "unreviewed": ('echo work > feature.txt && git add feature.txt && git -c user.name=s -c user.email=s@s commit -q -m feature', None),
+    "wip": ("echo half > half.txt && echo 'state: halfway' > WIP.md && git add -A && "
+            "git -c user.name=s -c user.email=s@s commit -q -m wip", "PASS"),
+    "dirty": ("echo forgot > forgot.txt", None),
+    "nothing": ("true", None),
+    "protected": ("mkdir -p scripts && echo x >> scripts/publish.sh && git add scripts/publish.sh && "
+                  "git -c user.name=s -c user.email=s@s commit -q -m p", "PASS"),
+    "dotclaude": ("mkdir -p .claude && echo '{}' > .claude/settings.json && git add .claude && "
+                  "git -c user.name=s -c user.email=s@s commit -q -m c", "PASS"),
+    "lesson": ("printf -- '- a new lesson\\n' >> CLAUDE.md && git add CLAUDE.md && "
+               "git -c user.name=s -c user.email=s@s commit -q -m lesson", "PASS"),
+    "rewrite_rules": ("sed -i 's/Rule one/Rule ONE/' CLAUDE.md && git add CLAUDE.md && "
+                      "git -c user.name=s -c user.email=s@s commit -q -m rules", "PASS"),
 }
+
+
+def transcript_lines(verdict, tokens):
+    """stream-json the way claude -p writes it: the architect's and reviewer's Agent calls."""
+    lines = [{"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "id": "a1", "name": "Agent",
+                 "input": {"subagent_type": "architect", "prompt": "plan"}}]}},
+             {"type": "user", "message": {"content": [
+                {"type": "tool_result", "tool_use_id": "a1",
+                 "content": [{"type": "text", "text": "SIGNAL: 5, nights run\nACTION: x"}]}]}}]
+    if verdict:
+        lines += [{"type": "assistant", "message": {"content": [
+                     {"type": "tool_use", "id": "r1", "name": "Agent",
+                      "input": {"subagent_type": "reviewer", "prompt": "review"}}]}},
+                  {"type": "user", "message": {"content": [
+                     {"type": "tool_result", "tool_use_id": "r1",
+                      "content": [{"type": "text", "text": verdict + "\nreasons"}]}]}}]
+    lines.append({"type": "result", "usage": {"input_tokens": tokens, "output_tokens": 0}})
+    return lines
 
 
 def fake_claude(tmp_path, scenario, tokens=1234):
     script = tmp_path / f"fake_claude_{scenario}.sh"
-    result = json.dumps({"type": "result", "usage": {"input_tokens": tokens,
-                                                     "output_tokens": 0}})
-    script.write_text(f"#!/bin/sh\ncat > /dev/null\n{SCENARIOS[scenario]}\n"
-                      f"echo '{result}'\n")
+    action, verdict = SCENARIOS[scenario]
+    out = "\n".join("echo " + repr(json.dumps(l)) for l in transcript_lines(verdict, tokens))
+    script.write_text(f"#!/bin/sh\ncat > /dev/null\n{action}\n{out}\n")
     script.chmod(0o755)
     return str(script)
 
@@ -99,11 +118,13 @@ def test_refuses_after_a_session_over_the_token_cap(repo, tmp_path):
     assert rec["status"] == "refused" and "over the" in rec["detail"]
 
 
-def test_green_work_is_fast_forwarded_onto_master_and_daily_is_published(repo, tmp_path):
+def test_reviewed_green_work_is_fast_forwarded_and_daily_says_what_happened(repo, tmp_path):
     rec = day(repo, tmp_path, "commit")
     assert rec["status"] == "merged", rec
+    assert rec["verdict"] == "PASS" and rec["signal"] == "5, nights run"
     assert (repo / "feature.txt").exists()
-    assert (repo / "DAILY.md").read_text().strip() == "today: did the feature"
+    text = (repo / "DAILY.md").read_text()
+    assert "merged" in text and "5, nights run" in text and "feature" in text
     assert git(repo, "branch", "--show-current").strip() == "master"
 
 
@@ -111,7 +132,7 @@ def test_red_tests_never_reach_master(repo, tmp_path):
     rec = day(repo, tmp_path, "commit", test_cmd="echo '1 failed' && false")
     assert rec["status"] == "red" and "1 failed" in rec["detail"]
     assert not (repo / "feature.txt").exists()
-    assert git(repo, "rev-list", "--count", "master..daily-wip").strip() == "2"
+    assert git(repo, "rev-list", "--count", "master..daily-wip").strip() == "1"
     assert (repo / "out" / "ALERT.md").exists()
 
 
@@ -145,58 +166,22 @@ def test_a_second_session_cannot_start_while_one_holds_the_lock(repo, tmp_path):
     assert rec["status"] == "refused" and "holds" in rec["detail"]
 
 
-def test_the_prompt_forbids_attribution_trailers(repo, tmp_path):
-    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out")
-    assert "no Co-Authored-By" in prompt and "WIP.md" in prompt
+def test_nothing_merges_without_the_reviewers_pass(repo, tmp_path):
+    rec = day(repo, tmp_path, "blocked")
+    assert rec["status"] == "blocked" and not (repo / "feature.txt").exists()
+    rec = day(repo, tmp_path, "unreviewed")
+    assert rec["status"] == "unreviewed" and (repo / "out" / "ALERT.md").exists()
+    assert not (repo / "feature.txt").exists()
 
 
-def test_a_session_on_a_human_gated_item_is_never_merged(repo, tmp_path):
-    rec = day(repo, tmp_path, "gated")
-    assert rec["status"] == "out-of-scope" and "3.8" in rec["detail"]
-    assert not (repo / "x.txt").exists()
-    assert (repo / "out" / "ALERT.md").exists()
-
-
-def test_an_item_with_two_unmerged_sessions_in_a_row_is_frozen(repo, tmp_path):
-    day(repo, tmp_path, "red3_11", test_cmd="false")
-    rec = day(repo, tmp_path, "red3_11", test_cmd="false")
-    assert rec["status"] == "red"
-    assert daily.frozen_items(repo / "out") == ["3.13"]
-    rec = day(repo, tmp_path, "red3_11", test_cmd="true")
-    assert rec["status"] == "out-of-scope" and "frozen" in rec["detail"]
-    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out", ["3.13"])
-    assert "Frozen items" in prompt and "3.13" in prompt
-    assert "Item G and item 3.8 are\nhuman-gated" in prompt or "human-gated" in prompt
-
-
-def test_the_prompt_limits_scope_to_build_items(repo, tmp_path):
-    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out")
-    for item in daily.BUILD_ITEMS:
-        assert item in prompt
-    assert "SESSION_ITEM" in prompt and "never touch them" in prompt
-
-
-def test_the_prompt_explains_how_to_run_commands(repo, tmp_path):
-    prompt = daily.build_prompt(repo, tmp_path / "wt", repo / "out")
-    assert "use the Write tool" in prompt and "never use `cd`" in prompt
-    assert "Bash(python3 -m pytest*)" in prompt and "Bash(git status*)" in prompt
-
-
-def test_a_session_may_declare_several_items_but_all_must_be_in_scope(repo, tmp_path):
-    two = tmp_path / "two.sh"
-    script = fake_claude(tmp_path, "commit")
-    body = open(script).read().replace("echo P5 > SESSION_ITEM",
-                                       "printf 'P5\\nW\\n' > SESSION_ITEM")
-    two.write_text(body); two.chmod(0o755)
-    rec = daily.run_day(root=repo, wt=tmp_path / "wt", out=repo / "out", binary=str(two),
-                        test_cmd="true", env={"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)})
-    assert rec["status"] == "merged" and rec["item"] == "P5,W"
-    sneaky = tmp_path / "sneaky.sh"
-    sneaky.write_text(body.replace("P5\\nW", "P5\\nL1").replace("feature.txt", "f2.txt"))
-    sneaky.chmod(0o755)
-    rec = daily.run_day(root=repo, wt=tmp_path / "wt", out=repo / "out", binary=str(sneaky),
-                        test_cmd="true", env={"PATH": "/usr/bin:/bin", "HOME": str(tmp_path)})
-    assert rec["status"] == "out-of-scope" and "L1" in rec["detail"]
+def test_the_verdict_is_read_from_the_reviewer_agent_not_from_files(tmp_path):
+    t = tmp_path / "t.jsonl"
+    lines = transcript_lines("PASS", 1)
+    lines[2]["message"]["content"][0]["input"]["subagent_type"] = "builder"   # not the reviewer
+    t.write_text("\n".join(json.dumps(l) for l in lines))
+    assert daily.reviewer_verdict(t) is None
+    t.write_text("\n".join(json.dumps(l) for l in transcript_lines("BLOCK: x", 1)))
+    assert daily.reviewer_verdict(t) == "BLOCK"
 
 
 def test_a_session_that_touches_a_protected_file_is_never_merged(repo, tmp_path):
@@ -206,10 +191,50 @@ def test_a_session_that_touches_a_protected_file_is_never_merged(repo, tmp_path)
     assert (repo / "out" / "ALERT.md").exists()
 
 
-def test_the_protected_list_covers_publishing_auditing_and_the_sandbox():
-    for path in ("scripts/publish.sh", "scripts/audit_secrets.py", "colosseum/foldback.py",
-                 "colosseum/sandbox.py", "colosseum/ops.py", "colosseum/rules.py", ".github/"):
+def test_the_loops_own_setup_is_protected(repo, tmp_path):
+    rec = day(repo, tmp_path, "dotclaude")
+    assert rec["status"] == "protected" and ".claude/settings.json" in rec["detail"]
+    for path in (".claude/", "scripts/cron_install.sh", "scripts/fmt.py", "scripts/stop_check.sh",
+                 "scripts/publish.sh", "colosseum/daily.py", "colosseum/rules.py"):
         assert path in daily.PROTECTED, path
+
+
+def test_claude_md_may_only_grow_by_lessons(repo, tmp_path):
+    (repo / "CLAUDE.md").write_text("# CLAUDE.md\n\nRule one.\n\n## Lessons\n\n- old lesson\n")
+    git(repo, "add", "CLAUDE.md")
+    git(repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "claude")
+    rec = day(repo, tmp_path, "lesson")
+    assert rec["status"] == "merged", rec
+    assert "- a new lesson" in (repo / "CLAUDE.md").read_text()
+    rec = day(repo, tmp_path, "rewrite_rules")
+    assert rec["status"] == "claude-md" and "Rule one." in (repo / "CLAUDE.md").read_text()
+
+
+def test_the_session_gets_only_the_founders_prompt_inside_the_ralph_loop():
+    assert daily.PROMPT == ("Read CLAUDE.md. Look at the repository, the git log, the live site "
+                            "and last night\u2019s league log as if for the first time. Do the "
+                            "single most valuable thing for the goal, or nothing. Commit. Exit "
+                            "without asking anything.")
+    text = daily.session_input()
+    assert text.startswith('/ralph-loop "' + daily.PROMPT + '"')
+    assert f"--max-iterations {daily.RALPH_ITERATIONS}" in text
+
+
+def test_the_session_is_fresh_project_scoped_and_has_no_mcp():
+    cmd = daily.session_command("claude", ROOT)
+    assert cmd[cmd.index("--setting-sources") + 1] == "project"
+    assert "--no-session-persistence" in cmd and "--strict-mcp-config" in cmd
+    assert "--mcp-config" not in cmd and "--dangerously-skip-permissions" not in cmd
+    assert "Agent" in cmd[cmd.index("--tools") + 1]
+    assert "Agent" in daily.allowed_tools(ROOT)
+
+
+def test_the_architect_gets_its_context_written_first(repo, tmp_path):
+    day(repo, tmp_path, "nothing")
+    ctx = (tmp_path / "wt" / ".loop" / "context.md").read_text()
+    for section in ("git log", "health", "last night's league log", "the live site's home page",
+                    "FOUNDER_TODO.md"):
+        assert f"## {section}" in ctx, section
 
 
 def test_the_snapshot_carries_p5s_gate_but_not_the_ablation_evidence(tmp_path):

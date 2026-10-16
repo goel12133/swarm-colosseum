@@ -12,3 +12,5 @@ __pycache__/
 # The build session's declared item (colosseum/daily.py); never committed.
 SESSION_ITEM
 design_ref/
+.loop/
+.claude/ralph-loop.local.md

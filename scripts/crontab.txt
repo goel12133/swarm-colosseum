@@ -1,0 +1,9 @@
+# Swarm Colosseum's scheduled jobs, the whole table. Installed only by scripts/cron_install.sh,
+# run interactively with the founder's written yes (CLAUDE.md rule 3).
+#
+# 03:30  the nightly league, then after-night (results, reports, site, republish)
+# 05:00  the persona-ablation session (resumable, under its own token budget)
+# loop   a fresh claude -p every three hours, skipping 03:00 (the hour around the league)
+30 3 * * * /root/swarm-colosseum/scripts/nightly.sh
+0 5 * * * /root/swarm-colosseum/scripts/ablation_session.sh
+0 0,6,9,12,15,18,21 * * * /root/swarm-colosseum/scripts/daily.sh
