@@ -362,5 +362,20 @@ def test_the_changelog_has_an_entry_per_night_newest_first(tmp_path):
     site.write_changelog(tmp_path, recs, hist)
     text = (tmp_path / "changelog.html").read_text()
     assert text.count('<section class="night">') == 2
-    assert text.index("2026-10-02 · night 2") < text.index("2026-10-01 · night 1")
+    assert text.index("<h2>2026-10-02</h2>") < text.index("2026-10-01 · night 1")
     assert "didn&#x27;t complete: generator timed out" in text or "didn't complete: generator timed out" in text
+
+
+def test_the_changelog_numbers_nights_from_the_ledger_like_nights_run(tmp_path):
+    recs = [{"date": "2026-09-28", "status": "ok", "backfilled": True},  # no snapshot
+            {"date": "2026-09-29", "status": "ok", "house_positions": {}},
+            {"date": "2026-09-30", "status": "failed", "reason": "generator timed out"},
+            {"date": "2026-10-01", "status": "ok", "house_positions": {}}]
+    hist = [("2026-09-29", {}), ("2026-09-30", {}), ("2026-10-01", {})]
+    site.write_changelog(tmp_path, recs, hist)
+    text = (tmp_path / "changelog.html").read_text()
+    assert "<h2>2026-09-28 · night 1</h2>" in text
+    assert "<h2>2026-09-29 · night 2</h2>" in text
+    assert "<h2>2026-09-30</h2>" in text
+    n = site.nights_run(recs, hist)
+    assert n == 3 and f"<h2>2026-10-01 · night {n}</h2>" in text

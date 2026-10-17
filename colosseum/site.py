@@ -883,7 +883,12 @@ def write_changelog(site, recs, hist):
     """One entry per night, newest first, from the ledger; plus the day's code and rules
     commits (the automated night, report and build-session ones left out)."""
     import subprocess
-    numbers = {night: n for n, (night, _) in enumerate(hist, 1)}
+    # Number nights from the ledger by nights_run's rule, not by snapshot: the backfilled
+    # 2026-09-28 night is in the ledger but left no snapshot.
+    last = hist[-1][0] if hist else None
+    ok = sorted({r["date"] for r in recs if r.get("status") == "ok"
+                 and (last is None or r.get("date", "") <= last)})
+    numbers = {night: n for n, night in enumerate(ok, 1)}
     body = ['<div class="wrap">', page_head(
         "Changelog", "One entry per night, newest first: what the league wrote, what happened "
         "on the ladders, and what changed in the code that day.")]
