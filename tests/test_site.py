@@ -333,6 +333,27 @@ def test_the_season_day_is_the_calendar_day_of_the_last_night(tmp_path):
     assert "day <b>19</b> of 28" in home and 'aria-valuenow="19"' in home
 
 
+def test_the_night_count_comes_from_the_ledger_not_the_snapshots(tmp_path):
+    out = tmp_path / "out"
+    run_tournament(seeds=1, out=out, write_replays=False, quiet=True, workers=1)
+    board = (out / "leaderboard.json").read_text()
+    dates = ["2026-09-29", "2026-09-30"] + [f"2026-10-{d:02d}" for d in range(1, 18)]
+    recs = [{"date": "2026-09-28", "status": "ok", "backfilled": True}] * 2  # no snapshot
+    for d in dates:
+        (out / "history" / d).mkdir(parents=True)
+        (out / "history" / d / "leaderboard.json").write_text(board)
+        recs.append({"date": d, "status": "ok", "house_positions": {}})
+    (out / "nights.jsonl").write_text("".join(json.dumps(r) + "\n" for r in recs))
+    n = len(dates) + 1
+    dest = tmp_path / "site"
+    site.build(dest, out, seasons=tmp_path / "no-seasons", research=tmp_path / "no-research")
+    home = (dest / "index.html").read_text()
+    assert f'<span class="v">{n}</span><span class="k">nights run</span>' in home
+    assert f"after night {n}<" in home and f"Night {n} (2026-10-17)" in home
+    assert f"day <b>{n}</b> of 28" in home
+    assert f"after night {n}<" in (dest / "ladders.html").read_text()
+
+
 def test_the_changelog_has_an_entry_per_night_newest_first(tmp_path):
     recs = [{"date": "2026-10-01", "status": "ok", "cache": {"matches": 10, "ran": 10},
              "house_positions": {}},

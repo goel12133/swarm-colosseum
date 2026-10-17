@@ -325,6 +325,15 @@ def ledger(out: Path) -> list:
     return [r for r in recs if not r.get("dry_run")]
 
 
+def nights_run(recs: list, hist: list) -> int:
+    """Nights run: distinct ledger dates with status ok, up to the last ladder snapshot. Not
+    len(hist): a backfilled night (2026-09-28) is in the ledger but left no snapshot."""
+    if not hist:
+        return 0
+    last = hist[-1][0]
+    return len({r["date"] for r in recs if r.get("status") == "ok" and r.get("date", "") <= last})
+
+
 def movement(now: list, before: list) -> dict:
     """{name: places moved since the night before} for one side's ladder rows: positive is
     up; None for a bot that wasn't on the earlier ladder (new)."""
@@ -375,12 +384,12 @@ def ordinal(n: int) -> str:
     return words.get(n, f"{n}th")
 
 
-def recap(rec: dict, hist: list) -> str:
+def recap(rec: dict, hist: list, night: int = None) -> str:
     """Last night in one paragraph, every clause read from the ledger and the ladders."""
     if not rec or not hist:
         return "No night has run yet."
     lb = hist[-1][1]
-    parts = [f"Night {len(hist)} ({e(rec['date'])})."]
+    parts = [f"Night {len(hist) if night is None else night} ({e(rec['date'])})."]
     wrote = []
     for name, pos in sorted((rec.get("house_positions") or {}).items()):
         target = target_name(pos.get("target"))
@@ -632,7 +641,7 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     moves = {role: movement(lb[role], before[role]) if before else
              {r["name"]: 0 for r in lb[role]} for role in ("attackers", "defenders")}
     firsts = first_nights(hist)
-    night = len(hist)
+    night = nights_run(recs, hist)
 
     # replays: every one as packed data (replays/data/<stem>.json.gz), one shared viewer
     # that opens them on demand, and a full page only for the matches the rule picks
@@ -684,7 +693,7 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
 
 
 def write_home(site, lb, moves, firsts, rec, recs, hist, papers, ch, live, season):
-    night = len(hist)
+    night = nights_run(recs, hist)
     first_item = ch["items"][0] if ch["items"] else None
     if first_item:
         frame = ('<iframe class="viewer" src="replays/viewer.html?mode=broadcast&amp;'
@@ -729,7 +738,7 @@ def write_home(site, lb, moves, firsts, rec, recs, hist, papers, ch, live, seaso
                     for role in ("attackers", "defenders")) + "</div></section>")
     body.append('<section class="section"><div class="section-head"><h2>Last night’s recap</h2>'
                 f'<span class="label mono">{e(rec.get("date", ""))}</span></div>'
-                f'<div class="recap"><p>{recap(rec, hist)}</p></div></section>')
+                f'<div class="recap"><p>{recap(rec, hist, night)}</p></div></section>')
     if papers:
         cards = "".join(
             f'<a class="result" href="{e(p["href"])}"><span class="label">R-{e(p["n"])} · '
