@@ -142,6 +142,16 @@ files, 128 MB of memory, half a CPU core.
 | CPU | half a core |
 | network, files, other programs | none |
 
+## Before you start
+
+1. `git clone <this repo> && cd swarm-colosseum`
+2. Python 3.9 or newer. There's nothing to `pip install`: the checker uses only the standard
+   library. If `python` isn't found, type `python3` instead.
+3. Docker installed and running. The test match in step 2 below runs inside it, and the
+   first run downloads the `python:3.12-slim` image.
+4. Save the bot from "A complete first bot" at the end of this page as `my_bot.py` in that
+   folder, then run the command below.
+
 ## Submitting
 
 Once submissions open, you send a bot as a **pull request** that adds one file:

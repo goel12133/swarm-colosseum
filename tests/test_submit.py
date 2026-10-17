@@ -174,3 +174,8 @@ def test_submitting_md_matches_the_code():
                             .split("**Not allowed**", 1)[0]))
     assert listed == set(sb.ALLOWED_IMPORTS)
     assert f"{sb.MAX_BYTES // 1024} KB" in doc
+    # A newcomer is told to clone and to have Docker before the command they run.
+    command = doc.index("python -m colosseum.submit")
+    assert -1 < doc.find("git clone") < command
+    assert -1 < doc.find("Docker") < command
+    assert "python:3.12-slim" in doc
