@@ -1,25 +1,25 @@
-# Season one — draft, 19 of 28 nights (2026-09-28 to 2026-10-16)
+# Season one — draft, 20 of 28 nights (2026-09-28 to 2026-10-17)
 
 The season ends 2026-10-26; every number below is from the nights so far and is rewritten when this report is rerun.
 
 ## The season in numbers
 
-- Nights: 19 of 28, none failed.
-- House bots written: 28 (12 attackers, 16 defenders); 28 still on the ladder, 0 retired. Rejected before the ladder: 12.
-- Matches: 36,170 in 18 nightly round-robins; 5,080 distinct results in the cache.
-- Tokens: 762,373.
+- Nights: 20 of 28, none failed.
+- House bots written: 29 (13 attackers, 16 defenders); 29 still on the ladder, 0 retired. Rejected before the ladder: 13.
+- Matches: 40,310 in 19 nightly round-robins; 5,310 distinct results in the cache.
+- Tokens: 795,135.
 
 ## Top of the ladders
 
-#1 attacker blast_proof_depth_interleave (h) (Elo 1329); #1 defender convergent_deadline_packer (h) (Elo 1200).
+#1 attacker blast_proof_depth_interleave (h) (Elo 1329); #1 defender parked_hover_ring_doublecover (h) (Elo 1176).
 
 ## The five best ideas
 
 1. **blast_proof_depth_interleave (h)** (counter_meta, attacker): “Park all 30 strikers motionless on a far staging ring where the scheduler ignores them, then dive in two interleaved shells offset 12 units in depth, so the ring converges with every pair of strikers more than one blast radius apart yet all of them arrive within a three-tick window.” #1 attacker, Elo 1329, wins 87%.
-2. **convergent_deadline_packer (h)** (generalist, defender): “Launches are held back until a capacity-aware deadline forces them, and the delay is spent hunting for intercept moments where one blast covers several identified strikers.” #1 defender, Elo 1200, wins 84%.
-3. **deadline_cluster_ledger (h)** (generalist, defender): “Earliest-deadline backscheduling on a worst-case "rush now" clock, filling each forced launch with the confirmed striker whose predicted blast point catches the most other uncovered strikers, and ignoring every unidentified track outside id range.” #2 defender, Elo 1200, wins 80%.
-4. **interleaved_shell_ring (h)** (generalist, attacker): “Stage all thirty strikers on a slowly rotating three-shell ring, then release them together so they arrive in one wave in which no two strikers ever come within two blast radii of each other.” #2 attacker, Elo 1163, wins 68%.
-5. **convergence_blast_scheduler (h)** (counter_meta, defender): “Hold the interceptor magazine until a synchronized ring has squeezed itself so tight that neighbouring strikers sit inside one blast radius, then fire on an earliest-deadline schedule so each interceptor kills two or three strikers instead of one.” #3 defender, Elo 1192, wins 89%.
+2. **parked_hover_ring_doublecover (h)** (exploiter, defender): “Park interceptors in a jittering hover next to the asset, then fire the whole magazine together at the collapsing ring once its spacing falls inside one blast width, so every striker is covered by two blasts.” #1 defender, Elo 1176, wins 84%.
+3. **hidden_orbit_screen_then_interleaved_dro (h)** (generalist, attacker): “Park the whole swarm on a hidden orbit just outside radar range, send a decoy screen in first, then drop the strikers in two angle-interleaved shells that cross the ID ring together.” #2 attacker, Elo 1277, wins 79%.
+4. **convergent_deadline_packer (h)** (generalist, defender): “Launches are held back until a capacity-aware deadline forces them, and the delay is spent hunting for intercept moments where one blast covers several identified strikers.” #2 defender, Elo 1174, wins 81%.
+5. **deadline_cluster_ledger (h)** (generalist, defender): “Earliest-deadline backscheduling on a worst-case "rush now" clock, filling each forced launch with the confirmed striker whose predicted blast point catches the most other uncovered strikers, and ignoring every unidentified track outside id range.” #3 defender, Elo 1165, wins 78%.
 
 ## Rules findings
 
@@ -41,7 +41,7 @@ Details in BALANCE.md.
 
 ## Coverage at the end
 
-- 17 attackers × 23 defenders, 10 seeds a pairing.
+- 18 attackers × 23 defenders, 10 seeds a pairing.
 - Defenders nobody gets through: none.
 - Attackers no defender stops: none.
 - Unique coverage: none.
