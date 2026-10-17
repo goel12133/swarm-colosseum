@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-root=""><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Seasons · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="index.html">Swarm Colosseum</a>
+<a class="live" href="index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="index.html">Arena</a><a href="ladders.html">Ladders</a><a href="replays.html">Replays</a><a href="research.html" class=wide>Research</a><a href="library/index.html" class=wide>Library</a><a href="changelog.html" class=wide>Changelog</a><a href="seasons.html" aria-current="page" class=wide>Seasons</a><a href="about.html" class=wide>About</a><a href="submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="research.html">Research</a><a href="library/index.html">Library</a><a href="changelog.html">Changelog</a><a href="seasons.html" aria-current="page">Seasons</a><a href="about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<h1>Season one</h1>
+<p>Swarm Colosseum, run by Pelennor.</p>
+<div class="scroll"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>first night</td><td><strong>2026-09-28</strong> (<code>staggered_screen_trickle</code> and <code>discriminating_ledger</code> written)</td></tr><tr><td>last night</td><td><strong>2026-10-25</strong></td></tr><tr><td>ends</td><td><strong>2026-10-26</strong>, four weeks after the first real night</td></tr><tr><td>weekly meta reports</td><td>after real nights 7, 14, 21 and 28</td></tr></tbody></table></div>
+<p><code>rules.py</code> is frozen until the season ends. In code this season is <code>SEASON = 0</code> and every replay says <code>season: 0</code>; the counter started at zero before the season had a name, and renaming it would change every replay's bytes. "Season one" and "season 0" are the same season.</p>
+<p>Season-two rule candidates are tested on the <code>season2-candidates</code> branches and are never merged during season one. See <code>SEASON2_CANDIDATES.md</code> on that branch.</p>
+<h2>Approved for season two</h2>
+<div class="scroll"><table><thead><tr><th></th><th>branch</th><th>merge on</th></tr></thead><tbody><tr><td>candidate A, imperfect identification (dwell 8 ticks, 8% sticky error)</td><td><code>s2-a-imperfect-id</code>, kept rebased on master</td><td><strong>2026-10-26</strong>, not before</td></tr></tbody></table></div>
+<p>Decided 2026-09-29. The S0-2 economy fix is deferred until the seven-night watch on <code>synchronized_ring</code> ends (nights 2026-09-30 to 2026-10-06, <code>out/WATCH.md</code>).</p>
+<h2>Archive</h2>
+<p class=t2>No season has finished yet. When one ends, its ladders, bots and season report are archived here.</p>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="site.js" defer></script></body></html>

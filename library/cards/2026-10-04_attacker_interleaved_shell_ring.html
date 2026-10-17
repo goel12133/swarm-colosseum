@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>interleaved_shell_ring · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-10-04_attacker_interleaved_shell_ring.html">On the ladder now →</a></p>
+<h1>interleaved_shell_ring</h1>
+<p><strong>attacker</strong> · family: Unsorted · persona: generalist · author: house league (model opus) · live</p>
+<p>File: 2026-10-04_attacker_interleaved_shell_ring.py</p>
+<p><strong>The idea:</strong> Stage all thirty strikers on a slowly rotating three-shell ring, then release them together so they arrive in one wave in which no two strikers ever come within two blast radii of each other.</p>
+<h2>What it does</h2>
+<p>Every striker gets a slot. Slots sit 12 degrees apart. Slot i also belongs to shell i % 3, and each shell is staged 24 units further out than the one before it. Bearing-neighbours therefore always sit in different shells. Two drones in the same shell are 36 degrees apart. While the swarm is staging (radius 300 to 348, outside id range), the whole formation slowly rotates. On release every striker flies straight at the asset. Shells keep their 24-unit radial gap, which is 6 ticks of arrival spread, all the way in. The geometry guarantee: any two strikers stay more than 20 units apart, which is twice the blast radius. Bearing-neighbours are at least 24 apart radially.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #1 attacker (2026-10-04).</li><li>In the top five on 13 of the 13 nights it played.</li><li>Written against: <strong>field</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-17.</p>
+<ul><li><strong>contracting_ring_blaster</strong>: breached in 10 of 10 seeds, mean score 0.91</li><li><strong>hover_bank_double_lattice</strong>: breached in 10 of 10 seeds, mean score 0.90</li><li><strong>reveal_timed_prelaunch</strong>: breached in 10 of 10 seeds, mean score 0.86</li><li><strong>greedy_value_model</strong>: breached in 10 of 10 seeds, mean score 0.86</li><li><strong>layered</strong>: breached in 10 of 10 seeds, mean score 0.86</li><li>… and 11 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>nearest_first</strong>: breached in 0 of 10 seeds, mean score 0.27</li><li><strong>cluster_blast_column_breaker</strong>: breached in 0 of 10 seeds, mean score 0.35</li><li><strong>convergence_blast_scheduler</strong>: breached in 1 of 10 seeds, mean score 0.34</li><li><strong>parked_hover_ring_doublecover</strong>: breached in 2 of 10 seeds, mean score 0.40</li><li><strong>convergent_deadline_packer</strong>: breached in 3 of 10 seeds, mean score 0.48</li><li>… and 2 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>contracting_ring_blaster</strong>, seed 4: breached in 235 ticks, its score 0.94. <a href="../../replays/2026-10-04_attacker_interleaved_shell_ring__2026-10-06_defender_contracting_ring_blaster__s4.html">2026-10-04_attacker_interleaved_shell_ring__2026-10-06_defender_contracting_ring_blaster__s4.json</a></li><li>Worst: vs <strong>convergence_blast_scheduler</strong>, seed 5: defended in 246 ticks, its score 0.23. <a href="../../replays/2026-10-04_attacker_interleaved_shell_ring__2026-10-01_defender_convergence_blast_scheduler__s5.html">2026-10-04_attacker_interleaved_shell_ring__2026-10-01_defender_convergence_blast_scheduler__s5.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Idea: Stage all thirty strikers on a slowly rotating three-shell ring, then release them together so they arrive in one wave in which no two strikers ever come within two blast radii of each other.
+
+Name: interleaved_shell_ring
+
+How it works
+------------
+Every striker gets a slot. Slots sit 12 degrees apart. Slot i also belongs to
+shell i % 3, and each shell is staged 24 units further out than the one before
+it. Bearing-neighbours therefore always sit in different shells. Two drones in
+the same shell are 36 degrees apart.
+
+While the swarm is staging (radius 300 to 348, outside id range), the whole
+formation slowly rotates. On release every striker flies straight at the
+asset. Shells keep their 24-unit radial gap, which is 6 ticks of arrival
+spread, all the way in.
+
+The geometry guarantee: any two strikers stay more than 20 units apart, which
+is twice the blast radius.
+* Bearing-neighbours are at least 24 apart radially.
+* Same-shell drones are at least 2*pi*r/10 apart, which is more than 20 for
+  any r above 32, so until they are basically inside the asset radius.
+No interceptor can ever kill more than one striker. Yet 30 threats still land
+inside a 12-tick window.
+
+Why it holds against the field
+------------------------------
+* convergence_blast_scheduler and loiter_then_collapse beat
+  synchronized_ring only because a uniform ring compresses until three
+  strikers share a blast. Here the ring never compresses below 20-unit
+  spacing. Their held magazine buys at most one kill per interceptor, and
+  waiting has cost them time. Loitering interceptors also age toward their
+  90-tick lifetime while the formation orbits.
+* backscheduled_blast_packer looks for the tick where threats pack tightest.
+  No such tick exists, so it collapses into one-for-one shooting against a
+  12-tick saturation wave.
+* discriminating_ledger, miss_budget_scheduler, reveal_timed_prelaunch,
+  annealed/greedy assigners and the other baselines all lost heavily to
+  synchronized saturation, scoring about 0.14. This bot keeps that property:
+  30 all-striker threats, unidentified until 150, arriving almost together.
+  Twenty interceptors at 0.85 and one gun shot per tick cannot stop three of
+  them.
+* gun_only and nearest_first are throughput-limited, and a near-simultaneous
+  wave overwhelms both.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;interleaved_shell_ring&quot;
+ROLE = &quot;attacker&quot;
+
+N_SLOTS = 30
+N_SHELLS = 3
+SHELL_GAP = 24.0
+STAGE_R = 300.0
+ORBIT_RATE = 0.004      # rad per tick formation rotation while staging
+LOOKAHEAD = 10          # ticks of lookahead along the orbit
+READY_TOL = 14.0
+MAX_HOLD_TICK = 170
+
+_state = {}
+
+
+def reset(seed=0):
+    _state.clear()
+    _state[&quot;base&quot;] = ((seed or 0) % 360) * math.pi / 180.0
+    _state[&quot;launched&quot;] = 0
+    _state[&quot;slot_of&quot;] = {}
+    _state[&quot;free&quot;] = list(range(N_SLOTS))
+    _state[&quot;released&quot;] = False
+    _state[&quot;phi&quot;] = 0.0
+
+
+def _slot_angle(i, phi):
+    return _state[&quot;base&quot;] + i * 2.0 * math.pi / N_SLOTS + phi
+
+
+def _stage_point(i, phi):
+    a = _slot_angle(i, phi)
+    r = STAGE_R + SHELL_GAP * (i % N_SHELLS)
+    return [r * math.cos(a), r * math.sin(a)]
+
+
+def _angdiff(a, b):
+    d = (a - b) % (2.0 * math.pi)
+    return min(d, 2.0 * math.pi - d)
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+
+
+def _act(obs):
+    if &quot;base&quot; not in _state:
+        reset(0)
+    tick = int(obs.get(&quot;tick&quot;, 0) or 0)
+    budget = float(obs.get(&quot;budget&quot;, 0.0) or 0.0)
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    cost = float(rules.get(&quot;striker_cost&quot;, 2.0) or 2.0)
+    per_tick = int(rules.get(&quot;attacker_launches_per_tick&quot;, 4) or 4)
+    ax, ay = 0.0, 0.0
+    try:
+        ap = obs.get(&quot;asset&quot;, {}).get(&quot;pos&quot;, [0.0, 0.0])
+        ax, ay = float(ap[0]), float(ap[1])
+    except Exception:
+        pass
+
+    drones = obs.get(&quot;drones&quot;, []) or []
+
+    # Slot assignment for newly seen drones (nearest free slot bearing).
+    slot_of = _state[&quot;slot_of&quot;]
+    new = [d for d in drones if d.get(&quot;id&quot;) not in slot_of]
+    new.sort(key=lambda d: str(d.get(&quot;id&quot;)))
+    for d in new:
+        if not _state[&quot;free&quot;]:
+            slot_of[d.get(&quot;id&quot;)] = len(slot_of) % N_SLOTS
+            continue
+        p = d.get(&quot;pos&quot;, [0.0, 0.0])
+        ang = math.atan2(float(p[1]) - ay, float(p[0]) - ax)
+        best = min(_state[&quot;free&quot;],
+                   key=lambda i: _angdiff(ang, _slot_angle(i, _state[&quot;phi&quot;])))
+        _state[&quot;free&quot;].remove(best)
+        slot_of[d.get(&quot;id&quot;)] = best
+
+    # Launches.
+    launch = []
+    if not _state[&quot;released&quot;]:
+        while (len(launch) &lt; per_tick and _state[&quot;launched&quot;] &lt; N_SLOTS
+               and budget &gt;= cost - 1e-9):
+            i = _state[&quot;launched&quot;]
+            launch.append({&quot;type&quot;: &quot;striker&quot;,
+                           &quot;bearing&quot;: float(_slot_angle(i, _state[&quot;phi&quot;]) % (2.0 * math.pi))})
+            _state[&quot;launched&quot;] += 1
+            budget -= cost
+
+    steer = {}
+    if not _state[&quot;released&quot;]:
+        all_launched = (_state[&quot;launched&quot;] &gt;= N_SLOTS) or budget &lt; cost
+        ready = all_launched and len(drones) &gt; 0
+        if ready:
+            for d in drones:
+                i = slot_of.get(d.get(&quot;id&quot;), 0)
+                sp = _stage_point(i, _state[&quot;phi&quot;])
+                p = d.get(&quot;pos&quot;, [0.0, 0.0])
+                if math.hypot(float(p[0]) - ax - sp[0], float(p[1]) - ay - sp[1]) &gt; READY_TOL:
+                    ready = False
+                    break
+        if (ready or tick &gt;= MAX_HOLD_TICK) and all_launched and drones:
+            _state[&quot;released&quot;] = True
+        else:
+            _state[&quot;phi&quot;] += ORBIT_RATE
+            ahead = _state[&quot;phi&quot;] + ORBIT_RATE * LOOKAHEAD
+            for d in drones:
+                i = slot_of.get(d.get(&quot;id&quot;), 0)
+                p = d.get(&quot;pos&quot;, [0.0, 0.0])
+                sp_now = _stage_point(i, _state[&quot;phi&quot;])
+                dist = math.hypot(float(p[0]) - ax - sp_now[0], float(p[1]) - ay - sp_now[1])
+                tgt = _stage_point(i, ahead) if dist &lt; 3 * READY_TOL else sp_now
+                steer[d.get(&quot;id&quot;)] = [tgt[0] + ax, tgt[1] + ay]
+
+    if _state[&quot;released&quot;]:
+        for d in drones:
+            if d.get(&quot;waypoint&quot;) is not None:
+                steer[d.get(&quot;id&quot;)] = None
+
+    return {&quot;launch&quot;: launch, &quot;steer&quot;: steer}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>backscheduled_blast_packer · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-10-03_defender_backscheduled_blast_packer.html">On the ladder now →</a></p>
+<h1>backscheduled_blast_packer</h1>
+<p><strong>defender</strong> · family: Patient defence · persona: generalist · author: house league (model opus) · live</p>
+<p>File: 2026-10-03_defender_backscheduled_blast_packer.py</p>
+<p><strong>The idea:</strong> Plan interceptor launches backwards from the last safe intercept tick, so each blast lands where inbound strikers are packed tightest, and still shoot lone strikers right away so there is time for a second try.</p>
+<h2>What it does</h2>
+<p>Every tick the bot keeps a smoothed range and bearing for each track. It then treats every confirmed striker (and any unknown already inside the id ring) as a drone flying straight at the asset at striker speed. For each uncovered threat it asks one question: does waiting make the blast better? It scans every launch tick from now to the threat's deadline. The deadline is the last launch that still meets the drone outside the asset with a margin. For each tick it counts how many uncovered threats would fall inside one blast at the meeting point. If waiting gives no gain (a lone drone), the threat is due now.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #2 defender (2026-10-04).</li><li>In the top five on 14 of the 14 nights it played.</li><li>Written against: <strong>field</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-17.</p>
+<ul><li><strong>parked_ring_magazine_drain</strong>: held in 10 of 10 seeds, mean score 0.90</li><li><strong>2026_10_15_attacker_dark_ring_release</strong>: held in 10 of 10 seeds, mean score 0.88</li><li><strong>attacker_blast_isolated_synchronized_rel</strong>: held in 10 of 10 seeds, mean score 0.88</li><li><strong>rush</strong>: held in 10 of 10 seeds, mean score 0.87</li><li><strong>flanker</strong>: held in 10 of 10 seeds, mean score 0.80</li><li>… and 8 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>blast_proof_depth_interleave</strong>: held in 0 of 10 seeds, mean score 0.14</li><li><strong>hidden_orbit_screen_then_interleaved_dro</strong>: held in 1 of 10 seeds, mean score 0.17</li><li><strong>interleaved_shell_ring</strong>: held in 2 of 10 seeds, mean score 0.22</li><li><strong>synchronized_ring</strong>: held in 2 of 10 seeds, mean score 0.23</li><li><strong>phase_locked_ring</strong>: held in 4 of 10 seeds, mean score 0.29</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>parked_ring_magazine_drain</strong>, seed 8: defended in 141 ticks, its score 0.92. <a href="../../replays/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-03_defender_backscheduled_blast_packer__s8.html">2026-10-06_attacker_parked_ring_magazine_drain__2026-10-03_defender_backscheduled_blast_packer__s8.json</a></li><li>Worst: vs <strong>blast_proof_depth_interleave</strong>, seed 4: breached in 448 ticks, its score 0.12. <a href="../../replays/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-03_defender_backscheduled_blast_packer__s4.html">2026-10-11_attacker_blast_proof_depth_interleave__2026-10-03_defender_backscheduled_blast_packer__s4.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Idea: Plan interceptor launches backwards from the last safe intercept tick, so each blast lands where inbound strikers are packed tightest, and still shoot lone strikers right away so there is time for a second try.
+
+Name: backscheduled_blast_packer
+
+How it works
+------------
+Every tick the bot keeps a smoothed range and bearing for each track. It then
+treats every confirmed striker (and any unknown already inside the id ring) as
+a drone flying straight at the asset at striker speed. For each uncovered
+threat it asks one question: does waiting make the blast better? It scans
+every launch tick from now to the threat&#x27;s deadline. The deadline is the last
+launch that still meets the drone outside the asset with a margin. For each
+tick it counts how many uncovered threats would fall inside one blast at the
+meeting point.
+
+* If waiting gives no gain (a lone drone), the threat is due now. It is
+  engaged on reveal, about 110 u out, which leaves time for retries and gun
+  shots if the interceptor misses.
+* If waiting gains (drones closing in from many bearings, or a stack), the
+  threat&#x27;s due tick is its deadline.
+
+The bot then builds the schedule backwards, latest tick first, two launches
+per tick. Each slot takes the target whose blast covers the most threats not
+yet planned. The densest late slots are filled first, and the 2 per tick
+launch cap pushes the remaining work as late as it can go. Only the launches
+planned for this tick are fired. Stock is held back for the future slots
+already planned, so the magazine is not spent on single kills at long range
+when triple kills are coming.
+
+In-flight interceptors count as covering their target and its neighbours. An
+interceptor whose target died or turned out to be a decoy is retargeted to
+the reachable uncovered threat with the best blast count. The gun fires every
+tick at the closest uncovered threat, or at a covered threat when it is very
+close. It never fires at decoys.
+
+Why it holds up against each attacker
+-------------------------------------
+* synchronized_ring / phase_locked_ring: These attackers plan around one
+  interceptor per striker and a single burst of 2 launches per tick. Strikers
+  spread over 30-36 bearings are 20+ u apart at 110 u but under the 10 u blast
+  radius inside about 45 u, because the ring shrinks as it converges. The
+  backward schedule packs the 20-round magazine into those last ticks, where
+  one blast covers 2-3 strikers. Earlier singles are only used for the
+  overflow the launch cap cannot fit. The attacker counts on &quot;20 rounds vs 30
+  strikers&quot;. Packing breaks that count. Loiterers at 190 u stay unknown and
+  are never engaged, so the hold costs nothing.
+* trickle / staggered_screen_trickle: Arrivals are spread out, so waiting
+  never improves a blast. Each striker is shot as soon as it is revealed,
+  with time for a retry. Decoys are revealed at 150 u and ignored by both
+  interceptors and the gun. Exactly one interceptor is committed per live
+  threat, so the magazine is not drained by doubling up. A sideways dodge
+  only orphans the shot, and the orphan is then retargeted.
+* rush / flanker / multi_axis: Same-tick launches stack up, and corridors
+  form trails. The blast count is already high at launch time, so these are
+  hit at once, with several drones per round. Two axes landing together are
+  covered by the backward schedule, which makes full use of both launch
+  slots per tick.
+* decoy_screen: Nothing is committed before the 150 u id ring. Once inside
+  it, decoys are classified and never draw a shot. A blast that happens to
+  include a decoy costs nothing extra.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;backscheduled_blast_packer&quot;
+ROLE = &quot;defender&quot;
+
+_S = {&quot;f&quot;: {}}
+
+
+def reset(seed=None):
+    global _S
+    _S = {&quot;f&quot;: {}}
+
+
+def _empty():
+    return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return _empty()
+
+
+def _act(obs):
+    global _S
+    if not isinstance(_S, dict) or &quot;f&quot; not in _S:
+        _S = {&quot;f&quot;: {}}
+    filt = _S[&quot;f&quot;]
+
+    tick = int(obs.get(&quot;tick&quot;, 0) or 0)
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    apos = asset.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    ax, ay = float(apos[0]), float(apos[1])
+    ar = float(asset.get(&quot;radius&quot;, rules.get(&quot;asset_radius&quot;, 25.0)) or 25.0)
+    sp = float(rules.get(&quot;striker_speed&quot;, 4.0) or 4.0)
+    isp = float(rules.get(&quot;interceptor_speed&quot;, 12.0) or 12.0)
+    br = float(rules.get(&quot;blast_radius&quot;, 10.0) or 10.0)
+    idr = float(rules.get(&quot;id_range&quot;, 150.0) or 150.0)
+    gr = float(rules.get(&quot;gun_range&quot;, 100.0) or 100.0)
+    cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2) or 2)
+    life = float(rules.get(&quot;interceptor_lifetime&quot;, 90) or 90)
+    stock = int(obs.get(&quot;stock&quot;, 0) or 0)
+    ammo = int(obs.get(&quot;ammo&quot;, 0) or 0)
+    Rc = br * 0.9
+    Rc2 = Rc * Rc
+    closing = isp + sp
+
+    # ---- track filtering (range alpha-beta, bearing smoothing) ----
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    seen = set()
+    threats = {}
+    for tr in tracks:
+        tid = tr.get(&quot;id&quot;)
+        if tid is None:
+            continue
+        p = tr.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+        dx, dy = float(p[0]) - ax, float(p[1]) - ay
+        rho = math.hypot(dx, dy)
+        if rho &lt; 1e-6:
+            ux_o, uy_o = 1.0, 0.0
+        else:
+            ux_o, uy_o = dx / rho, dy / rho
+        seen.add(tid)
+        f = filt.get(tid)
+        if f is None:
+            v = tr.get(&quot;vel&quot;, [0.0, 0.0]) or [0.0, 0.0]
+            rd = (float(v[0]) * ux_o + float(v[1]) * uy_o)
+            f = {&quot;r&quot;: rho, &quot;rd&quot;: rd, &quot;ux&quot;: ux_o, &quot;uy&quot;: uy_o, &quot;t&quot;: tick}
+            filt[tid] = f
+        else:
+            dt = max(1, tick - f[&quot;t&quot;])
+            pred = f[&quot;r&quot;] + f[&quot;rd&quot;] * dt
+            res = rho - pred
+            f[&quot;r&quot;] = pred + 0.4 * res
+            f[&quot;rd&quot;] = max(-8.0, min(8.0, f[&quot;rd&quot;] + 0.1 * res / dt))
+            dot = f[&quot;ux&quot;] * ux_o + f[&quot;uy&quot;] * uy_o
+            dot = max(-1.0, min(1.0, dot))
+            angd = math.acos(dot)
+            a = 0.3
+            if angd * max(rho, 1.0) &gt; 18.0:
+                a = 0.7
+            nx = (1 - a) * f[&quot;ux&quot;] + a * ux_o
+            ny = (1 - a) * f[&quot;uy&quot;] + a * uy_o
+            nn = math.hypot(nx, ny)
+            if nn &gt; 1e-9:
+                f[&quot;ux&quot;], f[&quot;uy&quot;] = nx / nn, ny / nn
+            f[&quot;t&quot;] = tick
+        cls = tr.get(&quot;cls&quot;, &quot;unknown&quot;)
+        rng = f[&quot;r&quot;]
+        if cls == &quot;striker&quot; or (cls == &quot;unknown&quot; and rho &lt; 0.95 * idr):
+            threats[tid] = (max(rng, 0.0), f[&quot;ux&quot;], f[&quot;uy&quot;], rho)
+    for k in list(filt.keys()):
+        if k not in seen:
+            del filt[k]
+
+    def pos_at(j, t):
+        r, ux, uy, _ = threats[j]
+        rr = r - sp * t
+        if rr &lt; 0.0:
+            rr = 0.0
+        return ux * rr, uy * rr
+
+    def cluster(i, t, pool):
+        px, py = pos_at(i, t)
+        out = []
+        for j in pool:
+            qx, qy = pos_at(j, t)
+            ddx, ddy = qx - px, qy - py
+            if ddx * ddx + ddy * ddy &lt;= Rc2:
+                out.append(j)
+        return out
+
+    # ---- in-flight interceptors: coverage and retargeting ----
+    covered = set()
+    retarget = {}
+    orphans = []
+    ints = obs.get(&quot;interceptors&quot;, []) or []
+    tids = list(threats.keys())
+    for it in ints:
+        iid = it.get(&quot;id&quot;)
+        tgt = it.get(&quot;target&quot;)
+        ip = it.get(&quot;pos&quot;, [ax, ay]) or [ax, ay]
+        ix, iy = float(ip[0]) - ax, float(ip[1]) - ay
+        age = float(it.get(&quot;age&quot;, 0) or 0)
+        if tgt is not None and tgt in threats:
+            qx, qy = pos_at(tgt, 0)
+            d = math.hypot(qx - ix, qy - iy)
+            tm = d / closing
+            for j in cluster(tgt, tm, tids):
+                covered.add(j)
+        else:
+            orphans.append((iid, ix, iy, age))
+    for iid, ix, iy, age in orphans:
+        if iid is None:
+            continue
+        rem = max(0.0, (life - age) * isp)
+        best = None
+        bkey = None
+        bcl = None
+        for j in tids:
+            if threats[j][0] &lt; ar:
+                continue
+            qx, qy = pos_at(j, 0)
+            d = math.hypot(qx - ix, qy - iy)
+            if d &gt; rem:
+                continue
+            tm = d / closing
+            unc_pool = [k for k in tids if k not in covered]
+            cl = cluster(j, tm, unc_pool)
+            key = (1 if j not in covered else 0, len(cl), -d)
+            if bkey is None or key &gt; bkey:
+                bkey = key
+                best = j
+                bcl = cluster(j, tm, tids)
+        if best is not None:
+            retarget[iid] = best
+            for k in bcl:
+                covered.add(k)
+
+    # ---- backward launch planning ----
+    launches = []
+    L = (ar + 8.0) * closing / isp
+    rmin = (ar + 2.0) * closing / isp
+    U = [j for j in tids if j not in covered and threats[j][0] &gt;= rmin]
+    if U and stock &gt; 0:
+        s = {}
+        b = {}
+        Hcap = 30
+        for i in U:
+            si = int(math.floor((threats[i][0] - L) / sp))
+            si = max(0, min(Hcap, si))
+            s[i] = si
+            r_i = threats[i][0]
+            g0 = len(cluster(i, r_i / closing, U))
+            gmax = g0
+            step = 1 if si &lt;= 15 else 2
+            tau = 1
+            while tau &lt;= si:
+                tm = tau + max(r_i - sp * tau, 0.0) / closing
+                g = len(cluster(i, tm, U))
+                if g &gt; gmax:
+                    gmax = g
+                tau += step
+            if si &gt; 0 and step == 2:
+                tm = si + max(r_i - sp * si, 0.0) / closing
+                g = len(cluster(i, tm, U))
+                if g &gt; gmax:
+                    gmax = g
+            b[i] = si if gmax &gt; g0 else 0
+        H = max(b.values()) if b else 0
+        planned = set()
+        plan = {}
+        for tau in range(H, -1, -1):
+            for _k in range(cap):
+                pool = [j for j in U if j not in planned]
+                elig = [i for i in pool if b[i] &gt;= tau]
+                if not elig:
+                    break
+                bestk = None
+                besti = None
+                bestcl = None
+                for i in elig:
+                    r_i = threats[i][0]
+                    tm = tau + max(r_i - sp * tau, 0.0) / closing
+                    cl = cluster(i, tm, pool)
+                    key = (len(cl), -s[i], -r_i)
+                    if bestk is None or key &gt; bestk:
+                        bestk = key
+                        besti = i
+                        bestcl = cl
+                if besti is None:
+                    break
+                plan.setdefault(tau, []).append((bestk[0], besti))
+                for j in bestcl:
+                    planned.add(j)
+                planned.add(besti)
+        now = sorted(plan.get(0, []), key=lambda x: -x[0])
+        future = sum(len(v) for t, v in plan.items() if t &gt; 0)
+        allowed = min(len(now), cap, stock, max(0, stock - future))
+        launches = [i for _, i in now[:allowed]]
+
+    # ---- gun ----
+    gun = None
+    if ammo &gt; 0:
+        bestk = None
+        for j in tids:
+            rr = threats[j][3]
+            if rr &gt; gr:
+                continue
+            unc = j not in covered and j not in launches
+            if not unc and rr &gt; 60.0:
+                continue
+            key = (1 if unc else 0, -rr)
+            if bestk is None or key &gt; bestk:
+                bestk = key
+                gun = j
+
+    return {&quot;intercept&quot;: launches, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

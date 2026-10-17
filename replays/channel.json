@@ -1,0 +1,36 @@
+{
+ "epoch": "2026-10-17T03:30:00Z",
+ "night": 19,
+ "items": [
+  {
+   "data": "data/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-14_defender_parked_hover_ring_doublecover__s9.json.gz",
+   "a": "blast_proof_depth_interleave",
+   "d": "parked_hover_ring_doublecover",
+   "ar": 1,
+   "dr": 1,
+   "frames": 226,
+   "label": "#1 v #1",
+   "page": "2026-10-11_attacker_blast_proof_depth_interleave__2026-10-14_defender_parked_hover_ring_doublecover__s9.html"
+  },
+  {
+   "data": "data/2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__nearest_first__s9.json.gz",
+   "a": "hidden_orbit_screen_then_interleaved_dro",
+   "d": "nearest_first",
+   "ar": 2,
+   "dr": 23,
+   "frames": 71,
+   "label": "new last night",
+   "page": "2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__nearest_first__s9.html"
+  },
+  {
+   "data": "data/2026-09-28_attacker_staggered_screen_trickle__2026-10-14_defender_parked_hover_ring_doublecover__s9.json.gz",
+   "a": "staggered_screen_trickle",
+   "d": "parked_hover_ring_doublecover",
+   "ar": 9,
+   "dr": 1,
+   "frames": 223,
+   "label": "upset",
+   "page": "2026-09-28_attacker_staggered_screen_trickle__2026-10-14_defender_parked_hover_ring_doublecover__s9.html"
+  }
+ ]
+}

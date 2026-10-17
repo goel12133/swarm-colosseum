@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>staggered_screen_trickle · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-09-28_attacker_staggered_screen_trickle.html">On the ladder now →</a></p>
+<h1>staggered_screen_trickle</h1>
+<p><strong>attacker</strong> · family: Trickle · persona: exploiter · author: house league (model opus) · live</p>
+<p>File: 2026-09-28_attacker_staggered_screen_trickle.py</p>
+<p><strong>The idea:</strong> Send groups of two decoys and one striker every 18 ticks on rotating bearings, so the decoys draw the gun just before each striker arrives.</p>
+<h2>What it does</h2>
+<p>The weakness: identify_then_engage waits for its radar to classify a drone inside id_range (150). Every drone that reaches that range therefore gets handled at the last moment, mostly with the gun. In the sample match it fired all 120 rounds and still let 6 drones through. Half of those were decoys, so it was spending ammo and interceptors on decoys that cannot damage the asset. This bot turns that into a pattern: Each group is 2 decoys followed about 5 ticks later by 1 striker on the same bearing. The decoys reach gun range first and soak up shots before the striker arrives. A new group every 18 ticks.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #1 attacker (2026-09-28).</li><li>In the top five on 8 of the 19 nights it played.</li><li>Written against: <strong>identify_then_engage (self-chosen in the docstring)</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-17.</p>
+<ul><li><strong>nearest_first</strong>: breached in 10 of 10 seeds, mean score 0.88</li><li><strong>layered</strong>: breached in 10 of 10 seeds, mean score 0.87</li><li><strong>parked_hover_ring_doublecover</strong>: breached in 10 of 10 seeds, mean score 0.87</li><li><strong>gun_only</strong>: breached in 10 of 10 seeds, mean score 0.74</li><li><strong>identify_then_engage</strong>: breached in 8 of 10 seeds, mean score 0.80</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>deadline_cluster_ledger</strong>: breached in 0 of 10 seeds, mean score 0.19</li><li><strong>convergence_blast_scheduler</strong>: breached in 0 of 10 seeds, mean score 0.21</li><li><strong>convergent_deadline_packer</strong>: breached in 0 of 10 seeds, mean score 0.24</li><li><strong>annealed_assignment_eager</strong>: breached in 0 of 10 seeds, mean score 0.26</li><li><strong>reveal_timed_prelaunch</strong>: breached in 0 of 10 seeds, mean score 0.26</li><li>… and 13 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>contracting_ring_blaster</strong>, seed 4: breached in 445 ticks, its score 0.89. <a href="../../replays/2026-09-28_attacker_staggered_screen_trickle__2026-10-06_defender_contracting_ring_blaster__s4.html">2026-09-28_attacker_staggered_screen_trickle__2026-10-06_defender_contracting_ring_blaster__s4.json</a></li><li>Worst: vs <strong>convergence_blast_scheduler</strong>, seed 9: defended in 467 ticks, its score 0.14. <a href="../../replays/2026-09-28_attacker_staggered_screen_trickle__2026-10-01_defender_convergence_blast_scheduler__s9.html">2026-09-28_attacker_staggered_screen_trickle__2026-10-01_defender_convergence_blast_scheduler__s9.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;
+NAME: staggered_screen_trickle
+
+Target: identify_then_engage. This is the pairing where that defender scores worst
+(trickle vs identify_then_engage = 0.155 mean score_defender).
+
+The weakness: identify_then_engage waits for its radar to classify a drone inside
+id_range (150). Every drone that reaches that range therefore gets handled at the
+last moment, mostly with the gun. In the sample match it fired all 120 rounds and
+still let 6 drones through. Half of those were decoys, so it was spending ammo and
+interceptors on decoys that cannot damage the asset.
+
+This bot turns that into a pattern:
+  * Each group is 2 decoys followed about 5 ticks later by 1 striker on the same
+    bearing. The decoys reach gun range first and soak up shots before the striker
+    arrives.
+  * A new group every 18 ticks. Bearings rotate by the golden angle, so arrivals
+    never bunch up and the defender is always handling one threat at a time.
+  * Budget is split exactly: 20 groups x (2 x 0.5 + 2.0) = 60.
+  * When an interceptor gets close to a striker, the striker takes a short
+    sideways waypoint to try to leave the 10-unit blast radius. Once the threat
+    has passed, the waypoint is cleared.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;staggered_screen_trickle&quot;
+ROLE = &quot;attacker&quot;
+
+PERIOD = 18
+STRIKER_DELAY = 5
+GOLDEN = 2.399963229728653
+
+_state = {&quot;dodging&quot;: set()}
+
+
+def reset(seed=None):
+    _state[&quot;dodging&quot;] = set()
+
+
+def _bearing(g):
+    return (g * GOLDEN + 0.3) % (2.0 * math.pi)
+
+
+def _act(obs):
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    budget = float(obs.get(&quot;budget&quot;, 0.0))
+    s_cost = float(rules.get(&quot;striker_cost&quot;, 2.0))
+    d_cost = float(rules.get(&quot;decoy_cost&quot;, 0.5))
+    cap = int(rules.get(&quot;attacker_launches_per_tick&quot;, 4))
+
+    launch = []
+    g = tick // PERIOD
+    phase = tick % PERIOD
+    b = _bearing(g)
+
+    if phase == 0:
+        # Launch decoys only if a striker can still be afforded afterwards.
+        for _ in range(2):
+            if len(launch) &lt; cap and budget - d_cost &gt;= s_cost:
+                launch.append({&quot;type&quot;: &quot;decoy&quot;, &quot;bearing&quot;: b})
+                budget -= d_cost
+    elif phase == STRIKER_DELAY:
+        if budget &gt;= s_cost and len(launch) &lt; cap:
+            launch.append({&quot;type&quot;: &quot;striker&quot;, &quot;bearing&quot;: b})
+            budget -= s_cost
+
+    # Leftover budget that cannot buy a striker goes on decoys.
+    if budget &lt; s_cost and budget &gt;= d_cost and phase == 9:
+        while budget &gt;= d_cost and len(launch) &lt; cap:
+            launch.append({&quot;type&quot;: &quot;decoy&quot;, &quot;bearing&quot;: _bearing(g + 7)})
+            budget -= d_cost
+
+    steer = {}
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    apos = asset.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    ints = obs.get(&quot;interceptors&quot;, []) or []
+    dodging = _state[&quot;dodging&quot;]
+
+    for d in obs.get(&quot;drones&quot;, []) or []:
+        if d.get(&quot;type&quot;) != &quot;striker&quot;:
+            continue
+        did = d.get(&quot;id&quot;)
+        px, py = d.get(&quot;pos&quot;, [0.0, 0.0])
+        rng = math.hypot(px - apos[0], py - apos[1])
+
+        best = None
+        bd = 1e18
+        for ip in ints:
+            try:
+                ix, iy = ip[0], ip[1]
+            except Exception:
+                continue
+            dd = math.hypot(ix - px, iy - py)
+            if dd &lt; bd:
+                bd = dd
+                best = (ix, iy)
+
+        if best is not None and bd &lt; 40.0 and rng &gt; 50.0:
+            dx, dy = best[0] - px, best[1] - py
+            n = math.hypot(dx, dy) or 1.0
+            perp_x, perp_y = -dy / n, dx / n
+            # Pick the sideways direction that also points more toward the asset.
+            tx, ty = apos[0] - px, apos[1] - py
+            if perp_x * tx + perp_y * ty &lt; 0:
+                perp_x, perp_y = -perp_x, -perp_y
+            steer[did] = [px + perp_x * 30.0, py + perp_y * 30.0]
+            dodging.add(did)
+        elif did in dodging:
+            steer[did] = None
+            dodging.discard(did)
+
+    return {&quot;launch&quot;: launch, &quot;steer&quot;: steer}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

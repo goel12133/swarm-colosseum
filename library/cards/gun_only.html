@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>gun_only · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/gun_only.html">On the ladder now →</a></p>
+<h1>gun_only</h1>
+<p><strong>defender</strong> · family: Controls · persona: hand-written baseline · author: Pelennor · live</p>
+<p>File: gun_only.py</p>
+<p><strong>The idea:</strong> Never launches an interceptor.</p>
+<h2>What it does</h2>
+<p>Gun only: never launches an interceptor. The economic extreme. A shot costs 0.1 against an interceptor's 4, so this bot should post an excellent cost-exchange ratio and lose on asset HP -- it is the control that stops the scoring from being read as "cheap is good". If gun_only tops the defender ladder, the score weights are wrong, not the strategy.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #5 defender (2026-09-28).</li><li>In the top five on 1 of the 19 nights it played.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-17.</p>
+<ul><li>No opponent: it loses to every one more often than it wins.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>decoy_screen</strong>: held in 0 of 10 seeds, mean score 0.23</li><li><strong>parked_ring_magazine_drain</strong>: held in 0 of 10 seeds, mean score 0.23</li><li><strong>phase_locked_ring</strong>: held in 0 of 10 seeds, mean score 0.23</li><li><strong>2026_10_15_attacker_dark_ring_release</strong>: held in 0 of 10 seeds, mean score 0.25</li><li><strong>shadow_pair_ring</strong>: held in 0 of 10 seeds, mean score 0.25</li><li>… and 13 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>attacker_blast_isolated_synchronized_rel</strong>, seed 4: breached in 120 ticks, its score 0.36. <a href="../../replays/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__gun_only__s4.html">2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__gun_only__s4.json</a></li><li>Worst: vs <strong>rush</strong>, seed 2: breached in 117 ticks, its score 0.00. <a href="../../replays/rush__gun_only__s2.html">rush__gun_only__s2.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Gun only: never launches an interceptor.
+
+The economic extreme. A shot costs 0.1 against an interceptor&#x27;s 4, so this bot should post
+an excellent cost-exchange ratio and lose on asset HP -- it is the control that stops the
+scoring from being read as &quot;cheap is good&quot;. If gun_only tops the defender ladder, the
+score weights are wrong, not the strategy.
+&quot;&quot;&quot;
+NAME = &quot;gun_only&quot;
+ROLE = &quot;defender&quot;
+
+
+def act(obs):
+    gun_range = obs[&quot;rules&quot;][&quot;gun_range&quot;]
+    in_gun = [t for t in obs[&quot;tracks&quot;] if t[&quot;range&quot;] &lt;= gun_range]
+    in_gun.sort(key=lambda t: t[&quot;range&quot;])
+    return {&quot;intercept&quot;: [], &quot;retarget&quot;: {},
+            &quot;gun&quot;: in_gun[0][&quot;id&quot;] if in_gun else None}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

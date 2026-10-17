@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>annealed_assignment · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head def"><span class="side-tag def">Defender</span><h1>annealed_assignment</h1><div class="meta"><span>rank <b class="def">#14</b></span><span>Elo 993</span><span class="t3">baseline</span><span class="t3">annealed_assignment</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Annealed assignment: each tick's launch and gun decisions as one small QUBO.</p>
+<p>Idea: instead of a greedy rule ("nearest first", "strikers first"), write down what a tick's decision is worth and let an optimiser pick the whole set at once.</p>
+<p>Binary variables, rebuilt every tick: x_t = 1  launch an interceptor at track t   (tracks not already chased, top 12 by value) y_t = 1  fire the gun at track t            (tracks inside gun range, nearest 6) s_k      slack bits that turn "at most K launches" into an equality</p>
+<p>Energy to minimise (lower is better):</p>
+<ul><li>sum_t x_t * pk * V_t                      value of an interceptor at t V_t = P(striker | label) * damage * urgency(time to impact) + 0.7 * the same for other tracks within the blast radius of t P(striker | unknown) is learned in-match from the labels seen so far + sum_t x_t * C                             interceptor cost, rising as stock runs short</li><li>sum_t y_t * pk_gun(range_t) * V_t         value of a gun round (cost 0.1) + A * (sum_t x_t + sum_k s_k - K)^2         launch cap and stock, K = min(cap, stock) + B * y_a * y_b                             at most one gun target + D * x_a * x_b   for a, b within blast     two interceptors into one cluster is waste + E * x_t * y_t                             gun and interceptor on the same target</li></ul>
+<p>Solved by simulated annealing (standard library, seeded from reset(seed) and the tick, so deterministic), keeping the best state seen. Retargeting orphaned interceptors stays greedy: it is not a choice between alternatives worth optimising jointly.</p>
+<p>This is a hand-written experiment: does a joint optimiser beat layered's greedy heuristic under a per-tick time limit? Results are reported whether it does or not.</p></div>
+<div class="stats4"><div><span class="v">69.4%</span><span class="label">win rate</span></div><div><span class="v">0.73</span><span class="label">cost exchange</span></div><div><span class="v">180</span><span class="label">matches</span></div><div><span class="v">night 3</span><span class="label">first night (2026-09-30)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-28_attacker_staggered_screen_trickle.html" class="att">staggered_screen_trickle</a><span>10–0</span></li><li><a href="2026-10-06_attacker_parked_ring_magazine_drain.html" class="att">parked_ring_magazine_drain</a><span>10–0</span></li><li><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html" class="att">attacker_blast_isolated_synchronized_rel</a><span>10–0</span></li><li><a href="2026-10-10_attacker_shadow_pair_ring.html" class="att">shadow_pair_ring</a><span>10–0</span></li><li><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html" class="att">column_free_tiered_ring_dive</a><span>10–0</span></li><li><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html" class="att">2026_10_15_attacker_dark_ring_release</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-29_attacker_synchronized_ring.html" class="att">synchronized_ring</a><span>0–10</span></li><li><a href="2026-10-03_attacker_depth_shell_saturation.html" class="att">depth_shell_saturation</a><span>0–10</span></li><li><a href="2026-10-11_attacker_blast_proof_depth_interleave.html" class="att">blast_proof_depth_interleave</a><span>0–10</span></li><li><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html" class="att">hidden_orbit_screen_then_interleaved_dro</a><span>0–10</span></li><li><a href="2026-09-30_attacker_phase_locked_ring.html" class="att">phase_locked_ring</a><span>1–9</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-06_attacker_parked_ring_magazine_drain__annealed_assignment__s7.json.gz&amp;ar=15&amp;dr=14" title="Best match: annealed_assignment v parked_ring_magazine_drain" loading="lazy"></iframe><figcaption>vs <span class="att">parked_ring_magazine_drain</span> · its score 0.847 · seed 7 · <a href="../replays/2026-10-06_attacker_parked_ring_magazine_drain__annealed_assignment__s7.html">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__annealed_assignment__s6.json.gz&amp;ar=2&amp;dr=14" title="Worst match: annealed_assignment v hidden_orbit_screen_then_interleaved_dro" loading="lazy"></iframe><figcaption>vs <span class="att">hidden_orbit_screen_then_interleaved_dro</span> · its score 0.106 · seed 6 · <a href="../replays/2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__annealed_assignment__s6.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="2026-10-06_attacker_parked_ring_magazine_drain.html">parked_ring_magazine_drain</a></td><td class="num">0.826</td></tr><tr><td class="name"><a href="rush.html">rush</a></td><td class="num">0.800</td></tr><tr><td class="name"><a href="flanker.html">flanker</a></td><td class="num">0.799</td></tr><tr><td class="name"><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html">attacker_blast_isolated_synchronized_rel</a></td><td class="num">0.790</td></tr><tr><td class="name"><a href="decoy_screen.html">decoy_screen</a></td><td class="num">0.788</td></tr><tr><td class="name"><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">2026_10_15_attacker_dark_ring_release</a></td><td class="num">0.772</td></tr><tr><td class="name"><a href="trickle.html">trickle</a></td><td class="num">0.747</td></tr><tr><td class="name"><a href="2026-10-10_attacker_shadow_pair_ring.html">shadow_pair_ring</a></td><td class="num">0.727</td></tr><tr><td class="name"><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html">column_free_tiered_ring_dive</a></td><td class="num">0.724</td></tr><tr><td class="name"><a href="2026-09-28_attacker_staggered_screen_trickle.html">staggered_screen_trickle</a></td><td class="num">0.721</td></tr><tr><td class="name"><a href="multi_axis.html">multi_axis</a></td><td class="num">0.704</td></tr><tr><td class="name"><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html">staggered_trishell_blast_denial</a></td><td class="num">0.582</td></tr><tr><td class="name"><a href="2026-10-04_attacker_interleaved_shell_ring.html">interleaved_shell_ring</a></td><td class="num">0.417</td></tr><tr><td class="name"><a href="2026-09-30_attacker_phase_locked_ring.html">phase_locked_ring</a></td><td class="num">0.166</td></tr><tr><td class="name"><a href="2026-10-03_attacker_depth_shell_saturation.html">depth_shell_saturation</a></td><td class="num">0.144</td></tr><tr><td class="name"><a href="2026-09-29_attacker_synchronized_ring.html">synchronized_ring</a></td><td class="num">0.140</td></tr><tr><td class="name"><a href="2026-10-11_attacker_blast_proof_depth_interleave.html">blast_proof_depth_interleave</a></td><td class="num">0.138</td></tr><tr><td class="name"><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html">hidden_orbit_screen_then_interleaved_dro</a></td><td class="num">0.129</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">staggered_screen_trickle</td><td class="num">9</td><td class="good">defended</td><td class="num">0.738</td><td><a href="../replays/viewer.html?r=data/2026-09-28_attacker_staggered_screen_trickle__annealed_assignment__s9.json.gz">watch</a></td></tr><tr><td class="name">synchronized_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.149</td><td><a href="../replays/viewer.html?r=data/2026-09-29_attacker_synchronized_ring__annealed_assignment__s9.json.gz">watch</a></td></tr><tr><td class="name">phase_locked_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.141</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__annealed_assignment__s9.json.gz">watch</a></td></tr><tr><td class="name">depth_shell_saturation</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.155</td><td><a href="../replays/viewer.html?r=data/2026-10-03_attacker_depth_shell_saturation__annealed_assignment__s9.json.gz">watch</a></td></tr><tr><td class="name">interleaved_shell_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.359</td><td><a href="../replays/viewer.html?r=data/2026-10-04_attacker_interleaved_shell_ring__annealed_assignment__s9.json.gz">watch</a></td></tr><tr><td class="name">parked_ring_magazine_drain</td><td class="num">9</td><td class="good">defended</td><td class="num">0.821</td><td><a href="../replays/2026-10-06_attacker_parked_ring_magazine_drain__annealed_assignment__s9.html">watch</a></td></tr><tr><td class="name">staggered_trishell_blast_denial</td><td class="num">9</td><td class="good">defended</td><td class="num">0.766</td><td><a href="../replays/2026-10-08_attacker_staggered_trishell_blast_denial__annealed_assignment__s9.html">watch</a></td></tr><tr><td class="name">attacker_blast_isolated_synchronized_rel</td><td class="num">9</td><td class="good">defended</td><td class="num">0.808</td><td><a href="../replays/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__annealed_assignment__s9.html">watch</a></td></tr><tr><td class="name">shadow_pair_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.353</td><td><a href="../replays/2026-10-10_attacker_shadow_pair_ring__annealed_assignment__s9.html">watch</a></td></tr><tr><td class="name">blast_proof_depth_interleave</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.146</td><td><a href="../replays/2026-10-11_attacker_blast_proof_depth_interleave__annealed_assignment__s9.html">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src"><summary>Source · bots/defenders/annealed_assignment.py</summary><pre><code>&quot;&quot;&quot;Annealed assignment: each tick&#x27;s launch and gun decisions as one small QUBO.
+
+Idea: instead of a greedy rule (&quot;nearest first&quot;, &quot;strikers first&quot;), write down what a tick&#x27;s
+decision is worth and let an optimiser pick the whole set at once.
+
+Binary variables, rebuilt every tick:
+  x_t = 1  launch an interceptor at track t   (tracks not already chased, top 12 by value)
+  y_t = 1  fire the gun at track t            (tracks inside gun range, nearest 6)
+  s_k      slack bits that turn &quot;at most K launches&quot; into an equality
+
+Energy to minimise (lower is better):
+  - sum_t x_t * pk * V_t                      value of an interceptor at t
+      V_t = P(striker | label) * damage * urgency(time to impact)
+            + 0.7 * the same for other tracks within the blast radius of t
+      P(striker | unknown) is learned in-match from the labels seen so far
+  + sum_t x_t * C                             interceptor cost, rising as stock runs short
+  - sum_t y_t * pk_gun(range_t) * V_t         value of a gun round (cost 0.1)
+  + A * (sum_t x_t + sum_k s_k - K)^2         launch cap and stock, K = min(cap, stock)
+  + B * y_a * y_b                             at most one gun target
+  + D * x_a * x_b   for a, b within blast     two interceptors into one cluster is waste
+  + E * x_t * y_t                             gun and interceptor on the same target
+
+Solved by simulated annealing (standard library, seeded from reset(seed) and the tick, so
+deterministic), keeping the best state seen. Retargeting orphaned interceptors stays
+greedy: it is not a choice between alternatives worth optimising jointly.
+
+This is a hand-written experiment: does a joint optimiser beat layered&#x27;s greedy heuristic
+under a per-tick time limit? Results are reported whether it does or not.
+&quot;&quot;&quot;
+import math
+import random
+
+NAME = &quot;annealed_assignment&quot;
+ROLE = &quot;defender&quot;
+
+# --- knobs (the family differs only here) ---------------------------------------
+HORIZON = 40.0          # ticks: urgency is 1 at impact, 0 at this time-to-impact or later
+COST_SCALE = 1.0        # multiplies the interceptor price in the energy
+UNKNOWN_FLOOR = 0.25    # P(striker | unknown) never drops below this
+SWEEPS = 60
+MAX_LAUNCH_VARS = 12
+MAX_GUN_VARS = 6
+CLUSTER_SHARE = 0.7
+
+_state = {&quot;seed&quot;: 0, &quot;strikers&quot;: 0, &quot;decoys&quot;: 0, &quot;seen&quot;: {}}
+
+
+def reset(seed):
+    _state.update(seed=int(seed or 0), strikers=0, decoys=0, seen={})
+
+
+# --- the model --------------------------------------------------------------------
+
+def _tti(t):
+    p, v, r = t[&quot;pos&quot;], t[&quot;vel&quot;], max(t[&quot;range&quot;], 1e-6)
+    closing = -(p[0] * v[0] + p[1] * v[1]) / r
+    return r / max(closing, 0.5)
+
+
+def _p_striker(t, prior):
+    c = t.get(&quot;cls&quot;, &quot;unknown&quot;)
+    if c == &quot;striker&quot;:
+        return 1.0
+    if c == &quot;decoy&quot;:
+        return 0.02
+    return prior
+
+
+def _learn(tracks):
+    for t in tracks:
+        c = t.get(&quot;cls&quot;)
+        if c in (&quot;striker&quot;, &quot;decoy&quot;) and t[&quot;id&quot;] not in _state[&quot;seen&quot;]:
+            _state[&quot;seen&quot;][t[&quot;id&quot;]] = c
+            _state[&quot;strikers&quot; if c == &quot;striker&quot; else &quot;decoys&quot;] += 1
+    s, d = _state[&quot;strikers&quot;], _state[&quot;decoys&quot;]
+    return max(UNKNOWN_FLOOR, (s + 1.0) / (s + d + 2.0))
+
+
+def build(obs):
+    rules = obs[&quot;rules&quot;]
+    tracks = obs.get(&quot;tracks&quot;) or []
+    prior = _learn(tracks)
+    damage = float(rules.get(&quot;striker_damage&quot;, 10))
+    blast = float(rules.get(&quot;blast_radius&quot;, 10.0))
+    pk = float(rules.get(&quot;interceptor_kill_prob&quot;, 0.85))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    stock = int(obs.get(&quot;stock&quot;, 0))
+    ammo = int(obs.get(&quot;ammo&quot;, 0))
+    price = float(rules.get(&quot;interceptor_cost&quot;, 4.0))
+
+    chased = {i.get(&quot;target&quot;) for i in (obs.get(&quot;interceptors&quot;) or [])}
+    base = {}
+    for t in tracks:
+        urg = max(0.0, min(1.0, (HORIZON - _tti(t)) / HORIZON))
+        base[t[&quot;id&quot;]] = _p_striker(t, prior) * damage * urg
+    pos = {t[&quot;id&quot;]: t[&quot;pos&quot;] for t in tracks}
+
+    def near(a, b):
+        return math.dist(pos[a], pos[b]) &lt;= blast
+
+    value = {}
+    for t in tracks:
+        extra = sum(base[u[&quot;id&quot;]] for u in tracks
+                    if u[&quot;id&quot;] != t[&quot;id&quot;] and near(t[&quot;id&quot;], u[&quot;id&quot;]))
+        value[t[&quot;id&quot;]] = base[t[&quot;id&quot;]] + CLUSTER_SHARE * extra
+
+    threats = sum(1 for t in tracks if base[t[&quot;id&quot;]] &gt; 0)
+    scarcity = 1.0 + 0.5 * max(0, threats - stock) / max(1, stock)
+    cost = COST_SCALE * price * scarcity
+
+    launch = [t for t in tracks if t[&quot;id&quot;] not in chased and base[t[&quot;id&quot;]] &gt; 0]
+    launch.sort(key=lambda t: -value[t[&quot;id&quot;]])
+    launch = launch[:MAX_LAUNCH_VARS] if stock &gt; 0 else []
+    gun = [t for t in tracks if t[&quot;range&quot;] &lt;= gun_range and base[t[&quot;id&quot;]] &gt; 0]
+    gun.sort(key=lambda t: t[&quot;range&quot;])
+    gun = gun[:MAX_GUN_VARS] if ammo &gt; 0 else []
+
+    names = [(&quot;x&quot;, t[&quot;id&quot;]) for t in launch] + [(&quot;y&quot;, t[&quot;id&quot;]) for t in gun]
+    k = min(cap, stock)
+    slack = [(&quot;s&quot;, j) for j in range(k)] if launch else []
+    names += slack
+    index = {n: i for i, n in enumerate(names)}
+    lin = [0.0] * len(names)
+    quad = {}
+
+    def add(a, b, w):
+        i, j = index[a], index[b]
+        if i == j:
+            lin[i] += w
+        else:
+            key = (min(i, j), max(i, j))
+            quad[key] = quad.get(key, 0.0) + w
+
+    big = 2.0 * (max(value.values(), default=1.0) * pk + cost) + 1.0
+    for t in launch:
+        n = (&quot;x&quot;, t[&quot;id&quot;])
+        add(n, n, -pk * value[t[&quot;id&quot;]] + cost)
+    for t in gun:
+        n = (&quot;y&quot;, t[&quot;id&quot;])
+        pg = max(0.0, float(rules.get(&quot;gun_pk_scale&quot;, 0.4)) * (1 - t[&quot;range&quot;] / gun_range)
+                 + float(rules.get(&quot;gun_pk_floor&quot;, 0.05)))
+        add(n, n, -pg * value[t[&quot;id&quot;]] + float(rules.get(&quot;gun_cost&quot;, 0.1)))
+    # launch cap as an equality with slack: A (sum x + sum s - k)^2
+    if launch:
+        group = [(&quot;x&quot;, t[&quot;id&quot;]) for t in launch] + slack
+        for a in group:
+            add(a, a, big * (1 - 2 * k))
+        for i, a in enumerate(group):
+            for b in group[i + 1:]:
+                add(a, b, 2 * big)
+    for i, a in enumerate(gun):
+        for b in gun[i + 1:]:
+            add((&quot;y&quot;, a[&quot;id&quot;]), (&quot;y&quot;, b[&quot;id&quot;]), big)
+    for i, a in enumerate(launch):
+        for b in launch[i + 1:]:
+            if near(a[&quot;id&quot;], b[&quot;id&quot;]):
+                add((&quot;x&quot;, a[&quot;id&quot;]), (&quot;x&quot;, b[&quot;id&quot;]), pk * min(value[a[&quot;id&quot;]], value[b[&quot;id&quot;]]))
+        if (&quot;y&quot;, a[&quot;id&quot;]) in index:
+            add((&quot;x&quot;, a[&quot;id&quot;]), (&quot;y&quot;, a[&quot;id&quot;]), 0.8 * pk * base[a[&quot;id&quot;]])
+    return names, lin, quad
+
+
+def energy(bits, lin, quad):
+    e = sum(w for w, b in zip(lin, bits) if b)
+    return e + sum(w for (i, j), w in quad.items() if bits[i] and bits[j])
+
+
+def anneal(lin, quad, rng, sweeps=SWEEPS):
+    n = len(lin)
+    if n == 0:
+        return []
+    nbr = [[] for _ in range(n)]
+    for (i, j), w in quad.items():
+        nbr[i].append((j, w))
+        nbr[j].append((i, w))
+    bits = [0] * n
+    e = 0.0
+    best, best_e = bits[:], e
+    scale = max([abs(w) for w in lin] + [abs(w) for w in quad.values()] + [1.0])
+    t_hi, t_lo = scale, scale * 1e-3
+    for s in range(sweeps):
+        temp = t_hi * (t_lo / t_hi) ** (s / max(1, sweeps - 1))
+        for i in range(n):
+            field = lin[i] + sum(w for j, w in nbr[i] if bits[j])
+            delta = -field if bits[i] else field
+            if delta &lt;= 0 or rng.random() &lt; math.exp(-delta / temp):
+                bits[i] ^= 1
+                e += delta
+                if e &lt; best_e:
+                    best, best_e = bits[:], e
+    return best
+
+
+# --- the policy -------------------------------------------------------------------
+
+def _act(obs):
+    names, lin, quad = build(obs)
+    rng = random.Random(_state[&quot;seed&quot;] * 1_000_003 + int(obs.get(&quot;tick&quot;, 0)))
+    bits = anneal(lin, quad, rng)
+    cap = int(obs[&quot;rules&quot;].get(&quot;interceptor_launches_per_tick&quot;, 2))
+    launches = [n[1] for n, b in zip(names, bits) if b and n[0] == &quot;x&quot;][:cap]
+    guns = [n[1] for n, b in zip(names, bits) if b and n[0] == &quot;y&quot;]
+
+    tracks = {t[&quot;id&quot;]: t for t in (obs.get(&quot;tracks&quot;) or [])}
+    retarget = {}
+    wanted = [t for t in sorted(tracks.values(), key=_tti)
+              if t.get(&quot;cls&quot;) != &quot;decoy&quot; and t[&quot;id&quot;] not in launches]
+    busy = {i.get(&quot;target&quot;) for i in (obs.get(&quot;interceptors&quot;) or [])
+            if i.get(&quot;target&quot;) in tracks}
+    free = [t[&quot;id&quot;] for t in wanted if t[&quot;id&quot;] not in busy]
+    for i in obs.get(&quot;interceptors&quot;) or []:
+        if i.get(&quot;target&quot;) not in tracks and free:
+            retarget[i[&quot;id&quot;]] = free.pop(0)
+    return {&quot;intercept&quot;: launches, &quot;retarget&quot;: retarget, &quot;gun&quot;: guns[0] if guns else None}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

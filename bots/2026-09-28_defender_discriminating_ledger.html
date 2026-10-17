@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>discriminating_ledger · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head def"><span class="side-tag def">Defender</span><h1>discriminating_ledger</h1><div class="meta"><span>rank <b class="def">#9</b></span><span>Elo 1052</span><span class="t3">house league, persona exploiter</span><span class="t3">2026-09-28_defender_discriminating_ledger</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>NAME: discriminating_ledger</p>
+<p>Target: the trickle and decoy-heavy attackers, and the matches they win against identify_then_engage (trickle: 0.155) and nearest_first (decoy_screen: 0.107).</p>
+<p>The weakness: both of those defenders spend their resources on decoys.</p>
+<ul><li>nearest_first shoots whatever is closest. In the sample match it killed all 16 decoys and let 3 strikers through.</li><li>identify_then_engage fired all 120 gun rounds against a trickle that was half decoys, and ran dry before the strikers arrived.</li></ul>
+<p>This bot keeps a strict ledger of what each threat is:</p>
+<ul><li>Interceptors are only ever sent at confirmed strikers, or at unknown tracks that are already inside id range (these should not normally exist).</li><li>Each striker gets exactly one interceptor. Anything else is only launched when that striker's interceptor is gone and the striker is still alive.</li><li>If an interceptor's target disappears, it is retargeted to the most urgent striker that has no interceptor.</li><li>The gun only fires at strikers. It prefers strikers with no interceptor on the way, then the closest one. Decoys are never engaged, so ammo lasts against a long trickle.</li></ul></div>
+<div class="stats4"><div><span class="v">72.8%</span><span class="label">win rate</span></div><div><span class="v">0.62</span><span class="label">cost exchange</span></div><div><span class="v">180</span><span class="label">matches</span></div><div><span class="v">night 1</span><span class="label">first night (2026-09-28)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-28_attacker_staggered_screen_trickle.html" class="att">staggered_screen_trickle</a><span>10–0</span></li><li><a href="2026-10-06_attacker_parked_ring_magazine_drain.html" class="att">parked_ring_magazine_drain</a><span>10–0</span></li><li><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html" class="att">attacker_blast_isolated_synchronized_rel</a><span>10–0</span></li><li><a href="2026-10-10_attacker_shadow_pair_ring.html" class="att">shadow_pair_ring</a><span>10–0</span></li><li><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html" class="att">column_free_tiered_ring_dive</a><span>10–0</span></li><li><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html" class="att">2026_10_15_attacker_dark_ring_release</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-29_attacker_synchronized_ring.html" class="att">synchronized_ring</a><span>0–10</span></li><li><a href="2026-10-11_attacker_blast_proof_depth_interleave.html" class="att">blast_proof_depth_interleave</a><span>0–10</span></li><li><a href="2026-09-30_attacker_phase_locked_ring.html" class="att">phase_locked_ring</a><span>1–9</span></li><li><a href="2026-10-04_attacker_interleaved_shell_ring.html" class="att">interleaved_shell_ring</a><span>1–9</span></li><li><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html" class="att">hidden_orbit_screen_then_interleaved_dro</a><span>4–6</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/rush__2026-09-28_defender_discriminating_ledger__s9.json.gz&amp;ar=18&amp;dr=9" title="Best match: discriminating_ledger v rush" loading="lazy"></iframe><figcaption>vs <span class="att">rush</span> · its score 0.771 · seed 9 · <a href="../replays/viewer.html?r=data/rush__2026-09-28_defender_discriminating_ledger__s9.json.gz">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-04_attacker_interleaved_shell_ring__2026-09-28_defender_discriminating_ledger__s3.json.gz&amp;ar=3&amp;dr=9" title="Worst match: discriminating_ledger v interleaved_shell_ring" loading="lazy"></iframe><figcaption>vs <span class="att">interleaved_shell_ring</span> · its score 0.106 · seed 3 · <a href="../replays/2026-10-04_attacker_interleaved_shell_ring__2026-09-28_defender_discriminating_ledger__s3.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="rush.html">rush</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="flanker.html">flanker</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="decoy_screen.html">decoy_screen</a></td><td class="num">0.766</td></tr><tr><td class="name"><a href="2026-10-06_attacker_parked_ring_magazine_drain.html">parked_ring_magazine_drain</a></td><td class="num">0.760</td></tr><tr><td class="name"><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html">attacker_blast_isolated_synchronized_rel</a></td><td class="num">0.759</td></tr><tr><td class="name"><a href="2026-10-10_attacker_shadow_pair_ring.html">shadow_pair_ring</a></td><td class="num">0.748</td></tr><tr><td class="name"><a href="trickle.html">trickle</a></td><td class="num">0.745</td></tr><tr><td class="name"><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html">column_free_tiered_ring_dive</a></td><td class="num">0.743</td></tr><tr><td class="name"><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">2026_10_15_attacker_dark_ring_release</a></td><td class="num">0.743</td></tr><tr><td class="name"><a href="2026-09-28_attacker_staggered_screen_trickle.html">staggered_screen_trickle</a></td><td class="num">0.731</td></tr><tr><td class="name"><a href="multi_axis.html">multi_axis</a></td><td class="num">0.661</td></tr><tr><td class="name"><a href="2026-10-03_attacker_depth_shell_saturation.html">depth_shell_saturation</a></td><td class="num">0.626</td></tr><tr><td class="name"><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html">staggered_trishell_blast_denial</a></td><td class="num">0.357</td></tr><tr><td class="name"><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html">hidden_orbit_screen_then_interleaved_dro</a></td><td class="num">0.241</td></tr><tr><td class="name"><a href="2026-09-30_attacker_phase_locked_ring.html">phase_locked_ring</a></td><td class="num">0.199</td></tr><tr><td class="name"><a href="2026-10-04_attacker_interleaved_shell_ring.html">interleaved_shell_ring</a></td><td class="num">0.179</td></tr><tr><td class="name"><a href="2026-09-29_attacker_synchronized_ring.html">synchronized_ring</a></td><td class="num">0.139</td></tr><tr><td class="name"><a href="2026-10-11_attacker_blast_proof_depth_interleave.html">blast_proof_depth_interleave</a></td><td class="num">0.138</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">staggered_screen_trickle</td><td class="num">9</td><td class="good">defended</td><td class="num">0.731</td><td><a href="../replays/viewer.html?r=data/2026-09-28_attacker_staggered_screen_trickle__2026-09-28_defender_discriminating_ledger__s9.json.gz">watch</a></td></tr><tr><td class="name">synchronized_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.144</td><td><a href="../replays/viewer.html?r=data/2026-09-29_attacker_synchronized_ring__2026-09-28_defender_discriminating_ledger__s9.json.gz">watch</a></td></tr><tr><td class="name">phase_locked_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.132</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-09-28_defender_discriminating_ledger__s9.json.gz">watch</a></td></tr><tr><td class="name">depth_shell_saturation</td><td class="num">9</td><td class="good">defended</td><td class="num">0.565</td><td><a href="../replays/viewer.html?r=data/2026-10-03_attacker_depth_shell_saturation__2026-09-28_defender_discriminating_ledger__s9.json.gz">watch</a></td></tr><tr><td class="name">interleaved_shell_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.146</td><td><a href="../replays/viewer.html?r=data/2026-10-04_attacker_interleaved_shell_ring__2026-09-28_defender_discriminating_ledger__s9.json.gz">watch</a></td></tr><tr><td class="name">parked_ring_magazine_drain</td><td class="num">9</td><td class="good">defended</td><td class="num">0.764</td><td><a href="../replays/2026-10-06_attacker_parked_ring_magazine_drain__2026-09-28_defender_discriminating_ledger__s9.html">watch</a></td></tr><tr><td class="name">staggered_trishell_blast_denial</td><td class="num">9</td><td class="good">defended</td><td class="num">0.360</td><td><a href="../replays/2026-10-08_attacker_staggered_trishell_blast_denial__2026-09-28_defender_discriminating_ledger__s9.html">watch</a></td></tr><tr><td class="name">attacker_blast_isolated_synchronized_rel</td><td class="num">9</td><td class="good">defended</td><td class="num">0.762</td><td><a href="../replays/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__2026-09-28_defender_discriminating_ledger__s9.html">watch</a></td></tr><tr><td class="name">shadow_pair_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.752</td><td><a href="../replays/2026-10-10_attacker_shadow_pair_ring__2026-09-28_defender_discriminating_ledger__s9.html">watch</a></td></tr><tr><td class="name">blast_proof_depth_interleave</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.144</td><td><a href="../replays/2026-10-11_attacker_blast_proof_depth_interleave__2026-09-28_defender_discriminating_ledger__s9.html">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-09-28_defender_discriminating_ledger.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-09-28</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-09-28_defender_discriminating_ledger</td></tr><tr><th>note</th><td style="white-space:normal">Backfilled. Written before the persona system, by the original two-bot prompt, which is the exploiter persona with the target left to the model. Tokens are for the single call that produced both bots.</td></tr><tr><th>persona</th><td style="white-space:normal">exploiter</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-09-28T044853_cli.md</td></tr><tr><th>role</th><td style="white-space:normal">defender</td></tr><tr><th>target</th><td style="white-space:normal">trickle (self-chosen in the docstring; also decoy_screen)</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 2929, output: 5742</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-09-28_defender_discriminating_ledger.py</summary><pre><code>&quot;&quot;&quot;
+NAME: discriminating_ledger
+
+Target: the trickle and decoy-heavy attackers, and the matches they win against
+identify_then_engage (trickle: 0.155) and nearest_first (decoy_screen: 0.107).
+
+The weakness: both of those defenders spend their resources on decoys.
+  * nearest_first shoots whatever is closest. In the sample match it killed all
+    16 decoys and let 3 strikers through.
+  * identify_then_engage fired all 120 gun rounds against a trickle that was half
+    decoys, and ran dry before the strikers arrived.
+
+This bot keeps a strict ledger of what each threat is:
+  * Interceptors are only ever sent at confirmed strikers, or at unknown tracks
+    that are already inside id range (these should not normally exist).
+  * Each striker gets exactly one interceptor. Anything else is only launched
+    when that striker&#x27;s interceptor is gone and the striker is still alive.
+  * If an interceptor&#x27;s target disappears, it is retargeted to the most urgent
+    striker that has no interceptor.
+  * The gun only fires at strikers. It prefers strikers with no interceptor on
+    the way, then the closest one. Decoys are never engaged, so ammo lasts
+    against a long trickle.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;discriminating_ledger&quot;
+ROLE = &quot;defender&quot;
+
+
+def reset(seed=None):
+    pass
+
+
+def _tti(t):
+    &quot;&quot;&quot;Rough time until the track reaches the asset (lower = more urgent).&quot;&quot;&quot;
+    r = float(t.get(&quot;range&quot;, 1e9))
+    v = t.get(&quot;vel&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    p = t.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    closing = 0.0
+    if r &gt; 1e-6:
+        closing = -(p[0] * v[0] + p[1] * v[1]) / r
+    if closing &lt;= 0.1:
+        closing = 0.1
+    return r / closing
+
+
+def _act(obs):
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    id_range = float(rules.get(&quot;id_range&quot;, 150.0))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    launch_cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    stock = int(obs.get(&quot;stock&quot;, 0))
+    ammo = int(obs.get(&quot;ammo&quot;, 0))
+
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    ints = obs.get(&quot;interceptors&quot;, []) or []
+    by_id = {t.get(&quot;id&quot;): t for t in tracks}
+
+    def is_threat(t):
+        c = t.get(&quot;cls&quot;, &quot;unknown&quot;)
+        if c == &quot;striker&quot;:
+            return True
+        if c == &quot;unknown&quot; and float(t.get(&quot;range&quot;, 1e9)) &lt; id_range * 0.9:
+            return True
+        return False
+
+    threats = [t for t in tracks if is_threat(t)]
+    threats.sort(key=_tti)
+
+    covered = {}
+    orphans = []
+    for it in ints:
+        tgt = it.get(&quot;target&quot;)
+        if tgt in by_id and is_threat(by_id[tgt]):
+            covered[tgt] = covered.get(tgt, 0) + 1
+        else:
+            orphans.append(it)
+
+    retarget = {}
+    uncovered = [t for t in threats if covered.get(t.get(&quot;id&quot;), 0) == 0]
+    for it in orphans:
+        if not uncovered:
+            break
+        t = uncovered.pop(0)
+        retarget[it.get(&quot;id&quot;)] = t.get(&quot;id&quot;)
+        covered[t.get(&quot;id&quot;)] = 1
+
+    intercept = []
+    for t in uncovered:
+        if len(intercept) &gt;= launch_cap or stock - len(intercept) &lt;= 0:
+            break
+        intercept.append(t.get(&quot;id&quot;))
+        covered[t.get(&quot;id&quot;)] = 1
+
+    gun = None
+    if ammo &gt; 0:
+        in_range = [t for t in threats if float(t.get(&quot;range&quot;, 1e9)) &lt;= gun_range]
+        if in_range:
+            # Prefer strikers with no interceptor en route, then the closest.
+            in_range.sort(key=lambda t: (
+                1 if covered.get(t.get(&quot;id&quot;), 0) &gt; 0 and float(t.get(&quot;range&quot;, 0)) &gt; 45.0 else 0,
+                float(t.get(&quot;range&quot;, 1e9)),
+            ))
+            gun = in_range[0].get(&quot;id&quot;)
+
+    return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

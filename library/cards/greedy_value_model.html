@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>greedy_value_model · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 19: blast_proof_depth_interleave v parked_hover_ring_doublecover"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">blast_proof_depth_interleave v parked_hover_ring_doublecover</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/greedy_value_model.html">On the ladder now →</a></p>
+<h1>greedy_value_model</h1>
+<p><strong>defender</strong> · family: Value-model optimisation · persona: hand-written baseline · author: Pelennor · live</p>
+<p>File: greedy_value_model.py</p>
+<p><strong>The idea:</strong> Same energy terms, no search.</p>
+<h2>What it does</h2>
+<p>Greedy value model: annealed_assignment's value model with a greedy picker instead of the annealer. It exists so the ladder shows what the optimiser is worth on its own. The annealed_assignment docstring describes the model in full.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #4 defender (2026-09-30).</li><li>In the top five on 2 of the 17 nights it played.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-17.</p>
+<ul><li><strong>rush</strong>: held in 10 of 10 seeds, mean score 0.80</li><li><strong>parked_ring_magazine_drain</strong>: held in 10 of 10 seeds, mean score 0.79</li><li><strong>attacker_blast_isolated_synchronized_rel</strong>: held in 10 of 10 seeds, mean score 0.79</li><li><strong>flanker</strong>: held in 10 of 10 seeds, mean score 0.79</li><li><strong>decoy_screen</strong>: held in 10 of 10 seeds, mean score 0.77</li><li>… and 6 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>hidden_orbit_screen_then_interleaved_dro</strong>: held in 0 of 10 seeds, mean score 0.10</li><li><strong>2026_10_15_attacker_dark_ring_release</strong>: held in 0 of 10 seeds, mean score 0.10</li><li><strong>phase_locked_ring</strong>: held in 0 of 10 seeds, mean score 0.11</li><li><strong>synchronized_ring</strong>: held in 0 of 10 seeds, mean score 0.14</li><li><strong>blast_proof_depth_interleave</strong>: held in 0 of 10 seeds, mean score 0.14</li><li>… and 1 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>rush</strong>, seed 5: defended in 89 ticks, its score 0.82. <a href="../../replays/rush__greedy_value_model__s5.html">rush__greedy_value_model__s5.json</a></li><li>Worst: vs <strong>hidden_orbit_screen_then_interleaved_dro</strong>, seed 9: breached in 141 ticks, its score 0.08. <a href="../../replays/2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__greedy_value_model__s9.html">2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__greedy_value_model__s9.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Greedy value model: annealed_assignment&#x27;s value model with a greedy picker instead of the
+annealer. It exists so the ladder shows what the optimiser is worth on its own.
+
+Idea: same energy terms, no search. Launch at the best-valued tracks one by one (skipping
+any track inside the blast radius of one already picked) up to the launch cap, whenever the
+net value is positive; fire the gun at the best net-valued track in range. build(),
+energy() and every knob are identical to annealed_assignment.py, and a test keeps them
+identical.
+
+The annealed_assignment docstring describes the model in full.
+&quot;&quot;&quot;
+import math
+import random
+
+NAME = &quot;greedy_value_model&quot;
+ROLE = &quot;defender&quot;
+
+# --- knobs (the family differs only here) ---------------------------------------
+HORIZON = 40.0          # ticks: urgency is 1 at impact, 0 at this time-to-impact or later
+COST_SCALE = 1.0        # multiplies the interceptor price in the energy
+UNKNOWN_FLOOR = 0.25    # P(striker | unknown) never drops below this
+SWEEPS = 60
+MAX_LAUNCH_VARS = 12
+MAX_GUN_VARS = 6
+CLUSTER_SHARE = 0.7
+
+_state = {&quot;seed&quot;: 0, &quot;strikers&quot;: 0, &quot;decoys&quot;: 0, &quot;seen&quot;: {}}
+
+
+def reset(seed):
+    _state.update(seed=int(seed or 0), strikers=0, decoys=0, seen={})
+
+
+# --- the model --------------------------------------------------------------------
+
+def _tti(t):
+    p, v, r = t[&quot;pos&quot;], t[&quot;vel&quot;], max(t[&quot;range&quot;], 1e-6)
+    closing = -(p[0] * v[0] + p[1] * v[1]) / r
+    return r / max(closing, 0.5)
+
+
+def _p_striker(t, prior):
+    c = t.get(&quot;cls&quot;, &quot;unknown&quot;)
+    if c == &quot;striker&quot;:
+        return 1.0
+    if c == &quot;decoy&quot;:
+        return 0.02
+    return prior
+
+
+def _learn(tracks):
+    for t in tracks:
+        c = t.get(&quot;cls&quot;)
+        if c in (&quot;striker&quot;, &quot;decoy&quot;) and t[&quot;id&quot;] not in _state[&quot;seen&quot;]:
+            _state[&quot;seen&quot;][t[&quot;id&quot;]] = c
+            _state[&quot;strikers&quot; if c == &quot;striker&quot; else &quot;decoys&quot;] += 1
+    s, d = _state[&quot;strikers&quot;], _state[&quot;decoys&quot;]
+    return max(UNKNOWN_FLOOR, (s + 1.0) / (s + d + 2.0))
+
+
+def build(obs):
+    rules = obs[&quot;rules&quot;]
+    tracks = obs.get(&quot;tracks&quot;) or []
+    prior = _learn(tracks)
+    damage = float(rules.get(&quot;striker_damage&quot;, 10))
+    blast = float(rules.get(&quot;blast_radius&quot;, 10.0))
+    pk = float(rules.get(&quot;interceptor_kill_prob&quot;, 0.85))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    stock = int(obs.get(&quot;stock&quot;, 0))
+    ammo = int(obs.get(&quot;ammo&quot;, 0))
+    price = float(rules.get(&quot;interceptor_cost&quot;, 4.0))
+
+    chased = {i.get(&quot;target&quot;) for i in (obs.get(&quot;interceptors&quot;) or [])}
+    base = {}
+    for t in tracks:
+        urg = max(0.0, min(1.0, (HORIZON - _tti(t)) / HORIZON))
+        base[t[&quot;id&quot;]] = _p_striker(t, prior) * damage * urg
+    pos = {t[&quot;id&quot;]: t[&quot;pos&quot;] for t in tracks}
+
+    def near(a, b):
+        return math.dist(pos[a], pos[b]) &lt;= blast
+
+    value = {}
+    for t in tracks:
+        extra = sum(base[u[&quot;id&quot;]] for u in tracks
+                    if u[&quot;id&quot;] != t[&quot;id&quot;] and near(t[&quot;id&quot;], u[&quot;id&quot;]))
+        value[t[&quot;id&quot;]] = base[t[&quot;id&quot;]] + CLUSTER_SHARE * extra
+
+    threats = sum(1 for t in tracks if base[t[&quot;id&quot;]] &gt; 0)
+    scarcity = 1.0 + 0.5 * max(0, threats - stock) / max(1, stock)
+    cost = COST_SCALE * price * scarcity
+
+    launch = [t for t in tracks if t[&quot;id&quot;] not in chased and base[t[&quot;id&quot;]] &gt; 0]
+    launch.sort(key=lambda t: -value[t[&quot;id&quot;]])
+    launch = launch[:MAX_LAUNCH_VARS] if stock &gt; 0 else []
+    gun = [t for t in tracks if t[&quot;range&quot;] &lt;= gun_range and base[t[&quot;id&quot;]] &gt; 0]
+    gun.sort(key=lambda t: t[&quot;range&quot;])
+    gun = gun[:MAX_GUN_VARS] if ammo &gt; 0 else []
+
+    names = [(&quot;x&quot;, t[&quot;id&quot;]) for t in launch] + [(&quot;y&quot;, t[&quot;id&quot;]) for t in gun]
+    k = min(cap, stock)
+    slack = [(&quot;s&quot;, j) for j in range(k)] if launch else []
+    names += slack
+    index = {n: i for i, n in enumerate(names)}
+    lin = [0.0] * len(names)
+    quad = {}
+
+    def add(a, b, w):
+        i, j = index[a], index[b]
+        if i == j:
+            lin[i] += w
+        else:
+            key = (min(i, j), max(i, j))
+            quad[key] = quad.get(key, 0.0) + w
+
+    big = 2.0 * (max(value.values(), default=1.0) * pk + cost) + 1.0
+    for t in launch:
+        n = (&quot;x&quot;, t[&quot;id&quot;])
+        add(n, n, -pk * value[t[&quot;id&quot;]] + cost)
+    for t in gun:
+        n = (&quot;y&quot;, t[&quot;id&quot;])
+        pg = max(0.0, float(rules.get(&quot;gun_pk_scale&quot;, 0.4)) * (1 - t[&quot;range&quot;] / gun_range)
+                 + float(rules.get(&quot;gun_pk_floor&quot;, 0.05)))
+        add(n, n, -pg * value[t[&quot;id&quot;]] + float(rules.get(&quot;gun_cost&quot;, 0.1)))
+    # launch cap as an equality with slack: A (sum x + sum s - k)^2
+    if launch:
+        group = [(&quot;x&quot;, t[&quot;id&quot;]) for t in launch] + slack
+        for a in group:
+            add(a, a, big * (1 - 2 * k))
+        for i, a in enumerate(group):
+            for b in group[i + 1:]:
+                add(a, b, 2 * big)
+    for i, a in enumerate(gun):
+        for b in gun[i + 1:]:
+            add((&quot;y&quot;, a[&quot;id&quot;]), (&quot;y&quot;, b[&quot;id&quot;]), big)
+    for i, a in enumerate(launch):
+        for b in launch[i + 1:]:
+            if near(a[&quot;id&quot;], b[&quot;id&quot;]):
+                add((&quot;x&quot;, a[&quot;id&quot;]), (&quot;x&quot;, b[&quot;id&quot;]), pk * min(value[a[&quot;id&quot;]], value[b[&quot;id&quot;]]))
+        if (&quot;y&quot;, a[&quot;id&quot;]) in index:
+            add((&quot;x&quot;, a[&quot;id&quot;]), (&quot;y&quot;, a[&quot;id&quot;]), 0.8 * pk * base[a[&quot;id&quot;]])
+    return names, lin, quad
+
+
+def energy(bits, lin, quad):
+    e = sum(w for w, b in zip(lin, bits) if b)
+    return e + sum(w for (i, j), w in quad.items() if bits[i] and bits[j])
+
+
+def anneal(lin, quad, rng, sweeps=SWEEPS):
+    n = len(lin)
+    if n == 0:
+        return []
+    nbr = [[] for _ in range(n)]
+    for (i, j), w in quad.items():
+        nbr[i].append((j, w))
+        nbr[j].append((i, w))
+    bits = [0] * n
+    e = 0.0
+    best, best_e = bits[:], e
+    scale = max([abs(w) for w in lin] + [abs(w) for w in quad.values()] + [1.0])
+    t_hi, t_lo = scale, scale * 1e-3
+    for s in range(sweeps):
+        temp = t_hi * (t_lo / t_hi) ** (s / max(1, sweeps - 1))
+        for i in range(n):
+            field = lin[i] + sum(w for j, w in nbr[i] if bits[j])
+            delta = -field if bits[i] else field
+            if delta &lt;= 0 or rng.random() &lt; math.exp(-delta / temp):
+                bits[i] ^= 1
+                e += delta
+                if e &lt; best_e:
+                    best, best_e = bits[:], e
+    return best
+
+
+def greedy(names, lin, quad, obs):
+    &quot;&quot;&quot;The whole difference from annealed_assignment: pick, don&#x27;t search.&quot;&quot;&quot;
+    k = min(int(obs[&quot;rules&quot;].get(&quot;interceptor_launches_per_tick&quot;, 2)), int(obs.get(&quot;stock&quot;, 0)))
+    bits = [0] * len(names)
+    xs = sorted((i for i, n in enumerate(names) if n[0] == &quot;x&quot; and lin[i] &lt; 0),
+                key=lambda i: lin[i])
+    chosen = []
+    for i in xs:
+        if len(chosen) &gt;= k:
+            break
+        if any(quad.get((min(i, j), max(i, j)), 0) &gt; 0 for j in chosen):
+            continue
+        chosen.append(i)
+    for i in chosen:
+        bits[i] = 1
+    ys = sorted((i for i, n in enumerate(names) if n[0] == &quot;y&quot; and lin[i] &lt; 0),
+                key=lambda i: lin[i])
+    if ys:
+        bits[ys[0]] = 1
+    return bits
+
+
+# --- the policy -------------------------------------------------------------------
+
+def _act(obs):
+    names, lin, quad = build(obs)
+    bits = greedy(names, lin, quad, obs)
+    cap = int(obs[&quot;rules&quot;].get(&quot;interceptor_launches_per_tick&quot;, 2))
+    launches = [n[1] for n, b in zip(names, bits) if b and n[0] == &quot;x&quot;][:cap]
+    guns = [n[1] for n, b in zip(names, bits) if b and n[0] == &quot;y&quot;]
+
+    tracks = {t[&quot;id&quot;]: t for t in (obs.get(&quot;tracks&quot;) or [])}
+    retarget = {}
+    wanted = [t for t in sorted(tracks.values(), key=_tti)
+              if t.get(&quot;cls&quot;) != &quot;decoy&quot; and t[&quot;id&quot;] not in launches]
+    busy = {i.get(&quot;target&quot;) for i in (obs.get(&quot;interceptors&quot;) or [])
+            if i.get(&quot;target&quot;) in tracks}
+    free = [t[&quot;id&quot;] for t in wanted if t[&quot;id&quot;] not in busy]
+    for i in obs.get(&quot;interceptors&quot;) or []:
+        if i.get(&quot;target&quot;) not in tracks and free:
+            retarget[i[&quot;id&quot;]] = free.pop(0)
+    return {&quot;intercept&quot;: launches, &quot;retarget&quot;: retarget, &quot;gun&quot;: guns[0] if guns else None}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 19 (2026-10-17)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>
