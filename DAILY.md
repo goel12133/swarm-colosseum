@@ -1,13 +1,8 @@
-# Loop session 2026-10-18 06:00 UTC
+# Loop session 2026-10-18 09:00 UTC
 
-**Status:** merged — 3 commit(s) fast-forwarded onto master
-**Signal:** Number 5 (it runs itself). In `out/nights.jsonl` there are now 12 house-bot calls rejected with "model returned no code block", out of about 42 generation calls. Night 2026-10-18 added one: the attacker contrarian reply, which was only 611 chars. Every rejected reply whose length we know is short (167, 310, 422 and 611 chars), while accepted replies run 4,900 to 11,000 chars. So roughly 30% of the league's output is lost and nobody has looked at why. The founder item for this is already on daily-wip as e752e06, but the reviewer blocked it, and it has 8 rows that only say "path: see out/house_raw/ for that date" plus one row with two possible files. We'll know it worked when the reviewer passes it: every row has an exact file path or one command that prints it, the 10-18 row is in, and the founder can fill in the Class column in about 5 minutes.
-**Reviewer:** PASS
-**Tokens:** 40,823 (cap 200,000); **time:** 1666 s; exit 0
-
-**Merged:**
-- f3657af Signal 5: FOUNDER_TODO.md rejections item drops the unbacked 10-15 raw path (now 'from step 1's output'; counter_meta and 167 chars kept, from PROGRESS.md:3488); the personas note counts 4 known personas, not 4 known file names
-- d0cae87 Signal 5: finish FOUNDER_TODO.md 'Classify the league's no code block rejections' after the reviewer's block: step 1 is now one command, grep -B1 "model returned no code block" /root/swarm-colosseum/out/house_league.cron.log (nightly.sh lines 42 and 49), whose preceding 'raw response saved to <path> (<N> chars)' line gives each exact path (context.md lines 52-53 as the example); the 8 'see out/house_raw/' cells and the ambiguous 10-12 cell now read 'from step 1's output'; the ls step is dropped; the 10-18 row is added (attacker, contrarian, 611 chars, out/house_raw/2026-10-18T033103_cli_attacker_contrarian.md). Grep recount on out/nights.jsonl: 12 rejections on 11 lines (10-12 both sides), 42 calls over 22 lines; known rejected replies 167-611 chars vs accepted 4,935-10,987. diff --stat master touches only FOUNDER_TODO.md and DECISIONS.local.md; full suite 410 passed, exit 0
-- e752e06 Signal 5: FOUNDER_TODO.md gains 'Classify the league's no code block rejections' with one row per rejection (date, role, persona, reply chars, raw path, class box, first line) and refusal => safety stop step; parse of out/nights.jsonl (Grep for "model returned no code block" and "calls": N) gives 11 rejections (10-01 D, 10-02 D, 10-05 A, 10-07 A, 10-12 A+D, 10-13 D, 10-14 A, 10-15 D, 10-16 A, 10-17 D) over 40 calls (1+1+19x2, 21 lines), not the estimated 10; no raw reply opened; diff --stat touches only FOUNDER_TODO.md and DECISIONS.local.md; full suite 410 passed, exit 0
+**Status:** nothing — no commits
+**Signal:** none
+**Reviewer:** did not run
+**Tokens:** 8,990 (cap 200,000); **time:** 419 s; exit 0
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
