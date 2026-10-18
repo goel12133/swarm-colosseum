@@ -1,7 +1,7 @@
 # 04 · Does an optimiser beat a greedy rule? A little, unevenly.
 
-*Swarm Colosseum, season one, nights 2026-09-30 to 10-10 (eleven nights). This replaces a
-four-night preliminary cut that said "not here"; with the full field, that was too strong.
+*Swarm Colosseum, season one, nights 2026-09-30 to 10-10 (eleven nights). This replaces an
+earlier four-night cut that said "not here"; with the full field, that was too strong.
 The full tables are in `ANALYSIS_annealing.md`, made by `scripts/ablation_annealing.py`.*
 
 **The question.** Every tick a defender decides which threats to send interceptors at and

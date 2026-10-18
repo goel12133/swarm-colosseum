@@ -225,6 +225,14 @@ def test_the_committed_persona_page_is_the_final_run():
     assert site.paper_info(page)["status"] == "final"
 
 
+def test_the_committed_annealing_page_is_final():
+    from pathlib import Path
+    from colosseum import site
+    page = Path(__file__).resolve().parents[1] / "research" / "04_annealed_defenders.md"
+    assert "preliminary" not in page.read_text()[:600].lower()
+    assert site.paper_info(page)["status"] == "final"
+
+
 def test_after_night_runs_every_step_and_returns_their_results(tmp_path, monkeypatch):
     """Regression: a step function named like the results dict shadowed it (2026-10-04)."""
     from colosseum import meta_report, site
