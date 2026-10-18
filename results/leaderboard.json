@@ -1,166 +1,166 @@
 {
   "attackers": [
     {
-      "elo": 1328.8,
-      "matches": 230,
-      "mean_cer": 0.6545,
-      "mean_score": 0.8039,
+      "elo": 1346.2,
+      "matches": 240,
+      "mean_cer": 0.6361,
+      "mean_score": 0.8092,
       "name": "2026-10-11_attacker_blast_proof_depth_interleave",
       "role": "attacker",
-      "win_rate": 0.8739
+      "win_rate": 0.8792
     },
     {
-      "elo": 1276.8,
-      "matches": 230,
-      "mean_cer": 0.5747,
-      "mean_score": 0.7829,
+      "elo": 1259.4,
+      "matches": 240,
+      "mean_cer": 0.5729,
+      "mean_score": 0.7828,
       "name": "2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro",
       "role": "attacker",
-      "win_rate": 0.787
+      "win_rate": 0.7833
     },
     {
-      "elo": 1162.7,
-      "matches": 230,
-      "mean_cer": 0.7018,
-      "mean_score": 0.6941,
+      "elo": 1201.7,
+      "matches": 240,
+      "mean_cer": 0.6867,
+      "mean_score": 0.7026,
       "name": "2026-10-04_attacker_interleaved_shell_ring",
       "role": "attacker",
-      "win_rate": 0.6826
+      "win_rate": 0.6958
     },
     {
-      "elo": 1150.9,
-      "matches": 230,
-      "mean_cer": 0.7195,
-      "mean_score": 0.7317,
-      "name": "2026-09-29_attacker_synchronized_ring",
-      "role": "attacker",
-      "win_rate": 0.7304
-    },
-    {
-      "elo": 1117.0,
-      "matches": 230,
-      "mean_cer": 0.6103,
-      "mean_score": 0.6892,
+      "elo": 1106.0,
+      "matches": 240,
+      "mean_cer": 0.613,
+      "mean_score": 0.6796,
       "name": "2026-09-30_attacker_phase_locked_ring",
       "role": "attacker",
-      "win_rate": 0.6565
+      "win_rate": 0.6333
     },
     {
-      "elo": 1044.9,
-      "matches": 230,
-      "mean_cer": 0.8298,
-      "mean_score": 0.5462,
-      "name": "2026-10-08_attacker_staggered_trishell_blast_denial",
+      "elo": 1094.3,
+      "matches": 240,
+      "mean_cer": 0.7195,
+      "mean_score": 0.715,
+      "name": "2026-09-29_attacker_synchronized_ring",
       "role": "attacker",
-      "win_rate": 0.3565
+      "win_rate": 0.7
     },
     {
-      "elo": 1001.9,
-      "matches": 230,
-      "mean_cer": 0.8095,
-      "mean_score": 0.5246,
+      "elo": 1089.7,
+      "matches": 240,
+      "mean_cer": 0.7983,
+      "mean_score": 0.5377,
       "name": "2026-10-03_attacker_depth_shell_saturation",
       "role": "attacker",
-      "win_rate": 0.3826
+      "win_rate": 0.4042
     },
     {
-      "elo": 982.0,
-      "matches": 230,
-      "mean_cer": 0.8385,
-      "mean_score": 0.5071,
+      "elo": 1070.6,
+      "matches": 240,
+      "mean_cer": 0.8138,
+      "mean_score": 0.5244,
       "name": "2026-10-15_attacker_2026_10_15_attacker_dark_ring_release",
       "role": "attacker",
-      "win_rate": 0.4261
+      "win_rate": 0.45
     },
     {
-      "elo": 961.0,
-      "matches": 230,
-      "mean_cer": 0.6324,
-      "mean_score": 0.4117,
-      "name": "2026-09-28_attacker_staggered_screen_trickle",
+      "elo": 1018.2,
+      "matches": 240,
+      "mean_cer": 0.8216,
+      "mean_score": 0.5421,
+      "name": "2026-10-08_attacker_staggered_trishell_blast_denial",
       "role": "attacker",
-      "win_rate": 0.2348
+      "win_rate": 0.3458
     },
     {
-      "elo": 959.0,
-      "matches": 230,
-      "mean_cer": 0.8016,
-      "mean_score": 0.4014,
+      "elo": 939.1,
+      "matches": 240,
+      "mean_cer": 0.7963,
+      "mean_score": 0.3979,
       "name": "2026-10-13_attacker_column_free_tiered_ring_dive",
       "role": "attacker",
-      "win_rate": 0.1739
+      "win_rate": 0.1667
     },
     {
-      "elo": 917.9,
-      "matches": 230,
-      "mean_cer": 0.6967,
-      "mean_score": 0.3461,
-      "name": "2026-10-10_attacker_shadow_pair_ring",
+      "elo": 931.3,
+      "matches": 240,
+      "mean_cer": 0.6284,
+      "mean_score": 0.4054,
+      "name": "2026-09-28_attacker_staggered_screen_trickle",
       "role": "attacker",
-      "win_rate": 0.1174
+      "win_rate": 0.225
     },
     {
-      "elo": 916.6,
-      "matches": 230,
-      "mean_cer": 0.7055,
-      "mean_score": 0.4032,
+      "elo": 902.1,
+      "matches": 240,
+      "mean_cer": 0.6992,
+      "mean_score": 0.3988,
       "name": "trickle",
       "role": "attacker",
-      "win_rate": 0.1913
+      "win_rate": 0.1833
     },
     {
-      "elo": 832.0,
-      "matches": 230,
-      "mean_cer": 0.7953,
-      "mean_score": 0.3445,
+      "elo": 899.9,
+      "matches": 240,
+      "mean_cer": 0.6888,
+      "mean_score": 0.3428,
+      "name": "2026-10-10_attacker_shadow_pair_ring",
+      "role": "attacker",
+      "win_rate": 0.1125
+    },
+    {
+      "elo": 824.7,
+      "matches": 240,
+      "mean_cer": 0.79,
+      "mean_score": 0.3401,
       "name": "multi_axis",
       "role": "attacker",
-      "win_rate": 0.1261
+      "win_rate": 0.1208
     },
     {
-      "elo": 813.0,
-      "matches": 230,
-      "mean_cer": 1.2605,
-      "mean_score": 0.232,
+      "elo": 814.1,
+      "matches": 240,
+      "mean_cer": 1.2351,
+      "mean_score": 0.2325,
       "name": "2026-10-09_attacker_attacker_blast_isolated_synchronized_rel",
       "role": "attacker",
-      "win_rate": 0.0522
+      "win_rate": 0.05
     },
     {
-      "elo": 812.3,
-      "matches": 230,
-      "mean_cer": 1.106,
-      "mean_score": 0.2863,
+      "elo": 806.6,
+      "matches": 240,
+      "mean_cer": 1.0873,
+      "mean_score": 0.2844,
       "name": "2026-10-06_attacker_parked_ring_magazine_drain",
       "role": "attacker",
-      "win_rate": 0.1304
+      "win_rate": 0.125
     },
     {
-      "elo": 790.5,
-      "matches": 230,
-      "mean_cer": 0.9851,
-      "mean_score": 0.2842,
+      "elo": 790.3,
+      "matches": 240,
+      "mean_cer": 0.9741,
+      "mean_score": 0.2821,
       "name": "flanker",
       "role": "attacker",
-      "win_rate": 0.1174
+      "win_rate": 0.1125
     },
     {
-      "elo": 775.5,
-      "matches": 230,
-      "mean_cer": 0.9269,
-      "mean_score": 0.2685,
+      "elo": 778.4,
+      "matches": 240,
+      "mean_cer": 0.919,
+      "mean_score": 0.2669,
       "name": "decoy_screen",
       "role": "attacker",
-      "win_rate": 0.087
+      "win_rate": 0.0833
     },
     {
-      "elo": 761.9,
-      "matches": 230,
-      "mean_cer": 1.2424,
+      "elo": 767.9,
+      "matches": 240,
+      "mean_cer": 1.2219,
       "mean_score": 0.2294,
       "name": "rush",
       "role": "attacker",
-      "win_rate": 0.0522
+      "win_rate": 0.05
     }
   ],
   "defenders": [
@@ -309,6 +309,15 @@
       "win_rate": 0.7444
     },
     {
+      "elo": 964.4,
+      "matches": 180,
+      "mean_cer": 0.5754,
+      "mean_score": 0.5462,
+      "name": "2026-10-18_defender_loiter_pool_convergence_volley",
+      "role": "defender",
+      "win_rate": 0.7333
+    },
+    {
       "elo": 959.2,
       "matches": 180,
       "mean_cer": 0.5815,
@@ -372,7 +381,7 @@
       "win_rate": 0.3056
     }
   ],
-  "matches": 4140,
+  "matches": 4320,
   "rules": {
     "asset_hp": 30,
     "asset_radius": 25.0,
