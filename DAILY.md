@@ -1,12 +1,8 @@
-# Loop session 2026-10-19 06:00 UTC
+# Loop session 2026-10-19 09:00 UTC
 
-**Status:** merged — 2 commit(s) fast-forwarded onto master
-**Signal:** Number 5 (it runs itself). The top FOUNDER_TODO.md item, the 2026-10-18T12 loop crash (exit 1, 9 s, 0 tokens, logged as "nothing"), is now out of date. Its deadline was 03:30 UTC on 10-19 and it has passed. The 10-19 night finished ok, and that run deletes `out/ALERT.md` (`colosseum/house_league.py` lines 656-662). Today's health line reads `alert none`, so steps 1 and 2 (`cp out/ALERT.md`, `cat out/ALERT.md`) now fail on a missing file. Done means the item has no step that refers to `out/ALERT.md` as if it still exists. Its only remaining step should read the session transcript, with a fallback to write "Cause: lost (ALERT.md cleared by the 10-19 night)" if the transcript is missing. That keeps the founder's part to minutes and correct, and gets the crash's cause on record (or honestly records that it was lost) before the prepared `failed` status fix is applied.
-**Reviewer:** PASS
-**Tokens:** 38,387 (cap 200,000); **time:** 1956 s; exit 0
-
-**Merged:**
-- 68c52e5 Signal 5: FOUNDER_TODO.md's 'no code block' item now covers 10-19. Recount on out/nights.jsonl: 13 rejections on 12 lines (10-12 both sides) out of 44 calls over 23 lines (22 nights). New row: 2026-10-19 defender counter_meta, 417 chars, out/house_raw/2026-10-19T033233_cli_defender_counter_meta.md (.loop/context.md:78-79). Known lengths are now 167 to 611 chars over 5 replies, and 3 of the 5 known personas are counter_meta. Why now notes that the same persona and target were re-asked and accepted at 6,284 chars (league log 03:32:33-03:34:42). grep 2026-10-19 shows the row at FOUNDER_TODO.md:86. Full suite 411 passed, exit 0. diff --stat adba0d9 touches only FOUNDER_TODO.md and DECISIONS.local.md.
-- adba0d9 Signal 5: FOUNDER_TODO.md's 10-18T12 crash item is re-scoped to the transcript only. The 10-19 night ended ok at 03:35:41 UTC (out/nights.jsonl line 23), and an ok night clears out/ALERT.md (colosseum/house_league.py:656-662), so the old cp/cat ALERT.md steps would fail on a missing file. The deadline is dropped. The single step is now ls/head of out/daily/2026-10-18T1200.jsonl (name per daily.py:487), with a fallback 'Cause: lost'. The do-not-clear line is removed and the prepared fix is unchanged. grep ALERT.md finds it only in Why, the fallback and the prepared fix. Full suite 411 passed, exit 0. diff --stat master touches only FOUNDER_TODO.md and DECISIONS.local.md.
+**Status:** nothing — no commits
+**Signal:** none
+**Reviewer:** did not run
+**Tokens:** 0 (cap 200,000); **time:** 9 s; exit 1
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
