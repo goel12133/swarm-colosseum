@@ -1,0 +1,33 @@
+{
+  "backend": "cli",
+  "date": "2026-10-20",
+  "dry_run": false,
+  "escalation": true,
+  "evidence": {
+    "budget": 4000,
+    "dropped": [],
+    "included": [
+      "source",
+      "closest",
+      "row"
+    ],
+    "used": 2243
+  },
+  "model": "opus",
+  "name": "2026-10-20_defender_radar_edge_cohort_timing_full_magazine",
+  "persona": "counter_meta",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-20T033231_cli_defender_counter_meta.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.511,
+    "rank": 17,
+    "score_vs_target": 0.403
+  },
+  "role": "defender",
+  "target": "2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro",
+  "tokens": {
+    "input": 5773,
+    "output": 13661
+  }
+}
