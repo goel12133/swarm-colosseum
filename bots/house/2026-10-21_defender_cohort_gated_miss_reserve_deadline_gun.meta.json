@@ -1,0 +1,33 @@
+{
+  "backend": "cli",
+  "date": "2026-10-21",
+  "dry_run": false,
+  "escalation": true,
+  "evidence": {
+    "budget": 4000,
+    "dropped": [],
+    "included": [
+      "source",
+      "closest",
+      "row"
+    ],
+    "used": 2277
+  },
+  "model": "opus",
+  "name": "2026-10-21_defender_cohort_gated_miss_reserve_deadline_gun",
+  "persona": "counter_meta",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-21T033446_cli_defender_counter_meta.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.554,
+    "rank": 9,
+    "score_vs_target": 0.28
+  },
+  "role": "defender",
+  "target": "2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro",
+  "tokens": {
+    "input": 5900,
+    "output": 14239
+  }
+}
