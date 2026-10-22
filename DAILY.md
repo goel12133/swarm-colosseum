@@ -1,11 +1,8 @@
-# Loop session 2026-10-22 00:00 UTC
+# Loop session 2026-10-22 06:00 UTC
 
-**Status:** merged — 1 commit(s) fast-forwarded onto master
-**Signal:** Number 5 (it runs itself). The loop's incident count goes from 3 to 4 unexplained crashes. The fourth is the 2026-10-21T21 session: exit 1, 0 tokens, 10 s, logged as `nothing`. We will know it worked when `grep -n "2026-10-21T21" /srv/swarm-daily/FOUNDER_TODO.md` shows the new record, its transcript path and an empty "Cause (10-21T21):" line. The founder's single five-minute pass then covers all four crashes. Without it, the fourth one is the only one with no recorded cause.
-**Reviewer:** PASS
-**Tokens:** 26,267 (cap 200,000); **time:** 952 s; exit 0
-
-**Merged:**
-- 13b659f Signal 5: crash item now lists four identical crashes (10-18T12, 10-19T09, 10-21T00, 10-21T21). Evidence: .loop/context.md last-five-sessions record started 2026-10-21T21:00:01+00:00, exit 1, 0 tokens, 10 s, status nothing; health BAD alert out/ALERT.md is present (alert text daily.py:519-520 holds no cause, cleared by next ok night per house_league.py:656-662). Transcript out/daily/2026-10-21T2100.jsonl (daily.py:487) added to step 1; Cause (10-21T21) line added; 'third identical' gone. diff --stat master: FOUNDER_TODO.md and DECISIONS.local.md only.
+**Status:** blocked — the reviewer blocked the change; not merged
+**Signal:** Numbers 5 and 4. For four nights the league's escalation rule has used every bot slot on one target and has never beaten it, and nothing in the code stops it. The ledger shows 7 counter_meta defenders aimed at hidden_orbit_screen_then_interleaved_dro from 10-19 to 10-22, all with `"beat_target": false`, and no new attacker since 10-19. The fix stops escalation once it has failed 3 nights in a row on the same target. We will know on the 10-23 night: the `plan:` line in the league log should list one attacker and one defender with no `(escalation)`, and `written` in `out/nights.jsonl` should hold an attacker again.
+**Reviewer:** BLOCK
+**Tokens:** 31,834 (cap 200,000); **time:** 1239 s; exit 0
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
