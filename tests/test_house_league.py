@@ -333,6 +333,27 @@ def test_escalation_after_two_unbeaten_nights_takes_both_slots():
     assert [p[3] for p in plan] == ["", ""] and [p[0] for p in plan] == ["attacker", "defender"]
 
 
+def test_escalation_stops_after_three_failed_nights_on_the_same_target():
+    ctx = toy_ctx()
+    night = {"a_top": {"d_top": 0.7, "d_low": 0.1}, "a_low": {"d_top": 0.9, "d_low": 0.4}}
+
+    def record(beat=False):
+        return {"house_positions": {
+            f"x{i}": dict(role="attacker", persona="counter_meta", target="d_top",
+                          beat_target=beat) for i in range(2)}}
+    escalated = [("attacker", "counter_meta", "d_top", "escalation")] * 2
+    plan = P.plan_night(ctx, nights=5, last_two_matrices=[night, night],
+                        recent_nights=[record()] * 3)
+    assert [p[3] for p in plan] == ["", ""] and [p[0] for p in plan] == ["attacker", "defender"]
+    plan = P.plan_night(ctx, nights=5, last_two_matrices=[night, night],
+                        recent_nights=[record()] * 2)
+    assert plan == escalated
+    for i in range(3):
+        recent = [record(beat=(j == i)) for j in range(3)]
+        assert P.plan_night(ctx, nights=5, last_two_matrices=[night, night],
+                            recent_nights=recent) == escalated
+
+
 def test_only_one_side_can_be_unbeaten_on_a_night():
     import itertools
     import random as _r

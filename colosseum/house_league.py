@@ -678,13 +678,19 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
 
     ctx = gather_context(out)
     nights = len(load_history()["nights"])
+    recent = ([json.loads(l) for l in NIGHTS.read_text().splitlines() if l.strip()][-3:]
+              if NIGHTS.exists() else [])
     try:
-        plan = personas.plan_night(ctx, nights, last_matrices(out, 2),
+        last_two = last_matrices(out, 2)
+        plan = personas.plan_night(ctx, nights, last_two,
                                    os.environ.get("HOUSE_LEAGUE_PERSONAS", ""),
-                                   slots=caps.bots_per_night)
+                                   slots=caps.bots_per_night, recent_nights=recent)
     except (ValueError, KeyError) as exc:
         log(f"ABORT: persona setup failed: {type(exc).__name__}: {exc}")
         return dict(status="error", reason=str(exc), spend=vars(spend))
+    for bot in personas.escalation(list(last_two)).values():
+        if personas.stalled(recent, bot) and not any(n for *_, n in plan):
+            log(f"escalation stalled: 3 nights with no bot beating {bot}; rotation instead")
     log("plan: " + "; ".join(f"{r} {p} vs {t}" + (f" ({n})" if n else "")
                              for r, p, t, n in plan))
     written, rejected, metas = [], [], {}

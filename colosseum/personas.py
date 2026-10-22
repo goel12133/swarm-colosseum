@@ -18,6 +18,7 @@ A night's plan (plan_night), logged and stored in each bot's metadata:
      opponent's mean score against it below 0.5) gets both of the night's slots -- two
      counter_meta bots for the opposite side, aimed at it. (Only one side can have one:
      an attacker that beats every defender rules out a defender that beats every attacker.)
+     Escalation stops after 3 straight nights with no bot beating the target (stalled).
   2. HOUSE_LEAGUE_PERSONAS="attacker=counter_meta,defender=generalist" overrides.
   3. Otherwise one attacker and one defender, rotating through all four personas by night
      number (the defender offset by one so the two bots of a night differ).
@@ -113,11 +114,22 @@ def escalation(last_two):
     return found
 
 
+def stalled(recent_nights, target, n=3):
+    """True if each of the last `n` ledger records aimed every house bot at `target`
+    and none of them beat it."""
+    recent = list(recent_nights)[-n:]
+    return len(recent) == n and all(
+        (r.get("house_positions") or {}) and all(
+            p.get("target") == target and not p.get("beat_target")
+            for p in r["house_positions"].values())
+        for r in recent)
+
+
 def plan_night(ctx, nights: int, last_two_matrices=(), override: str = "",
-               slots: int = 2):
+               slots: int = 2, recent_nights=()):
     """[(role, persona, target, note)] for tonight. note is "" or "escalation"."""
     esc = escalation(list(last_two_matrices))
-    if esc and not override:
+    if esc and not override and not stalled(recent_nights, next(iter(esc.values()))):
         # At most one side can have an unbeaten bot: if an attacker beats every defender,
         # no defender beats every attacker on the same matrix.
         (bot_role, bot), = esc.items()
