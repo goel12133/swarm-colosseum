@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>convergent_deadline_packer · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head def"><span class="side-tag def">Defender</span><h1>convergent_deadline_packer</h1><div class="meta"><span>rank <b class="def">#1</b></span><span>Elo 1186</span><span class="t3">house league, persona generalist</span><span class="t3">2026-10-11_defender_convergent_deadline_packer</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Idea: Launches are held back until a capacity-aware deadline forces them, and the delay is spent hunting for intercept moments where one blast covers several identified strikers.</p>
+<p>Why it holds up across the attacker field:</p>
+<ul><li>Synchronized, phase-locked and interleaved rings win by arriving together and outnumbering the magazine. Strikers on converging radial paths draw closer to each other as they approach. So this bot only fires on its own schedule. It fires when a predicted blast covers two or more uncovered strikers, or when a per-target commit deadline arrives. The deadline is checked against the launch-rate cap: it counts how many strikers must be served in the next k ticks and compares that with cap*k launch slots. A simultaneous wave therefore never jams the launcher. The commit radius moves inward when the magazine is scarce, which buys more convergence per interceptor.</li><li>Decoy screens, staggered trickles, magazine-drain parks and shadow pairs are cheap and numerous. Interceptors are spent only on tracks identified as strikers. A striker always enters identification range at least 30 ticks before impact, which is ample for a 12-speed interceptor, so a decoy is never bought with a 4-cost round. Interceptors whose target dies or turns out to be a decoy are retargeted to the best uncovered striker instead of being wasted.</li><li>Depth-shell saturation and trishell blast denial spread drones out to defeat blasts. Against those, the cluster rule simply finds nothing, and the bot falls back to one-shot-one-kill deadline scheduling. A striker whose interceptor missed is released and re-served.</li><li>The gun is the last layer. It fires every tick at the most urgent striker inside gun range, or at an unknown track if no striker is in range. It skips targets an interceptor is about to hit, and it never fires at decoys.</li></ul>
+<p>Velocity is smoothed over several ticks to reduce track noise. The bot is deterministic and uses only the standard library.</p></div>
+<div class="stats4"><div><span class="v">78.4%</span><span class="label">win rate</span></div><div><span class="v">0.90</span><span class="label">cost exchange</span></div><div><span class="v">190</span><span class="label">matches</span></div><div><span class="v">night 14</span><span class="label">first night (2026-10-11)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-28_attacker_staggered_screen_trickle.html" class="att">staggered_screen_trickle</a><span>10–0</span></li><li><a href="2026-10-06_attacker_parked_ring_magazine_drain.html" class="att">parked_ring_magazine_drain</a><span>10–0</span></li><li><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html" class="att">staggered_trishell_blast_denial</a><span>10–0</span></li><li><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html" class="att">attacker_blast_isolated_synchronized_rel</a><span>10–0</span></li><li><a href="2026-10-10_attacker_shadow_pair_ring.html" class="att">shadow_pair_ring</a><span>10–0</span></li><li><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html" class="att">column_free_tiered_ring_dive</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-29_attacker_synchronized_ring.html" class="att">synchronized_ring</a><span>2–8</span></li><li><a href="2026-10-11_attacker_blast_proof_depth_interleave.html" class="att">blast_proof_depth_interleave</a><span>2–8</span></li><li><a href="2026-09-30_attacker_phase_locked_ring.html" class="att">phase_locked_ring</a><span>3–7</span></li><li><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html" class="att">hidden_orbit_screen_then_interleaved_dro</a><span>3–7</span></li><li><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html" class="att">bait_count_then_clear_sky_wave</a><span>4–6</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-11_defender_convergent_deadline_packer__s9.json.gz&amp;ar=17&amp;dr=1" title="Best match: convergent_deadline_packer v parked_ring_magazine_drain" loading="lazy"></iframe><figcaption>vs <span class="att">parked_ring_magazine_drain</span> · its score 0.869 · seed 9 · <a href="../replays/viewer.html?r=data/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__2026-10-11_defender_convergent_deadline_packer__s6.json.gz&amp;ar=6&amp;dr=1" title="Worst match: convergent_deadline_packer v hidden_orbit_screen_then_interleaved_dro" loading="lazy"></iframe><figcaption>vs <span class="att">hidden_orbit_screen_then_interleaved_dro</span> · its score 0.117 · seed 6 · <a href="../replays/2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro__2026-10-11_defender_convergent_deadline_packer__s6.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="2026-10-06_attacker_parked_ring_magazine_drain.html">parked_ring_magazine_drain</a></td><td class="num">0.858</td></tr><tr><td class="name"><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">2026_10_15_attacker_dark_ring_release</a></td><td class="num">0.842</td></tr><tr><td class="name"><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html">attacker_blast_isolated_synchronized_rel</a></td><td class="num">0.833</td></tr><tr><td class="name"><a href="rush.html">rush</a></td><td class="num">0.832</td></tr><tr><td class="name"><a href="decoy_screen.html">decoy_screen</a></td><td class="num">0.826</td></tr><tr><td class="name"><a href="flanker.html">flanker</a></td><td class="num">0.815</td></tr><tr><td class="name"><a href="2026-10-10_attacker_shadow_pair_ring.html">shadow_pair_ring</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="multi_axis.html">multi_axis</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html">column_free_tiered_ring_dive</a></td><td class="num">0.770</td></tr><tr><td class="name"><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html">staggered_trishell_blast_denial</a></td><td class="num">0.765</td></tr><tr><td class="name"><a href="trickle.html">trickle</a></td><td class="num">0.763</td></tr><tr><td class="name"><a href="2026-09-28_attacker_staggered_screen_trickle.html">staggered_screen_trickle</a></td><td class="num">0.757</td></tr><tr><td class="name"><a href="2026-10-03_attacker_depth_shell_saturation.html">depth_shell_saturation</a></td><td class="num">0.540</td></tr><tr><td class="name"><a href="2026-10-04_attacker_interleaved_shell_ring.html">interleaved_shell_ring</a></td><td class="num">0.519</td></tr><tr><td class="name"><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html">bait_count_then_clear_sky_wave</a></td><td class="num">0.343</td></tr><tr><td class="name"><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html">hidden_orbit_screen_then_interleaved_dro</a></td><td class="num">0.298</td></tr><tr><td class="name"><a href="2026-09-30_attacker_phase_locked_ring.html">phase_locked_ring</a></td><td class="num">0.249</td></tr><tr><td class="name"><a href="2026-10-11_attacker_blast_proof_depth_interleave.html">blast_proof_depth_interleave</a></td><td class="num">0.228</td></tr><tr><td class="name"><a href="2026-09-29_attacker_synchronized_ring.html">synchronized_ring</a></td><td class="num">0.223</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">staggered_screen_trickle</td><td class="num">9</td><td class="good">defended</td><td class="num">0.758</td><td><a href="../replays/viewer.html?r=data/2026-09-28_attacker_staggered_screen_trickle__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">synchronized_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.769</td><td><a href="../replays/viewer.html?r=data/2026-09-29_attacker_synchronized_ring__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">phase_locked_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.149</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">depth_shell_saturation</td><td class="num">9</td><td class="good">defended</td><td class="num">0.766</td><td><a href="../replays/viewer.html?r=data/2026-10-03_attacker_depth_shell_saturation__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">interleaved_shell_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.560</td><td><a href="../replays/viewer.html?r=data/2026-10-04_attacker_interleaved_shell_ring__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">parked_ring_magazine_drain</td><td class="num">9</td><td class="good">defended</td><td class="num">0.869</td><td><a href="../replays/viewer.html?r=data/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">staggered_trishell_blast_denial</td><td class="num">9</td><td class="good">defended</td><td class="num">0.765</td><td><a href="../replays/viewer.html?r=data/2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">attacker_blast_isolated_synchronized_rel</td><td class="num">9</td><td class="good">defended</td><td class="num">0.826</td><td><a href="../replays/viewer.html?r=data/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">shadow_pair_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.796</td><td><a href="../replays/viewer.html?r=data/2026-10-10_attacker_shadow_pair_ring__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">blast_proof_depth_interleave</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.142</td><td><a href="../replays/viewer.html?r=data/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-11_defender_convergent_deadline_packer__s9.json.gz">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-10-11_defender_convergent_deadline_packer.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-10-11</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>escalation</th><td style="white-space:normal">False</td></tr><tr><th>evidence</th><td style="white-space:normal">budget: 3000, dropped: [&#x27;top_three&#x27;], included: [&#x27;matrix (cut)&#x27;], used: 3000</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-10-11_defender_convergent_deadline_packer</td></tr><tr><th>persona</th><td style="white-space:normal">generalist</td></tr><tr><th>prompt_version</th><td style="white-space:normal">2026-10-03.1</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-10-11T033320_cli_defender_generalist.md</td></tr><tr><th>result</th><td style="white-space:normal">beat_target: False, field_mean: 0.65, rank: 3</td></tr><tr><th>role</th><td style="white-space:normal">defender</td></tr><tr><th>target</th><td style="white-space:normal">field</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 7483, output: 7774</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-10-11_defender_convergent_deadline_packer.py</summary><pre><code>&quot;&quot;&quot;Idea: Launches are held back until a capacity-aware deadline forces them, and the delay is spent hunting for intercept moments where one blast covers several identified strikers.
+
+Why it holds up across the attacker field:
+- Synchronized, phase-locked and interleaved rings win by arriving together and outnumbering
+  the magazine. Strikers on converging radial paths draw closer to each other as they approach.
+  So this bot only fires on its own schedule. It fires when a predicted blast covers two or more
+  uncovered strikers, or when a per-target commit deadline arrives. The deadline is checked
+  against the launch-rate cap: it counts how many strikers must be served in the next k ticks
+  and compares that with cap*k launch slots. A simultaneous wave therefore never jams the
+  launcher. The commit radius moves inward when the magazine is scarce, which buys more
+  convergence per interceptor.
+- Decoy screens, staggered trickles, magazine-drain parks and shadow pairs are cheap and
+  numerous. Interceptors are spent only on tracks identified as strikers. A striker always
+  enters identification range at least 30 ticks before impact, which is ample for a
+  12-speed interceptor, so a decoy is never bought with a 4-cost round. Interceptors whose
+  target dies or turns out to be a decoy are retargeted to the best uncovered striker
+  instead of being wasted.
+- Depth-shell saturation and trishell blast denial spread drones out to defeat blasts. Against
+  those, the cluster rule simply finds nothing, and the bot falls back to one-shot-one-kill
+  deadline scheduling. A striker whose interceptor missed is released and re-served.
+- The gun is the last layer. It fires every tick at the most urgent striker inside gun range,
+  or at an unknown track if no striker is in range. It skips targets an interceptor is about
+  to hit, and it never fires at decoys.
+Velocity is smoothed over several ticks to reduce track noise. The bot is deterministic and
+uses only the standard library.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;convergent_deadline_packer&quot;
+ROLE = &quot;defender&quot;
+
+_S = {}
+
+
+def reset(seed=None):
+    _S.clear()
+
+
+def _st():
+    if &quot;hist&quot; not in _S:
+        _S[&quot;hist&quot;] = {}          # track id -&gt; list of (tick, x, y)
+        _S[&quot;collat&quot;] = {}        # interceptor id -&gt; set of track ids covered as collateral
+        _S[&quot;pending&quot;] = {}       # launched target id -&gt; (tick, set of collateral ids)
+    return _S
+
+
+def _intercept_time(dx, dy, vx, vy, s):
+    a = vx * vx + vy * vy - s * s
+    b = 2.0 * (dx * vx + dy * vy)
+    c = dx * dx + dy * dy
+    if abs(a) &lt; 1e-9:
+        if b &gt;= 0:
+            return None
+        return -c / b
+    disc = b * b - 4 * a * c
+    if disc &lt; 0:
+        return None
+    sq = math.sqrt(disc)
+    cands = [t for t in ((-b - sq) / (2 * a), (-b + sq) / (2 * a)) if t &gt; 0]
+    return min(cands) if cands else None
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+
+
+def _act(obs):
+    st = _st()
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tick = obs.get(&quot;tick&quot;, 0)
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    ax, ay = (asset.get(&quot;pos&quot;) or [0.0, 0.0])[:2]
+    arad = float(asset.get(&quot;radius&quot;, rules.get(&quot;asset_radius&quot;, 25.0)))
+    s_int = float(rules.get(&quot;interceptor_speed&quot;, 12.0))
+    blast = float(rules.get(&quot;blast_radius&quot;, 10.0))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    stock = int(obs.get(&quot;stock&quot;, 0))
+    ammo = int(obs.get(&quot;ammo&quot;, 0))
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    inters = obs.get(&quot;interceptors&quot;, []) or []
+
+    # Track state with smoothed velocity.
+    hist = st[&quot;hist&quot;]
+    T = {}
+    for tr in tracks:
+        tid = tr.get(&quot;id&quot;)
+        p = tr.get(&quot;pos&quot;) or [0.0, 0.0]
+        x, y = float(p[0]) - ax, float(p[1]) - ay
+        h = hist.setdefault(tid, [])
+        h.append((tick, x, y))
+        if len(h) &gt; 8:
+            del h[0]
+        v = tr.get(&quot;vel&quot;) or [0.0, 0.0]
+        vx, vy = float(v[0]), float(v[1])
+        if len(h) &gt;= 3:
+            t0, x0, y0 = h[0]
+            dt = tick - t0
+            if dt &gt; 0:
+                svx, svy = (x - x0) / dt, (y - y0) / dt
+                vx, vy = 0.5 * vx + 0.5 * svx, 0.5 * vy + 0.5 * svy
+        r = math.hypot(x, y)
+        T[tid] = {&quot;x&quot;: x, &quot;y&quot;: y, &quot;vx&quot;: vx, &quot;vy&quot;: vy, &quot;r&quot;: r,
+                  &quot;cls&quot;: tr.get(&quot;cls&quot;, &quot;unknown&quot;)}
+    for tid in list(hist.keys()):
+        if tid not in T:
+            del hist[tid]
+
+    # Interceptor bookkeeping.
+    collat = st[&quot;collat&quot;]
+    pending = st[&quot;pending&quot;]
+    live_ids = set()
+    covered = {}
+    for it in inters:
+        iid = it.get(&quot;id&quot;)
+        live_ids.add(iid)
+        tgt = it.get(&quot;target&quot;)
+        if iid not in collat:
+            if tgt in pending:
+                collat[iid] = pending.pop(tgt)[1]
+            else:
+                collat[iid] = set()
+    for iid in list(collat.keys()):
+        if iid not in live_ids:
+            del collat[iid]
+    for k in list(pending.keys()):
+        if tick - pending[k][0] &gt; 3:
+            del pending[k]
+
+    def is_striker(tid):
+        return tid in T and T[tid][&quot;cls&quot;] == &quot;striker&quot;
+
+    def pred(tid, t):
+        d = T[tid]
+        return d[&quot;x&quot;] + d[&quot;vx&quot;] * t, d[&quot;y&quot;] + d[&quot;vy&quot;] * t
+
+    retarget = {}
+    free_inters = []
+    for it in inters:
+        iid = it.get(&quot;id&quot;)
+        tgt = it.get(&quot;target&quot;)
+        if tgt in T and T[tgt][&quot;cls&quot;] != &quot;decoy&quot;:
+            covered[tgt] = covered.get(tgt, 0) + 1
+            for c in collat.get(iid, ()):
+                covered[c] = covered.get(c, 0) + 1
+        else:
+            free_inters.append(it)
+    for k, (_, cs) in pending.items():
+        covered[k] = covered.get(k, 0) + 1
+        for c in cs:
+            covered[c] = covered.get(c, 0) + 1
+
+    def uncovered_strikers():
+        return [tid for tid in T if is_striker(tid) and covered.get(tid, 0) == 0]
+
+    # Retarget interceptors whose target is gone or is a decoy.
+    for it in free_inters:
+        iid = it.get(&quot;id&quot;)
+        ip = it.get(&quot;pos&quot;) or [ax, ay]
+        ix, iy = float(ip[0]) - ax, float(ip[1]) - ay
+        age = int(it.get(&quot;age&quot;, 0))
+        life_left = max(1, int(rules.get(&quot;interceptor_lifetime&quot;, 90)) - age)
+        best, bt = None, None
+        for tid in uncovered_strikers():
+            d = T[tid]
+            t = _intercept_time(d[&quot;x&quot;] - ix, d[&quot;y&quot;] - iy, d[&quot;vx&quot;], d[&quot;vy&quot;], s_int)
+            if t is None or t &gt; life_left:
+                continue
+            if bt is None or t &lt; bt:
+                best, bt = tid, t
+        if best is not None:
+            retarget[iid] = best
+            covered[best] = covered.get(best, 0) + 1
+            collat[iid] = set()
+
+    # Launch scheduling.
+    unc = uncovered_strikers()
+    n_unknown = sum(1 for d in T.values() if d[&quot;cls&quot;] == &quot;unknown&quot;)
+    scarce = (len(unc) + 0.5 * n_unknown) &gt; stock
+    r_commit = arad + 20.0 if scarce else arad + 42.0
+
+    info = {}
+    for tid in unc:
+        d = T[tid]
+        t = _intercept_time(d[&quot;x&quot;], d[&quot;y&quot;], d[&quot;vx&quot;], d[&quot;vy&quot;], s_int)
+        if t is None:
+            t = d[&quot;r&quot;] / s_int
+        px, py = pred(tid, t)
+        r_int = math.hypot(px, py)
+        vr = 0.0
+        if d[&quot;r&quot;] &gt; 1e-6:
+            vr = -(d[&quot;x&quot;] * d[&quot;vx&quot;] + d[&quot;y&quot;] * d[&quot;vy&quot;]) / d[&quot;r&quot;]
+        vr = max(0.5, vr)
+        rate = vr * s_int / (s_int + vr)
+        t_commit = (r_int - r_commit) / rate
+        clu = set()
+        for oj in unc:
+            if oj == tid:
+                continue
+            qx, qy = pred(oj, t)
+            if math.hypot(qx - px, qy - py) &lt; 0.8 * blast:
+                clu.add(oj)
+        info[tid] = {&quot;t&quot;: t, &quot;r_int&quot;: r_int, &quot;tc&quot;: t_commit, &quot;clu&quot;: clu}
+
+    launches = []
+    used = set()
+    slots = min(cap, stock)
+
+    order = sorted(unc, key=lambda k: info[k][&quot;tc&quot;])
+    must = 0
+    for i, tid in enumerate(order):
+        if info[tid][&quot;tc&quot;] &lt;= (i // max(1, cap)):
+            must = i + 1
+    for tid in order[:must]:
+        if len(launches) &gt;= slots:
+            break
+        if tid in used:
+            continue
+        launches.append(tid)
+        cs = set(c for c in info[tid][&quot;clu&quot;] if c not in used)
+        used.add(tid)
+        used |= cs
+        pending[tid] = (tick, cs)
+
+    if len(launches) &lt; slots:
+        opp = [k for k in unc if k not in used and len(info[k][&quot;clu&quot;]) &gt;= 1
+               and info[k][&quot;r_int&quot;] &gt; arad + 12.0]
+        opp.sort(key=lambda k: (-len(info[k][&quot;clu&quot;]), info[k][&quot;tc&quot;]))
+        for tid in opp:
+            if len(launches) &gt;= slots:
+                break
+            if tid in used:
+                continue
+            cs = set(c for c in info[tid][&quot;clu&quot;] if c not in used)
+            if not cs:
+                continue
+            launches.append(tid)
+            used.add(tid)
+            used |= cs
+            pending[tid] = (tick, cs)
+
+    # Gun: most urgent striker in range, else unknown; skip targets about to be hit.
+    gun = None
+    if ammo &gt; 0:
+        inter_pos = []
+        for it in inters:
+            ip = it.get(&quot;pos&quot;) or [ax, ay]
+            inter_pos.append((it.get(&quot;target&quot;), float(ip[0]) - ax, float(ip[1]) - ay))
+        best_key = None
+        for tid, d in T.items():
+            if d[&quot;cls&quot;] == &quot;decoy&quot; or d[&quot;r&quot;] &gt; gun_range:
+                continue
+            imminent = False
+            for (tg, ix, iy) in inter_pos:
+                if tg == tid and math.hypot(ix - d[&quot;x&quot;], iy - d[&quot;y&quot;]) &lt; 2 * s_int:
+                    imminent = True
+                    break
+            pri = 0 if d[&quot;cls&quot;] == &quot;striker&quot; else 1
+            key = (1 if imminent else 0, pri, d[&quot;r&quot;])
+            if best_key is None or key &lt; best_key:
+                best_key, gun = key, tid
+
+    return {&quot;intercept&quot;: launches, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

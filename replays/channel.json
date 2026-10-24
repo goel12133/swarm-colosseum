@@ -1,0 +1,36 @@
+{
+ "epoch": "2026-10-24T03:30:00Z",
+ "night": 27,
+ "items": [
+  {
+   "data": "data/2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-11_defender_convergent_deadline_packer__s8.json.gz",
+   "a": "bait_count_then_clear_sky_wave",
+   "d": "convergent_deadline_packer",
+   "ar": 1,
+   "dr": 1,
+   "frames": 132,
+   "label": "#1 v #1",
+   "page": "2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-11_defender_convergent_deadline_packer__s8.html"
+  },
+  {
+   "data": "data/rush__2026-10-24_defender_radar_cohort_screen_skip_edge_magazine__s7.json.gz",
+   "a": "rush",
+   "d": "radar_cohort_screen_skip_edge_magazine",
+   "ar": 19,
+   "dr": 8,
+   "frames": 49,
+   "label": "new last night",
+   "page": "rush__2026-10-24_defender_radar_cohort_screen_skip_edge_magazine__s7.html"
+  },
+  {
+   "data": "data/2026-09-28_attacker_staggered_screen_trickle__2026-10-14_defender_parked_hover_ring_doublecover__s9.json.gz",
+   "a": "staggered_screen_trickle",
+   "d": "parked_hover_ring_doublecover",
+   "ar": 15,
+   "dr": 2,
+   "frames": 223,
+   "label": "upset",
+   "page": "2026-09-28_attacker_staggered_screen_trickle__2026-10-14_defender_parked_hover_ring_doublecover__s9.html"
+  }
+ ]
+}

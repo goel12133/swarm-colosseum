@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>cluster_blast_column_breaker · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head def"><span class="side-tag def">Defender</span><h1>cluster_blast_column_breaker</h1><div class="meta"><span>rank <b class="def">#20</b></span><span>Elo 969</span><span class="t3">house league, persona exploiter</span><span class="t3">2026-10-05_defender_cluster_blast_column_breaker</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Idea: Treat a single-bearing stream as one target, and spend each interceptor on whichever track has the most uncovered threat inside its blast radius.</p>
+<p>Weakness exploited: rush sends all 30 strikers down one corridor at 4 per tick. That packs them into a dense column only a few units deep per launch tick, so a single 10-unit blast can catch several strikers at once. The pairing rush vs gun_only shows the weakness (mean score_defender 0.272). In seed 0, gun_only fired no interceptors and kept all 20 in stock. Its gun killed only 4 strikers, and the asset was breached at tick 118. Rush gets no protection from decoys and no spread across bearings, so cluster-weighted blast targeting from long range should thin the column well before it reaches gun range.</p>
+<p>Method:</p>
+<ul><li>Each tick, score every track by the class-weighted, urgency-weighted threat near it that is not already covered by an in-flight interceptor.</li><li>Launch at the best-scoring tracks, up to the per-tick cap.</li><li>Retarget interceptors whose target track has vanished.</li><li>Keep a small reserve of stock for close-in leakers.</li><li>Point the gun at the most urgent striker inside gun range.</li></ul></div>
+<div class="stats4"><div><span class="v">64.7%</span><span class="label">win rate</span></div><div><span class="v">0.63</span><span class="label">cost exchange</span></div><div><span class="v">190</span><span class="label">matches</span></div><div><span class="v">night 8</span><span class="label">first night (2026-10-05)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-10-03_attacker_depth_shell_saturation.html" class="att">depth_shell_saturation</a><span>10–0</span></li><li><a href="2026-10-04_attacker_interleaved_shell_ring.html" class="att">interleaved_shell_ring</a><span>10–0</span></li><li><a href="2026-10-06_attacker_parked_ring_magazine_drain.html" class="att">parked_ring_magazine_drain</a><span>10–0</span></li><li><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html" class="att">attacker_blast_isolated_synchronized_rel</a><span>10–0</span></li><li><a href="2026-10-10_attacker_shadow_pair_ring.html" class="att">shadow_pair_ring</a><span>10–0</span></li><li><a href="decoy_screen.html" class="att">decoy_screen</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-29_attacker_synchronized_ring.html" class="att">synchronized_ring</a><span>0–10</span></li><li><a href="2026-09-30_attacker_phase_locked_ring.html" class="att">phase_locked_ring</a><span>0–10</span></li><li><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html" class="att">2026_10_15_attacker_dark_ring_release</a><span>0–10</span></li><li><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html" class="att">hidden_orbit_screen_then_interleaved_dro</a><span>0–10</span></li><li><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html" class="att">bait_count_then_clear_sky_wave</a><span>0–10</span></li><li><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html" class="att">staggered_trishell_blast_denial</a><span>3–7</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/rush__2026-10-05_defender_cluster_blast_column_breaker__s7.json.gz&amp;ar=19&amp;dr=20" title="Best match: cluster_blast_column_breaker v rush" loading="lazy"></iframe><figcaption>vs <span class="att">rush</span> · its score 0.814 · seed 7 · <a href="../replays/rush__2026-10-05_defender_cluster_blast_column_breaker__s7.html">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-05_defender_cluster_blast_column_breaker__s3.json.gz&amp;ar=1&amp;dr=20" title="Worst match: cluster_blast_column_breaker v bait_count_then_clear_sky_wave" loading="lazy"></iframe><figcaption>vs <span class="att">bait_count_then_clear_sky_wave</span> · its score 0.048 · seed 3 · <a href="../replays/2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-05_defender_cluster_blast_column_breaker__s3.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="rush.html">rush</a></td><td class="num">0.795</td></tr><tr><td class="name"><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html">attacker_blast_isolated_synchronized_rel</a></td><td class="num">0.782</td></tr><tr><td class="name"><a href="flanker.html">flanker</a></td><td class="num">0.782</td></tr><tr><td class="name"><a href="2026-10-06_attacker_parked_ring_magazine_drain.html">parked_ring_magazine_drain</a></td><td class="num">0.778</td></tr><tr><td class="name"><a href="2026-10-03_attacker_depth_shell_saturation.html">depth_shell_saturation</a></td><td class="num">0.777</td></tr><tr><td class="name"><a href="decoy_screen.html">decoy_screen</a></td><td class="num">0.775</td></tr><tr><td class="name"><a href="2026-10-10_attacker_shadow_pair_ring.html">shadow_pair_ring</a></td><td class="num">0.721</td></tr><tr><td class="name"><a href="multi_axis.html">multi_axis</a></td><td class="num">0.684</td></tr><tr><td class="name"><a href="2026-10-04_attacker_interleaved_shell_ring.html">interleaved_shell_ring</a></td><td class="num">0.645</td></tr><tr><td class="name"><a href="2026-10-11_attacker_blast_proof_depth_interleave.html">blast_proof_depth_interleave</a></td><td class="num">0.606</td></tr><tr><td class="name"><a href="trickle.html">trickle</a></td><td class="num">0.545</td></tr><tr><td class="name"><a href="2026-09-28_attacker_staggered_screen_trickle.html">staggered_screen_trickle</a></td><td class="num">0.459</td></tr><tr><td class="name"><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html">column_free_tiered_ring_dive</a></td><td class="num">0.333</td></tr><tr><td class="name"><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html">staggered_trishell_blast_denial</a></td><td class="num">0.273</td></tr><tr><td class="name"><a href="2026-09-29_attacker_synchronized_ring.html">synchronized_ring</a></td><td class="num">0.140</td></tr><tr><td class="name"><a href="2026-09-30_attacker_phase_locked_ring.html">phase_locked_ring</a></td><td class="num">0.124</td></tr><tr><td class="name"><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">2026_10_15_attacker_dark_ring_release</a></td><td class="num">0.109</td></tr><tr><td class="name"><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html">hidden_orbit_screen_then_interleaved_dro</a></td><td class="num">0.086</td></tr><tr><td class="name"><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html">bait_count_then_clear_sky_wave</a></td><td class="num">0.072</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">staggered_screen_trickle</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.127</td><td><a href="../replays/viewer.html?r=data/2026-09-28_attacker_staggered_screen_trickle__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">synchronized_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.147</td><td><a href="../replays/viewer.html?r=data/2026-09-29_attacker_synchronized_ring__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">phase_locked_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.136</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">depth_shell_saturation</td><td class="num">9</td><td class="good">defended</td><td class="num">0.769</td><td><a href="../replays/viewer.html?r=data/2026-10-03_attacker_depth_shell_saturation__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">interleaved_shell_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.359</td><td><a href="../replays/viewer.html?r=data/2026-10-04_attacker_interleaved_shell_ring__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">parked_ring_magazine_drain</td><td class="num">9</td><td class="good">defended</td><td class="num">0.782</td><td><a href="../replays/viewer.html?r=data/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">staggered_trishell_blast_denial</td><td class="num">9</td><td class="good">defended</td><td class="num">0.360</td><td><a href="../replays/viewer.html?r=data/2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">attacker_blast_isolated_synchronized_rel</td><td class="num">9</td><td class="good">defended</td><td class="num">0.779</td><td><a href="../replays/viewer.html?r=data/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">shadow_pair_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.759</td><td><a href="../replays/viewer.html?r=data/2026-10-10_attacker_shadow_pair_ring__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">blast_proof_depth_interleave</td><td class="num">9</td><td class="good">defended</td><td class="num">0.565</td><td><a href="../replays/viewer.html?r=data/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-10-05_defender_cluster_blast_column_breaker.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-10-05</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>escalation</th><td style="white-space:normal">False</td></tr><tr><th>evidence</th><td style="white-space:normal">budget: 1500, dropped: [], included: [&#x27;lopsided&#x27;, &#x27;target_doc&#x27;], used: 262</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-10-05_defender_cluster_blast_column_breaker</td></tr><tr><th>persona</th><td style="white-space:normal">exploiter</td></tr><tr><th>prompt_version</th><td style="white-space:normal">2026-10-03.1</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-10-05T033249_cli_defender_exploiter.md</td></tr><tr><th>result</th><td style="white-space:normal">beat_target: True, field_mean: 0.573, rank: 2, score_vs_target: 0.795</td></tr><tr><th>role</th><td style="white-space:normal">defender</td></tr><tr><th>target</th><td style="white-space:normal">rush</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 2486, output: 3925</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-10-05_defender_cluster_blast_column_breaker.py</summary><pre><code>&quot;&quot;&quot;Idea: Treat a single-bearing stream as one target, and spend each interceptor on whichever track has the most uncovered threat inside its blast radius.
+
+Weakness exploited: rush sends all 30 strikers down one corridor at 4 per tick.
+That packs them into a dense column only a few units deep per launch tick, so a
+single 10-unit blast can catch several strikers at once. The pairing rush vs
+gun_only shows the weakness (mean score_defender 0.272). In seed 0, gun_only
+fired no interceptors and kept all 20 in stock. Its gun killed only 4 strikers,
+and the asset was breached at tick 118. Rush gets no protection from decoys
+and no spread across bearings, so cluster-weighted blast targeting from long
+range should thin the column well before it reaches gun range.
+
+Method:
+- Each tick, score every track by the class-weighted, urgency-weighted threat
+  near it that is not already covered by an in-flight interceptor.
+- Launch at the best-scoring tracks, up to the per-tick cap.
+- Retarget interceptors whose target track has vanished.
+- Keep a small reserve of stock for close-in leakers.
+- Point the gun at the most urgent striker inside gun range.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;cluster_blast_column_breaker&quot;
+ROLE = &quot;defender&quot;
+
+_COVER_R = 9.0      # a track this close to an interceptor&#x27;s target counts as covered
+_CLUSTER_R = 11.0   # neighbourhood used to score blast value (blast 10 + track noise)
+
+
+def reset(seed):
+    pass
+
+
+def _d(a, b):
+    return math.hypot(a[0] - b[0], a[1] - b[1])
+
+
+def _w(cls):
+    if cls == &quot;striker&quot;:
+        return 1.0
+    if cls == &quot;decoy&quot;:
+        return 0.05
+    return 0.75
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+
+
+def _act(obs):
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    inters = obs.get(&quot;interceptors&quot;, []) or []
+    stock = int(obs.get(&quot;stock&quot;, 0) or 0)
+    ammo = int(obs.get(&quot;ammo&quot;, 0) or 0)
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    lpt = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    total_stock = int(rules.get(&quot;interceptor_stock&quot;, 20)) or 20
+
+    action = {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+    if not tracks:
+        return action
+
+    tracks = sorted(tracks, key=lambda t: (float(t.get(&quot;range&quot;, 0.0)), str(t.get(&quot;id&quot;))))
+    by_id = {t[&quot;id&quot;]: t for t in tracks}
+    pos = {t[&quot;id&quot;]: (float(t[&quot;pos&quot;][0]), float(t[&quot;pos&quot;][1])) for t in tracks}
+
+    # Covered tracks: anything near the target of an interceptor already in flight.
+    covered = set()
+    orphans = []
+    for it in inters:
+        tgt = it.get(&quot;target&quot;)
+        if tgt in by_id:
+            tp = pos[tgt]
+            for t in tracks:
+                if _d(pos[t[&quot;id&quot;]], tp) &lt;= _COVER_R:
+                    covered.add(t[&quot;id&quot;])
+        else:
+            orphans.append(it)
+
+    def urgency(t):
+        r = float(t.get(&quot;range&quot;, 450.0))
+        return 1.0 + max(0.0, (450.0 - r)) / 150.0
+
+    def value(tid, cov):
+        p = pos[tid]
+        s = 0.0
+        for t in tracks:
+            oid = t[&quot;id&quot;]
+            if oid in cov:
+                continue
+            if _d(pos[oid], p) &lt;= _CLUSTER_R:
+                s += _w(t.get(&quot;cls&quot;, &quot;unknown&quot;)) * urgency(t)
+        return s
+
+    def eligible(t, stock_now):
+        cls = t.get(&quot;cls&quot;, &quot;unknown&quot;)
+        r = float(t.get(&quot;range&quot;, 450.0))
+        if cls == &quot;decoy&quot;:
+            return False
+        reserve = max(2, total_stock // 8)
+        if stock_now &lt;= reserve:
+            # Hold the reserve for close leakers and confirmed strikers.
+            return r &lt; 220.0 or cls == &quot;striker&quot;
+        return True
+
+    def pick(cov, stock_now):
+        best, bestv = None, 0.0
+        for t in tracks:
+            tid = t[&quot;id&quot;]
+            if tid in cov or not eligible(t, stock_now):
+                continue
+            v = value(tid, cov)
+            if v &gt; bestv + 1e-9:
+                best, bestv = tid, v
+        return best, bestv
+
+    def cover(tid, cov):
+        p = pos[tid]
+        for t in tracks:
+            if _d(pos[t[&quot;id&quot;]], p) &lt;= _COVER_R:
+                cov.add(t[&quot;id&quot;])
+
+    # Retarget orphaned interceptors to the best uncovered cluster near them.
+    for it in sorted(orphans, key=lambda x: str(x.get(&quot;id&quot;))):
+        ip = it.get(&quot;pos&quot;) or [0.0, 0.0]
+        ip = (float(ip[0]), float(ip[1]))
+        best, bestv = None, 0.0
+        for t in tracks:
+            tid = t[&quot;id&quot;]
+            if tid in covered or t.get(&quot;cls&quot;) == &quot;decoy&quot;:
+                continue
+            v = value(tid, covered) / (1.0 + _d(ip, pos[tid]) / 200.0)
+            if v &gt; bestv:
+                best, bestv = tid, v
+        if best is not None:
+            action[&quot;retarget&quot;][it[&quot;id&quot;]] = best
+            cover(best, covered)
+
+    # New launches.
+    s = stock
+    for _ in range(max(0, lpt)):
+        if s &lt;= 0:
+            break
+        tid, v = pick(covered, s)
+        if tid is None:
+            break
+        t = by_id[tid]
+        # Avoid wasting shots on lone, far, unidentified tracks once stock is thin.
+        if (t.get(&quot;cls&quot;) == &quot;unknown&quot; and v &lt; 1.5 and s &lt; total_stock // 2
+                and float(t.get(&quot;range&quot;, 450.0)) &gt; 300.0):
+            break
+        action[&quot;intercept&quot;].append(tid)
+        cover(tid, covered)
+        s -= 1
+
+    # Gun: most urgent non-decoy track in range, strikers first.
+    if ammo &gt; 0:
+        best, bestk = None, None
+        for t in tracks:
+            r = float(t.get(&quot;range&quot;, 1e9))
+            if r &gt; gun_range:
+                continue
+            cls = t.get(&quot;cls&quot;, &quot;unknown&quot;)
+            pri = 0 if cls == &quot;striker&quot; else (1 if cls == &quot;unknown&quot; else 2)
+            k = (pri, r, str(t[&quot;id&quot;]))
+            if bestk is None or k &lt; bestk:
+                best, bestk = t[&quot;id&quot;], k
+        if best is not None and (bestk[0] &lt; 2 or ammo &gt; 40):
+            action[&quot;gun&quot;] = best
+
+    return action
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

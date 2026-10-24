@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en" data-root=""><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Submit a bot · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="index.html">Swarm Colosseum</a>
+<a class="live" href="index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="index.html">Arena</a><a href="ladders.html">Ladders</a><a href="replays.html">Replays</a><a href="research.html" class=wide>Research</a><a href="library/index.html" class=wide>Library</a><a href="changelog.html" class=wide>Changelog</a><a href="seasons.html" class=wide>Seasons</a><a href="about.html" class=wide>About</a><a href="submitting.html" class="submit" aria-current="page">Submit</a><details><summary>More</summary><div class="more-menu"><a href="research.html">Research</a><a href="library/index.html">Library</a><a href="changelog.html">Changelog</a><a href="seasons.html">Seasons</a><a href="about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read"><h1>Submitting a bot to Swarm Colosseum</h1>
+<blockquote><strong>Opens Saturday 2026-10-24</strong>, after a review of the sandbox that evening. Until then there is no way to send a file in, but everything below already works on your own machine, so you can get a bot ready. Bots sent in from the 24th join the league on the first night of season two, 2026-10-26. If the review finds something to fix first, the date moves and this page will say so.</blockquote>
+<p>Swarm Colosseum is a strategy game played by programs. You write one Python file. Every night it plays every bot on the other side, ten times each, and its results go on a public ladder. It's a game on a blank 2D map with made-up units, and it doesn't model any real equipment or place.</p>
+<h2>The game in one minute</h2>
+<ul><li>There's an <strong>asset</strong> at the centre of the map, point (0, 0), with <strong>30 HP</strong> and a radius of 25 u.</li><li>The <strong>attacker</strong> has <strong>60 credits</strong>. It launches drones from a ring 490 u from the centre:<ul><li>a <strong>striker</strong> costs 2 credits and does 10 damage if it reaches the asset;</li><li>a <strong>decoy</strong> costs 0.5 credits and does no damage at all.</li><li>Both fly at 4 u per tick and look the same on radar until they get close.</li></ul></li><li>The <strong>defender</strong> has:<ul><li><strong>20 interceptors</strong> (fly at 12 u/tick, explode next to their target and usually destroy everything within 10 u);</li><li>a <strong>gun</strong> with 120 rounds that only reaches 100 u;</li><li>a <strong>radar</strong> that sees everything within 450 u but can only tell a striker from a decoy inside <strong>150 u</strong>.</li></ul></li><li>A match lasts up to <strong>600 ticks</strong>. It ends early if the asset is destroyed or the attacker has nothing left to send.</li><li>The defender is also scored on <strong>cost</strong>: an interceptor costs 4 credits, a gun round 0.1. Shooting down a 0.5-credit decoy with a 4-credit interceptor is a bad trade.</li></ul>
+<h2>Your file</h2>
+<p>One <code>.py</code> file with exactly these at the top level:</p>
+<pre><code>&quot;&quot;&quot;Idea: one sentence saying what your bot does differently. This line shows up on the
+site, so make it good.&quot;&quot;&quot;
+
+NAME = &quot;slow_pincer&quot;        # 2-40 characters: lowercase letters, digits, _
+ROLE = &quot;attacker&quot;           # or &quot;defender&quot;
+
+
+def reset(seed):            # optional: called once before each match
+    pass
+
+
+def act(obs):               # called every tick; must return an action dict
+    return {&quot;launch&quot;: [], &quot;steer&quot;: {}}</code></pre>
+<p><code>act</code> gets one argument, <code>obs</code> (what your bot can see this tick), and returns a dictionary saying what to do. That's the whole interface.</p>
+<h3>If you're the attacker</h3>
+<p><code>obs</code> contains:</p>
+<div class="scroll"><table><thead><tr><th>key</th><th>what it is</th></tr></thead><tbody><tr><td><code>tick</code></td><td>the current tick, 1 to 600</td></tr><tr><td><code>budget</code></td><td>credits you have left</td></tr><tr><td><code>asset</code></td><td><code>{&quot;pos&quot;: [0, 0], &quot;hp&quot;: 30, &quot;radius&quot;: 25}</code></td></tr><tr><td><code>drones</code></td><td>your drones: <code>{&quot;id&quot;, &quot;type&quot;, &quot;pos&quot;, &quot;vel&quot;, &quot;waypoint&quot;}</code> each</td></tr><tr><td><code>interceptors</code></td><td>positions <code>[x, y]</code> of the defender's interceptors in the air</td></tr><tr><td><code>rules</code></td><td>every number in the game, e.g. <code>obs[&quot;rules&quot;][&quot;striker_cost&quot;]</code></td></tr></tbody></table></div>
+<p>Return:</p>
+<pre><code>{&quot;launch&quot;: [{&quot;type&quot;: &quot;striker&quot;, &quot;bearing&quot;: 90.0}],   # up to 4 launches per tick
+ &quot;steer&quot;: {12: [100.0, -40.0]}}                      # optional: drone 12 flies there first</code></pre>
+<p><code>bearing</code> is in degrees: 0 is to the right (+x), 90 is up (+y). A drone flies to its waypoint if it has one, then straight at the asset. Set a waypoint to <code>None</code> to clear it.</p>
+<h3>If you're the defender</h3>
+<p><code>obs</code> contains:</p>
+<div class="scroll"><table><thead><tr><th>key</th><th>what it is</th></tr></thead><tbody><tr><td><code>tick</code></td><td>the current tick</td></tr><tr><td><code>asset</code></td><td>as above, with the current <code>hp</code></td></tr><tr><td><code>tracks</code></td><td>radar contacts: <code>{&quot;id&quot;, &quot;pos&quot;, &quot;vel&quot;, &quot;range&quot;, &quot;cls&quot;}</code> each. Positions are a bit noisy. <code>cls</code> is <code>&quot;unknown&quot;</code> until the drone is inside 150 u, then <code>&quot;striker&quot;</code> or <code>&quot;decoy&quot;</code>.</td></tr><tr><td><code>interceptors</code></td><td>yours in the air: <code>{&quot;id&quot;, &quot;target&quot;, &quot;pos&quot;, &quot;age&quot;}</code></td></tr><tr><td><code>stock</code></td><td>interceptors left to launch</td></tr><tr><td><code>ammo</code></td><td>gun rounds left</td></tr><tr><td><code>rules</code></td><td>every number in the game</td></tr></tbody></table></div>
+<p>Return:</p>
+<pre><code>{&quot;intercept&quot;: [7, 9],        # launch at tracks 7 and 9 (up to 2 launches per tick)
+ &quot;retarget&quot;: {3: 11},        # interceptor 3 now chases track 11
+ &quot;gun&quot;: 7}                   # fire one round at track 7, or None</code></pre>
+<h3>Rules for <code>act</code></h3>
+<ul><li><strong>Be quick.</strong> Every call must return within <strong>2 seconds</strong>; aim for milliseconds. A bot that stops answering gets restarted, and a bot that keeps stopping is treated as dead for the rest of the match.</li><li><strong>Don't crash.</strong> If <code>act</code> raises an error, that tick counts as "do nothing" and the error is counted against you. Wrap risky code in <code>try</code>/<code>except</code> and return a plain action.</li><li><strong>Asking for too much is wasted.</strong> Launching 6 drones when the cap is 4 launches 4; the extra 2 are ignored and counted as invalid requests.</li><li><strong>Be deterministic.</strong> The same observations should give the same actions. If you want randomness, make your own <code>random.Random(seed)</code> in <code>reset(seed)</code> and use that.</li><li>Your module is loaded fresh for every match, so global variables don't carry over between matches (they do carry over between ticks, which is fine).</li></ul>
+<h2>What you can and can't use</h2>
+<p><strong>Allowed imports</strong> (and nothing else): <code>math</code>, <code>random</code>, <code>itertools</code>, <code>functools</code>, <code>collections</code>, <code>heapq</code>, <code>bisect</code>, <code>statistics</code>, <code>dataclasses</code>, <code>typing</code>, <code>enum</code>, <code>operator</code>.</p>
+<p><strong>Not allowed</strong>, and the checker will tell you which line it found:</p>
+<ul><li>any other import: no <code>os</code>, <code>sys</code>, <code>subprocess</code>, <code>socket</code>, <code>time</code>, <code>json</code>, …</li><li>the built-ins <code>open</code>, <code>exec</code>, <code>eval</code>, <code>compile</code>, <code>__import__</code>, <code>globals</code>, <code>locals</code>, <code>vars</code>, <code>getattr</code>, <code>setattr</code>, <code>delattr</code>, <code>input</code>, <code>breakpoint</code>, <code>help</code>, <code>exit</code>, <code>quit</code>, <code>memoryview</code></li><li>anything with double underscores on both sides, like <code>x.__class__</code> or <code>__builtins__</code>, and strings like <code>&quot;__class__&quot;</code></li><li>private attributes of other things, like <code>random._inst</code> (your own <code>self._x</code> is fine)</li><li>code running at the top level of the file: the top level may only have imports, constants, functions and classes; put everything else inside functions</li><li><code>async</code> code</li></ul>
+<p>Why so strict? Your bot runs on our machine next to everyone else's. The checks catch honest mistakes with a clear message, and every bot also runs inside a locked box: no internet, no files, 128 MB of memory, half a CPU core.</p>
+<h2>Limits</h2>
+<div class="scroll"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>file size</td><td>64 KB</td></tr><tr><td>time per <code>act</code> call</td><td>2 seconds (hard limit)</td></tr><tr><td>memory</td><td>128 MB</td></tr><tr><td>CPU</td><td>half a core</td></tr><tr><td>network, files, other programs</td><td>none</td></tr></tbody></table></div>
+<h2>Before you start</h2>
+<ol><li><code>git clone &lt;this repo&gt; &amp;&amp; cd swarm-colosseum</code></li><li>Python 3.9 or newer. There's nothing to <code>pip install</code>: the checker uses only the standard library. If <code>python</code> isn't found, type <code>python3</code> instead.</li><li>Docker installed and running. The test match in step 2 below runs inside it, and the first run downloads the <code>python:3.12-slim</code> image.</li><li>Save the bot from "A complete first bot" at the end of this page as <code>my_bot.py</code> in that folder, then run the command below.</li></ol>
+<h2>Submitting</h2>
+<p>Once submissions open, you send a bot as a <strong>pull request</strong> that adds one file:</p>
+<pre><code>bots/submitted/pr/&lt;your login&gt;/&lt;NAME&gt;.py</code></pre>
+<p><code>&lt;your login&gt;</code> is your GitHub login in lowercase, and the file name is your bot's <code>NAME</code> plus <code>.py</code>. One pull request can hold one attacker and one defender, and nothing else: if it changes any other file, the check fails. Send other changes as a separate pull request. To update a bot, change the same file in a new pull request.</p>
+<p>An automatic check runs on the pull request. It only <em>reads</em> your file, the same checks as step 1 below, plus the abstract-only rule, and it tells you which line is wrong. It never runs your code. A maintainer then reviews the code and merges it. After that, the league's machine runs the checks again, then the test match in the locked box (steps 2 and 3).</p>
+<p>You can run the same checks on your own machine first:</p>
+<pre><code>python -m colosseum.submit my_bot.py --side attacker --author yourhandle</code></pre>
+<p>Your handle is 2–24 characters: lowercase letters, digits, <code>_</code> and <code>-</code>.</p>
+<p>What happens:</p>
+<ol><li><strong>Checks.</strong> Your file is read (not run) and checked against the rules above. If something's wrong you get a plain-English reason with a line number, and nothing is kept.</li><li><strong>Test match.</strong> Your bot plays one match against a built-in bot, inside the locked box. If it crashes on every tick or stops answering, it's rejected, with the reason.</li><li><strong>Accepted.</strong> It's saved as <code>yourhandle__yourbotname</code> with a record of who sent it, when, and a fingerprint of the file (its SHA-256). Sending the exact same file again does nothing. Sending a changed file under the same bot name replaces the old version.</li></ol>
+<h2>After that</h2>
+<ul><li><strong>Every night</strong> your bot plays every bot on the other side, 10 matches each (seeds 0–9), and moves up or down the Elo ladder.</li><li><strong>Retirement.</strong> A bot that finishes bottom of its ladder three nights running is retired, <em>unless</em> it's the only bot that can get through (or hold out against) some particular opponent. A bot that's the only answer to something stays, even if it's bad at everything else.</li><li><strong>Everything is public and reproducible.</strong> Every match is saved as a replay anyone can watch, and the same two bots with the same seed always play exactly the same match. Anyone can check any result, and so can you. Your code, your name and your bot's docstring will be visible to everyone.</li></ul>
+<h2>A complete first bot</h2>
+<p>An attacker that sends a striker every 6 ticks, rotating around the ring:</p>
+<pre><code>&quot;&quot;&quot;Idea: a slow, even trickle from all directions, so the defender never gets a crowd to
+hit with one interceptor.&quot;&quot;&quot;
+
+NAME = &quot;even_trickle&quot;
+ROLE = &quot;attacker&quot;
+
+
+def act(obs):
+    cost = obs[&quot;rules&quot;][&quot;striker_cost&quot;]
+    if obs[&quot;tick&quot;] % 6 != 0 or obs[&quot;budget&quot;] &lt; cost:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+    bearing = (obs[&quot;tick&quot;] * 37) % 360
+    return {&quot;launch&quot;: [{&quot;type&quot;: &quot;striker&quot;, &quot;bearing&quot;: bearing}], &quot;steer&quot;: {}}</code></pre>
+<p>Good luck. Watch the replays of the bots that beat you; that's where the ideas are.</p>
+<p><strong>Licence.</strong> A bot you submit is contributed under the Apache License 2.0, the same terms as the rest of the code, so it can be run, replayed, shown and put in the tactic library.</p><h2 id="build">Build with us</h2><p>Thanks for looking. This is an abstract strategy game and research benchmark. These are the rules every contribution follows, then what we can accept right now.</p>
+<h2>The rules</h2>
+<ol><li><strong>Abstract only.</strong> Made-up units (<code>u</code>, <code>ticks</code>, <code>credits</code>) on a blank plane. No real weapons, vehicles, units, places, armies or companies, and nothing from non-public information, anywhere: code, bots, docstrings, issues, docs. A contribution that breaks this is closed without review. Bot names and docstrings describe the idea in game terms ("hold the swarm outside identification range, then release it on one tick").</li><li><strong>Untrusted code never runs outside the sandbox.</strong> Bots that aren't part of the baselines are read with <code>ast</code> and never imported on the host. Tests follow the same rule: a test may run a bot in-process only if it is a fixture or baseline from this repo.</li><li><strong>Determinism.</strong> The same attacker, defender, seed, rules and engine give byte-identical results and replays: in-process, sandboxed, in parallel and from the cache. The tests that prove this stay green.</li><li><strong>The rules are frozen for a season.</strong> <code>colosseum/rules.py</code> changes only at a season boundary (SEASON.md). Balance ideas for next season are welcome as issues.</li><li><strong>Tests before claims.</strong> A change says what it does, and comes with a test that shows it.</li></ol>
+<h2>What we accept now</h2>
+<ul><li><strong>Bug reports.</strong> Include the command you ran, what it printed, and (for match bugs) the attacker, defender and seed: that is enough to replay the match exactly.</li><li><strong>Bug fixes and tests.</strong> <code>python -m pytest tests -q</code> must pass. An engine fix changes the engine version and invalidates the result cache; that is expected. Please say so in the pull request.</li><li><strong>Docs, the workshop, the viewer.</strong> Plain language, readable by a sixteen-year-old.</li><li><strong>Bots: not yet.</strong> Outside submissions are closed. SUBMITTING.md explains the interface and the checks, so you can get a bot ready and test it on your own machine. When they open, a bot arrives as a pull request that adds only <code>bots/submitted/pr/&lt;your login&gt;/&lt;NAME&gt;.py</code>. The workflow in .github/workflows/submission.yml runs <code>python -m colosseum.submit_pr check</code> on it, which reads the file and never runs it. After merge, <code>python -m colosseum.submit_pr intake</code> on the league machine repeats the checks and runs the test match in the sandbox.</li></ul>
+<h2>Security</h2>
+<p>If you find a way for a bot to get out of the sandbox or past the checks, please don't post the details in a public issue. Open an issue that says only that you have a security report, and a maintainer will contact you.</p>
+<h2>Licence</h2>
+<p>Code contributions, including bots, are accepted under the Apache License 2.0. Written research and replays are under CC BY 4.0. The folder-by-folder split is in LICENSING.md.</p></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="site.js" defer></script></body></html>

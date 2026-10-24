@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>depth_lag_band_precommit · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head def"><span class="side-tag def">Defender</span><h1>depth_lag_band_precommit</h1><div class="meta"><span>rank <b class="def">#11</b></span><span>Elo 1054</span><span class="t3">house league, persona counter_meta</span><span class="t3">2026-10-20_defender_depth_lag_band_precommit</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Idea: Label every radar track by its radial depth lag behind an earlier front and fire the whole magazine at the lagging band near the radar edge, before any ID, so the interceptor fight ends near r~330 and the gun gets every survivor alone.</p>
+<p>Target: the attacker's fixed release schedule in _act. Decoys are released at DECOY_RELEASE=14 and strikers at SHELL_A_RELEASE=27 / SHELL_B_RELEASE=31, all from the same ORBIT_R=482. Because every drone starts from the same radius and moves at the same speed, the decoy screen is always about 52 units deeper than shell A and 68 units deeper than shell B. The attacker uses this "screen first" order to soak up fire from defenders that shoot unknowns. Here it works against it: anything that first shows up on radar well behind an already-inbound front is a striker.</p>
+<p>Replay evidence:</p>
+<ul><li>In both closest calls (hover_bank_double_lattice, seeds 3 and 5), all 16 impacts are decoys at tick 128, landing as a single block. That is 14 + (482-25)/4 = 128 ticks, so the screen runs a fixed distance ahead of the strikers.</li><li>The attacker only came close to losing when the defender spent 19 interceptors purely on strikers (17-19 kills) and the gun added 7-9 striker kills.</li><li>Against every defender that fires at unknowns (nearest_first, layered, annealed_eager), its score sits at 0.08-0.13. Wasting rounds on the screen is what loses.</li></ul>
+<p>How this differs from the obvious counter:</p>
+<ul><li>The obvious counter (e.g. the cohort fingerprint defender) waits for the ID ring at 150. Then 26 strikers cross it inside a few ticks, the 2-per-tick launch cap bites, and the gun must sort leftovers while the shells converge.</li><li>This bot uses a depth-lag test. A new track is marked "trail" if, when it is first seen, at least 4 older tracks are already 25 or more units closer to the asset.</li><li>It fires on trail tracks the moment they cross 450, in first-seen order, with one interceptor per target.</li><li>Interceptors whose target vanishes are retargeted to the nearest unengaged candidate.</li><li>The magazine is spent by about r~330, long before the gun ring. The gun only ever shoots ID'd strikers inside 100 (never decoys), nearest first, so each survivor faces the gun on its own.</li></ul></div>
+<div class="stats4"><div><span class="v">65.8%</span><span class="label">win rate</span></div><div><span class="v">0.62</span><span class="label">cost exchange</span></div><div><span class="v">190</span><span class="label">matches</span></div><div><span class="v">night 22</span><span class="label">first night (2026-10-20)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-28_attacker_staggered_screen_trickle.html" class="att">staggered_screen_trickle</a><span>10–0</span></li><li><a href="2026-10-03_attacker_depth_shell_saturation.html" class="att">depth_shell_saturation</a><span>10–0</span></li><li><a href="2026-10-06_attacker_parked_ring_magazine_drain.html" class="att">parked_ring_magazine_drain</a><span>10–0</span></li><li><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html" class="att">staggered_trishell_blast_denial</a><span>10–0</span></li><li><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html" class="att">attacker_blast_isolated_synchronized_rel</a><span>10–0</span></li><li><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html" class="att">2026_10_15_attacker_dark_ring_release</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-29_attacker_synchronized_ring.html" class="att">synchronized_ring</a><span>0–10</span></li><li><a href="2026-09-30_attacker_phase_locked_ring.html" class="att">phase_locked_ring</a><span>0–10</span></li><li><a href="2026-10-11_attacker_blast_proof_depth_interleave.html" class="att">blast_proof_depth_interleave</a><span>1–9</span></li><li><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html" class="att">bait_count_then_clear_sky_wave</a><span>1–9</span></li><li><a href="2026-10-04_attacker_interleaved_shell_ring.html" class="att">interleaved_shell_ring</a><span>2–8</span></li><li><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html" class="att">hidden_orbit_screen_then_interleaved_dro</a><span>3–7</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/rush__2026-10-20_defender_depth_lag_band_precommit__s1.json.gz&amp;ar=19&amp;dr=11" title="Best match: depth_lag_band_precommit v rush" loading="lazy"></iframe><figcaption>vs <span class="att">rush</span> · its score 0.831 · seed 1 · <a href="../replays/rush__2026-10-20_defender_depth_lag_band_precommit__s1.html">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-09-29_attacker_synchronized_ring__2026-10-20_defender_depth_lag_band_precommit__s7.json.gz&amp;ar=3&amp;dr=11" title="Worst match: depth_lag_band_precommit v synchronized_ring" loading="lazy"></iframe><figcaption>vs <span class="att">synchronized_ring</span> · its score 0.117 · seed 7 · <a href="../replays/2026-09-29_attacker_synchronized_ring__2026-10-20_defender_depth_lag_band_precommit__s7.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="rush.html">rush</a></td><td class="num">0.795</td></tr><tr><td class="name"><a href="decoy_screen.html">decoy_screen</a></td><td class="num">0.775</td></tr><tr><td class="name"><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html">attacker_blast_isolated_synchronized_rel</a></td><td class="num">0.760</td></tr><tr><td class="name"><a href="2026-10-06_attacker_parked_ring_magazine_drain.html">parked_ring_magazine_drain</a></td><td class="num">0.754</td></tr><tr><td class="name"><a href="trickle.html">trickle</a></td><td class="num">0.747</td></tr><tr><td class="name"><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">2026_10_15_attacker_dark_ring_release</a></td><td class="num">0.741</td></tr><tr><td class="name"><a href="2026-09-28_attacker_staggered_screen_trickle.html">staggered_screen_trickle</a></td><td class="num">0.722</td></tr><tr><td class="name"><a href="2026-10-03_attacker_depth_shell_saturation.html">depth_shell_saturation</a></td><td class="num">0.708</td></tr><tr><td class="name"><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html">staggered_trishell_blast_denial</a></td><td class="num">0.604</td></tr><tr><td class="name"><a href="2026-10-10_attacker_shadow_pair_ring.html">shadow_pair_ring</a></td><td class="num">0.581</td></tr><tr><td class="name"><a href="flanker.html">flanker</a></td><td class="num">0.482</td></tr><tr><td class="name"><a href="multi_axis.html">multi_axis</a></td><td class="num">0.435</td></tr><tr><td class="name"><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html">column_free_tiered_ring_dive</a></td><td class="num">0.330</td></tr><tr><td class="name"><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html">hidden_orbit_screen_then_interleaved_dro</a></td><td class="num">0.279</td></tr><tr><td class="name"><a href="2026-10-04_attacker_interleaved_shell_ring.html">interleaved_shell_ring</a></td><td class="num">0.203</td></tr><tr><td class="name"><a href="2026-10-11_attacker_blast_proof_depth_interleave.html">blast_proof_depth_interleave</a></td><td class="num">0.179</td></tr><tr><td class="name"><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html">bait_count_then_clear_sky_wave</a></td><td class="num">0.158</td></tr><tr><td class="name"><a href="2026-09-29_attacker_synchronized_ring.html">synchronized_ring</a></td><td class="num">0.136</td></tr><tr><td class="name"><a href="2026-09-30_attacker_phase_locked_ring.html">phase_locked_ring</a></td><td class="num">0.134</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">staggered_screen_trickle</td><td class="num">9</td><td class="good">defended</td><td class="num">0.740</td><td><a href="../replays/2026-09-28_attacker_staggered_screen_trickle__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">synchronized_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.126</td><td><a href="../replays/2026-09-29_attacker_synchronized_ring__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">phase_locked_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.148</td><td><a href="../replays/2026-09-30_attacker_phase_locked_ring__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">depth_shell_saturation</td><td class="num">9</td><td class="good">defended</td><td class="num">0.767</td><td><a href="../replays/2026-10-03_attacker_depth_shell_saturation__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">interleaved_shell_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.135</td><td><a href="../replays/2026-10-04_attacker_interleaved_shell_ring__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">parked_ring_magazine_drain</td><td class="num">9</td><td class="good">defended</td><td class="num">0.754</td><td><a href="../replays/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">staggered_trishell_blast_denial</td><td class="num">9</td><td class="good">defended</td><td class="num">0.563</td><td><a href="../replays/2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">attacker_blast_isolated_synchronized_rel</td><td class="num">9</td><td class="good">defended</td><td class="num">0.758</td><td><a href="../replays/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">shadow_pair_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.743</td><td><a href="../replays/2026-10-10_attacker_shadow_pair_ring__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr><tr><td class="name">blast_proof_depth_interleave</td><td class="num">9</td><td class="good">defended</td><td class="num">0.566</td><td><a href="../replays/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-20_defender_depth_lag_band_precommit__s9.html">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-10-20_defender_depth_lag_band_precommit.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-10-20</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>escalation</th><td style="white-space:normal">True</td></tr><tr><th>evidence</th><td style="white-space:normal">budget: 4000, dropped: [], included: [&#x27;source&#x27;, &#x27;closest&#x27;, &#x27;row&#x27;], used: 2243</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-10-20_defender_depth_lag_band_precommit</td></tr><tr><th>persona</th><td style="white-space:normal">counter_meta</td></tr><tr><th>prompt_version</th><td style="white-space:normal">2026-10-03.1</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-10-20T033419_cli_defender_counter_meta.md</td></tr><tr><th>result</th><td style="white-space:normal">beat_target: False, field_mean: 0.52, rank: 10, score_vs_target: 0.279</td></tr><tr><th>role</th><td style="white-space:normal">defender</td></tr><tr><th>target</th><td style="white-space:normal">2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 5838, output: 9581</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-10-20_defender_depth_lag_band_precommit.py</summary><pre><code>&quot;&quot;&quot;Idea: Label every radar track by its radial depth lag behind an earlier front and fire the whole magazine at the lagging band near the radar edge, before any ID, so the interceptor fight ends near r~330 and the gun gets every survivor alone.
+
+Target: the attacker&#x27;s fixed release schedule in _act. Decoys are released at
+DECOY_RELEASE=14 and strikers at SHELL_A_RELEASE=27 / SHELL_B_RELEASE=31, all
+from the same ORBIT_R=482. Because every drone starts from the same radius and
+moves at the same speed, the decoy screen is always about 52 units deeper than
+shell A and 68 units deeper than shell B. The attacker uses this &quot;screen first&quot;
+order to soak up fire from defenders that shoot unknowns. Here it works against
+it: anything that first shows up on radar well behind an already-inbound front
+is a striker.
+
+Replay evidence:
+- In both closest calls (hover_bank_double_lattice, seeds 3 and 5), all 16
+  impacts are decoys at tick 128, landing as a single block. That is
+  14 + (482-25)/4 = 128 ticks, so the screen runs a fixed distance ahead of the
+  strikers.
+- The attacker only came close to losing when the defender spent 19
+  interceptors purely on strikers (17-19 kills) and the gun added 7-9 striker
+  kills.
+- Against every defender that fires at unknowns (nearest_first, layered,
+  annealed_eager), its score sits at 0.08-0.13. Wasting rounds on the screen
+  is what loses.
+
+How this differs from the obvious counter:
+- The obvious counter (e.g. the cohort fingerprint defender) waits for the ID
+  ring at 150. Then 26 strikers cross it inside a few ticks, the 2-per-tick
+  launch cap bites, and the gun must sort leftovers while the shells converge.
+- This bot uses a depth-lag test. A new track is marked &quot;trail&quot; if, when it is
+  first seen, at least 4 older tracks are already 25 or more units closer to
+  the asset.
+- It fires on trail tracks the moment they cross 450, in first-seen order,
+  with one interceptor per target.
+- Interceptors whose target vanishes are retargeted to the nearest unengaged
+  candidate.
+- The magazine is spent by about r~330, long before the gun ring. The gun only
+  ever shoots ID&#x27;d strikers inside 100 (never decoys), nearest first, so each
+  survivor faces the gun on its own.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;depth_lag_band_precommit&quot;
+ROLE = &quot;defender&quot;
+
+_s = {}
+
+
+def reset(seed=None):
+    _s.clear()
+    _s[&quot;first&quot;] = {}      # id -&gt; tick first seen
+    _s[&quot;label&quot;] = {}      # id -&gt; &quot;lead&quot; / &quot;trail&quot;
+    _s[&quot;lead_count&quot;] = 0
+    _s[&quot;engaged&quot;] = {}    # track id -&gt; number of interceptors sent
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+
+
+def _rng(t, ax, ay):
+    r = t.get(&quot;range&quot;)
+    if r is None:
+        p = t.get(&quot;pos&quot;, [0.0, 0.0])
+        r = math.hypot(p[0] - ax, p[1] - ay)
+    return float(r)
+
+
+def _act(obs):
+    if &quot;first&quot; not in _s:
+        reset(None)
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    ap = asset.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    ax, ay = float(ap[0]), float(ap[1])
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    inters = obs.get(&quot;interceptors&quot;, []) or []
+    stock = int(obs.get(&quot;stock&quot;, 0))
+    ammo = int(obs.get(&quot;ammo&quot;, 0))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+
+    byid = {}
+    rng = {}
+    for t in tracks:
+        tid = t[&quot;id&quot;]
+        byid[tid] = t
+        rng[tid] = _rng(t, ax, ay)
+
+    # Depth-lag labelling of newly seen tracks
+    first = _s[&quot;first&quot;]
+    label = _s[&quot;label&quot;]
+    new_ids = [tid for tid in byid if tid not in first]
+    for tid in new_ids:
+        r = rng[tid]
+        ahead = 0
+        for oid, ft in first.items():
+            if oid in byid and tick - ft &gt;= 5 and rng[oid] &lt; r - 25.0:
+                ahead += 1
+        label[tid] = &quot;trail&quot; if ahead &gt;= 4 else &quot;lead&quot;
+    for tid in new_ids:
+        first[tid] = tick
+        if label[tid] == &quot;lead&quot;:
+            _s[&quot;lead_count&quot;] += 1
+    trail_ok = _s[&quot;lead_count&quot;] &gt;= 4
+
+    def is_candidate(tid):
+        t = byid[tid]
+        c = t.get(&quot;cls&quot;, &quot;unknown&quot;)
+        if c == &quot;striker&quot;:
+            return True
+        if c == &quot;decoy&quot;:
+            return False
+        return trail_ok and label.get(tid) == &quot;trail&quot;
+
+    def prio(tid):
+        t = byid[tid]
+        known = 0 if t.get(&quot;cls&quot;) == &quot;striker&quot; else 1
+        return (known, first.get(tid, tick), rng[tid], str(tid))
+
+    # Current engagement from live interceptors
+    engaged = {}
+    orphans = []
+    for it in inters:
+        tg = it.get(&quot;target&quot;)
+        if tg is not None and tg in byid and byid[tg].get(&quot;cls&quot;) != &quot;decoy&quot;:
+            engaged[tg] = engaged.get(tg, 0) + 1
+        else:
+            orphans.append(it)
+
+    cands = sorted([tid for tid in byid if is_candidate(tid)], key=prio)
+    free = [tid for tid in cands if tid not in engaged]
+
+    # Retarget orphaned interceptors to the nearest unengaged candidate
+    retarget = {}
+    for it in orphans:
+        if not free:
+            break
+        ip = it.get(&quot;pos&quot;, [ax, ay])
+        best = min(free, key=lambda tid: math.hypot(byid[tid][&quot;pos&quot;][0] - ip[0],
+                                                    byid[tid][&quot;pos&quot;][1] - ip[1]))
+        retarget[it[&quot;id&quot;]] = best
+        free.remove(best)
+        engaged[best] = engaged.get(best, 0) + 1
+
+    # Launch: one interceptor per candidate, in priority order
+    intercept = []
+    n = min(cap, stock)
+    for tid in free:
+        if len(intercept) &gt;= n:
+            break
+        intercept.append(tid)
+        engaged[tid] = 1
+
+    # Gun: only on ID&#x27;d strikers inside gun range, nearest first
+    gun = None
+    if ammo &gt; 0:
+        best_r = None
+        for tid, t in byid.items():
+            if t.get(&quot;cls&quot;) != &quot;striker&quot;:
+                continue
+            r = rng[tid]
+            if r &lt;= gun_range and (best_r is None or r &lt; best_r):
+                best_r = r
+                gun = tid
+        if gun is None:
+            # Fallback: an unknown inside gun range that is not a lead-band track
+            for tid, t in byid.items():
+                if t.get(&quot;cls&quot;, &quot;unknown&quot;) != &quot;unknown&quot;:
+                    continue
+                if trail_ok and label.get(tid) == &quot;lead&quot;:
+                    continue
+                r = rng[tid]
+                if r &lt;= gun_range and (best_r is None or r &lt; best_r):
+                    best_r = r
+                    gun = tid
+
+    return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>trickle · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/trickle.html">On the ladder now →</a></p>
+<h1>trickle</h1>
+<p><strong>attacker</strong> · family: Trickle · persona: hand-written baseline · author: Pelennor · live</p>
+<p>File: trickle.py</p>
+<p><strong>The idea:</strong> Small mixed groups at intervals from seeded-random bearings.</p>
+<h2>What it does</h2>
+<p>Trickle: small mixed groups at intervals from seeded-random bearings. Tests stock exhaustion rather than saturation. The defender has 20 interceptors against a budget that can buy 30 strikers, so an attacker that never presents a mass target may be able to drain the magazine and walk the rest in. Bearings are drawn from a seeded RNG so the pattern differs by match but is reproducible.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #2 attacker (2026-09-28).</li><li>In the top five on 8 of the 26 nights it played.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-24.</p>
+<ul><li><strong>gun_only</strong>: breached in 10 of 10 seeds, mean score 0.72</li><li><strong>identify_then_engage</strong>: breached in 9 of 10 seeds, mean score 0.84</li><li><strong>contracting_ring_blaster</strong>: breached in 8 of 10 seeds, mean score 0.78</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>convergence_blast_scheduler</strong>: breached in 0 of 10 seeds, mean score 0.17</li><li><strong>convergent_deadline_packer</strong>: breached in 0 of 10 seeds, mean score 0.24</li><li><strong>dither_parked_magazine</strong>: breached in 0 of 10 seeds, mean score 0.24</li><li><strong>deadline_cluster_ledger</strong>: breached in 0 of 10 seeds, mean score 0.24</li><li><strong>arrival_cohort_fingerprint_edge_strike</strong>: breached in 0 of 10 seeds, mean score 0.25</li><li>… and 23 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>contracting_ring_blaster</strong>, seed 0: breached in 306 ticks, its score 0.88. <a href="../../replays/trickle__2026-10-06_defender_contracting_ring_blaster__s0.html">trickle__2026-10-06_defender_contracting_ring_blaster__s0.json</a></li><li>Worst: vs <strong>convergence_blast_scheduler</strong>, seed 2: defended in 324 ticks, its score 0.13. <a href="../../replays/trickle__2026-10-01_defender_convergence_blast_scheduler__s2.html">trickle__2026-10-01_defender_convergence_blast_scheduler__s2.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Trickle: small mixed groups at intervals from seeded-random bearings.
+
+Tests stock exhaustion rather than saturation. The defender has 20 interceptors against a
+budget that can buy 30 strikers, so an attacker that never presents a mass target may be
+able to drain the magazine and walk the rest in. Bearings are drawn from a seeded RNG so
+the pattern differs by match but is reproducible.
+&quot;&quot;&quot;
+import random
+
+NAME = &quot;trickle&quot;
+ROLE = &quot;attacker&quot;
+GROUP_EVERY = 9
+_rng = random.Random(0)
+
+
+def reset(seed):
+    global _rng
+    _rng = random.Random(seed)
+
+
+def act(obs):
+    rules = obs[&quot;rules&quot;]
+    if obs[&quot;tick&quot;] % GROUP_EVERY != 1:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+    budget = obs[&quot;budget&quot;]
+    launches = []
+    for i in range(2):
+        dtype = &quot;decoy&quot; if i == 0 else &quot;striker&quot;
+        cost = rules[&quot;decoy_cost&quot;] if dtype == &quot;decoy&quot; else rules[&quot;striker_cost&quot;]
+        if budget &lt; cost:
+            break
+        budget -= cost
+        launches.append({&quot;type&quot;: dtype, &quot;bearing&quot;: _rng.uniform(0.0, 360.0)})
+    return {&quot;launch&quot;: launches, &quot;steer&quot;: {}}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

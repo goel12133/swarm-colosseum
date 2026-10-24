@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>nearest_first · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/nearest_first.html">On the ladder now →</a></p>
+<h1>nearest_first</h1>
+<p><strong>defender</strong> · family: Controls · persona: hand-written baseline · author: Pelennor · live</p>
+<p>File: nearest_first.py</p>
+<p><strong>The idea:</strong> One interceptor per nearest unengaged track, gun on the nearest thing in range.</p>
+<h2>What it does</h2>
+<p>Nearest first: one interceptor per nearest unengaged track, gun on the nearest thing in range. The obvious baseline, and the one that should lose to decoys. It commits on range alone and never asks what a track is, so every decoy it engages costs 4 credits to destroy 0.5. Everything else is measured against this.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #4 defender (2026-09-28).</li><li>In the top five on 3 of the 26 nights it played.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-24.</p>
+<ul><li><strong>interleaved_shell_ring</strong>: held in 10 of 10 seeds, mean score 0.73</li><li><strong>depth_shell_saturation</strong>: held in 10 of 10 seeds, mean score 0.69</li><li><strong>blast_proof_depth_interleave</strong>: held in 9 of 10 seeds, mean score 0.50</li><li><strong>attacker_blast_isolated_synchronized_rel</strong>: held in 8 of 10 seeds, mean score 0.59</li><li><strong>rush</strong>: held in 8 of 10 seeds, mean score 0.52</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>parked_ring_magazine_drain</strong>: held in 0 of 10 seeds, mean score 0.06</li><li><strong>2026_10_15_attacker_dark_ring_release</strong>: held in 0 of 10 seeds, mean score 0.07</li><li><strong>bait_count_then_clear_sky_wave</strong>: held in 0 of 10 seeds, mean score 0.08</li><li><strong>hidden_orbit_screen_then_interleaved_dro</strong>: held in 0 of 10 seeds, mean score 0.08</li><li><strong>decoy_screen</strong>: held in 0 of 10 seeds, mean score 0.11</li><li>… and 8 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>rush</strong>, seed 2: defended in 107 ticks, its score 0.77. <a href="../../replays/rush__nearest_first__s2.html">rush__nearest_first__s2.json</a></li><li>Worst: vs <strong>parked_ring_magazine_drain</strong>, seed 8: breached in 144 ticks, its score 0.05. <a href="../../replays/viewer.html?r=data/2026-10-06_attacker_parked_ring_magazine_drain__nearest_first__s8.json.gz">2026-10-06_attacker_parked_ring_magazine_drain__nearest_first__s8.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Nearest first: one interceptor per nearest unengaged track, gun on the nearest thing
+in range.
+
+The obvious baseline, and the one that should lose to decoys. It commits on range alone
+and never asks what a track is, so every decoy it engages costs 4 credits to destroy 0.5.
+Everything else is measured against this.
+&quot;&quot;&quot;
+NAME = &quot;nearest_first&quot;
+ROLE = &quot;defender&quot;
+
+
+def act(obs):
+    tracks = sorted(obs[&quot;tracks&quot;], key=lambda t: t[&quot;range&quot;])
+    engaged = {i[&quot;target&quot;] for i in obs[&quot;interceptors&quot;]}
+    intercept = [t[&quot;id&quot;] for t in tracks if t[&quot;id&quot;] not in engaged]
+    intercept = intercept[:int(obs[&quot;rules&quot;][&quot;interceptor_launches_per_tick&quot;])]
+    gun_range = obs[&quot;rules&quot;][&quot;gun_range&quot;]
+    in_gun = [t for t in tracks if t[&quot;range&quot;] &lt;= gun_range]
+    return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: {},
+            &quot;gun&quot;: in_gun[0][&quot;id&quot;] if in_gun else None}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

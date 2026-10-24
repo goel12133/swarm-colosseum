@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>flanker · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/flanker.html">On the ladder now →</a></p>
+<h1>flanker</h1>
+<p><strong>attacker</strong> · family: Synchronised arrival · persona: hand-written baseline · author: Pelennor · live</p>
+<p>File: flanker.py</p>
+<p><strong>The idea:</strong> Two axes timed to arrive in the same tick window, to overrun the defender's two-interceptor-per-tick launch cap.</p>
+<h2>What it does</h2>
+<p>Flanker: two axes timed to arrive in the same tick window, to overrun the defender's two-interceptor-per-tick launch cap. The idea being tested is a rate limit, not a geometry trick. A defender can commit at most 2 interceptors and 1 gun shot per tick, so what matters is not how many drones are in the air but how many arrive <em>per tick</em>. The attacker's own launch cap is 4 per tick, which puts a ceiling of 4 arrivals per tick on any single-axis attack however it is shaped. Two axes with different path lengths break that ceiling.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #4 attacker (2026-09-28).</li><li>In the top five on 2 of the 26 nights it played.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-24.</p>
+<ul><li><strong>nearest_first</strong>: breached in 10 of 10 seeds, mean score 0.86</li><li><strong>gun_only</strong>: breached in 10 of 10 seeds, mean score 0.70</li><li><strong>layered</strong>: breached in 7 of 10 seeds, mean score 0.66</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>convergence_blast_scheduler</strong>: breached in 0 of 10 seeds, mean score 0.18</li><li><strong>deadline_cluster_ledger</strong>: breached in 0 of 10 seeds, mean score 0.18</li><li><strong>convergent_deadline_packer</strong>: breached in 0 of 10 seeds, mean score 0.19</li><li><strong>backscheduled_blast_packer</strong>: breached in 0 of 10 seeds, mean score 0.20</li><li><strong>annealed_assignment</strong>: breached in 0 of 10 seeds, mean score 0.20</li><li>… and 24 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>nearest_first</strong>, seed 9: breached in 367 ticks, its score 0.87. <a href="../../replays/flanker__nearest_first__s9.html">flanker__nearest_first__s9.json</a></li><li>Worst: vs <strong>convergence_blast_scheduler</strong>, seed 6: defended in 362 ticks, its score 0.16. <a href="../../replays/flanker__2026-10-01_defender_convergence_blast_scheduler__s6.html">flanker__2026-10-01_defender_convergence_blast_scheduler__s6.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Flanker: two axes timed to arrive in the same tick window, to overrun the defender&#x27;s
+two-interceptor-per-tick launch cap.
+
+The idea being tested is a rate limit, not a geometry trick. A defender can commit at most
+2 interceptors and 1 gun shot per tick, so what matters is not how many drones are in the
+air but how many arrive *per tick*. The attacker&#x27;s own launch cap is 4 per tick, which puts
+a ceiling of 4 arrivals per tick on any single-axis attack however it is shaped.
+
+Two axes with different path lengths break that ceiling. One wave takes a dogleg -- out to a
+waypoint beyond radar range, then in from a different bearing -- and the other flies direct
+from a third bearing, launched later by exactly the difference in flight time. Both waves
+then land in the same few ticks, at up to 8 arrivals per tick against a defence that can
+answer 2.
+
+The dogleg wave flies an **arc** at spawn radius rather than a straight chord. A straight
+line from one bearing to another cuts inside: from 0 deg to 120 deg at radius 480 the chord
+passes within about 240 u of the asset, which is deep inside the 450 u radar, and the wave is
+tracked and destroyed for two hundred ticks before it ever arrives. That was measured, not
+assumed -- the chord version scored zero impacts against every active defender. Steering a
+few degrees around the circle each tick keeps the whole transit outside radar range.
+
+The drones do **not** fan out to dodge blasts -- an earlier version did, and won nothing,
+because at a 10 u blast radius spreading buys little survivability and costs the concentration
+this idea depends on. But they are de-stacked by a couple of degrees, which is a different
+thing. Four drones launched on the same tick from the same bearing occupy *identical*
+coordinates, and a single interceptor then kills all four; the first version of this bot lost
+6, 8 and 11 drones to single blasts that way. A 2.5 deg offset puts same-tick launches about
+20 u apart at the spawn ring -- outside each other&#x27;s blast radius -- while still landing
+inside the same arrival window.
+
+Timing is computed from the rules rather than hard-coded, so it still holds if a later season
+changes speeds or ranges.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;flanker&quot;
+ROLE = &quot;attacker&quot;
+
+DOGLEG_LAUNCH_BEARING = 0.0      # where the dogleg wave is launched from
+DOGLEG_TURN_BEARING = 120.0      # and the bearing it finally attacks from
+DIRECT_BEARING = 240.0           # the second axis, flown straight in
+DOGLEG_SHARE = 0.55              # fraction of the budget spent on the longer path
+ARC_STEP_DEG = 9.0               # how far around the circle to aim each tick
+DESTACK_DEG = 2.5                # keeps same-tick launches outside one blast radius
+
+_state = {&quot;wave1&quot;: set()}
+
+
+def reset(seed):
+    _state[&quot;wave1&quot;] = set()
+
+
+def _plan(rules):
+    &quot;&quot;&quot;Flight times for both paths, and the launch offset that makes them coincide.&quot;&quot;&quot;
+    spawn_r = rules[&quot;spawn_radius&quot;]
+    turn_r = max(rules[&quot;radar_range&quot;] + 20.0, spawn_r - 10.0)   # stay outside radar
+    speed = rules[&quot;striker_speed&quot;]
+    sweep = abs(DOGLEG_TURN_BEARING - DOGLEG_LAUNCH_BEARING) % 360.0
+    arc_len = turn_r * math.radians(sweep)
+    dogleg_ticks = (arc_len + turn_r - rules[&quot;asset_radius&quot;]) / speed
+    direct_ticks = (spawn_r - rules[&quot;asset_radius&quot;]) / speed
+    return dict(turn_r=turn_r, sweep=sweep,
+                offset=int(round(dogleg_ticks - direct_ticks)))
+
+
+def act(obs):
+    rules = obs[&quot;rules&quot;]
+    plan = _plan(rules)
+    per_tick = int(rules[&quot;attacker_launches_per_tick&quot;])
+    cost = rules[&quot;striker_cost&quot;]
+    budget = obs[&quot;budget&quot;]
+
+    total = int(rules[&quot;attacker_budget&quot;] // cost)
+    n_dogleg = int(total * DOGLEG_SHARE)
+    wave1_ticks = max(1, math.ceil(n_dogleg / per_tick))
+
+    tick = obs[&quot;tick&quot;]
+    launches = []
+    # Wave 1: the long way round, launched immediately.
+    if 1 &lt;= tick &lt;= wave1_ticks:
+        n = min(per_tick, int(budget // cost))
+        launches = [{&quot;type&quot;: &quot;striker&quot;,
+                     &quot;bearing&quot;: DOGLEG_LAUNCH_BEARING + i * DESTACK_DEG} for i in range(n)]
+    # Wave 2: straight in, launched late enough to land with wave 1.
+    elif plan[&quot;offset&quot;] + 1 &lt;= tick &lt;= plan[&quot;offset&quot;] + wave1_ticks + 2:
+        n = min(per_tick, int(budget // cost))
+        launches = [{&quot;type&quot;: &quot;striker&quot;,
+                     &quot;bearing&quot;: DIRECT_BEARING + i * DESTACK_DEG} for i in range(n)]
+
+    # Wave 1 is walked around the circle a few degrees at a time; wave 2 flies straight in.
+    steer = {}
+    for d in obs[&quot;drones&quot;]:
+        if d[&quot;id&quot;] not in _state[&quot;wave1&quot;]:
+            if tick &lt;= wave1_ticks + 1:
+                _state[&quot;wave1&quot;].add(d[&quot;id&quot;])
+            else:
+                continue
+        x, y = d[&quot;pos&quot;]
+        bearing = math.degrees(math.atan2(y, x)) % 360.0
+        travelled = (bearing - DOGLEG_LAUNCH_BEARING) % 360.0
+        if travelled &gt; 300.0:        # just behind the launch bearing from de-stacking
+            travelled = 0.0
+        if travelled &gt;= plan[&quot;sweep&quot;] - ARC_STEP_DEG:
+            steer[d[&quot;id&quot;]] = None                     # on station: turn in for the asset
+            continue
+        aim = math.radians(min(travelled + ARC_STEP_DEG, plan[&quot;sweep&quot;])
+                           + DOGLEG_LAUNCH_BEARING)
+        steer[d[&quot;id&quot;]] = [plan[&quot;turn_r&quot;] * math.cos(aim), plan[&quot;turn_r&quot;] * math.sin(aim)]
+    return {&quot;launch&quot;: launches, &quot;steer&quot;: steer}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

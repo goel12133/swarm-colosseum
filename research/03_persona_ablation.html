@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Does persona diversity help? (13-night run) · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" aria-current="page" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html" aria-current="page">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><article class="read"><span class="label">R-03 · <span class="tag final">final</span> · 2026-10-14</span><h1>03 · Does persona diversity help? (13-night run)</h1>
+<p>*Generated automatically from <code>out/ablation_14/result.json</code> after real night 14. Nights 2026-09-29 to 2026-10-11 (every persona night among the league's first 14), 26 generator slots per arm, 10 seeds per pairing. The five-night early cut, with its worked example, is in this file's git history.*</p>
+<p><strong>Bottom line:</strong> persona mix vs all-generalist: mean score 0.574 vs 0.578, top-five places 10 vs 10, unique coverage held in at least 8 of 10 seeds 3 vs 0.</p>
+<p><strong>The test.</strong> Every slot the real league filled was refilled by the <em>generalist</em> persona from the same evidence snapshot, through the same generator, validation and sandbox smoke test. Both arms were added to the same base field and played full sandboxed tournaments. Reproduce with <code>scripts/ablation_personas.py</code>.</p>
+<div class="scroll"><table><thead><tr><th></th><th>persona mix (what the league wrote)</th><th>all-generalist</th></tr></thead><tbody><tr><td>bots written / generator calls</td><td>22 / 26</td><td>26 / 26</td></tr><tr><td>mean score of the arm's bots</td><td>0.574</td><td>0.578</td></tr><tr><td>places in the two top fives</td><td>10</td><td>10</td></tr><tr><td>unique coverage, ≥ 1 of 10 seeds</td><td>0</td><td>0</td></tr><tr><td>unique coverage, ≥ 5 of 10 seeds</td><td>1</td><td>1</td></tr><tr><td>unique coverage, ≥ 8 of 10 seeds</td><td>3</td><td>0</td></tr><tr><td>retired by the real league so far</td><td>0 of 22</td><td>not simulated</td></tr></tbody></table></div>
+<p><strong>Caveats that always apply.</strong> The generalist's evidence includes the top three opponents' self-descriptions, which after the first night include bots the persona mix wrote, so the arms are not fully independent. The generalist arm is played against the base field once, not run night by night, so its retirement can't be measured. Coverage differences of one or two opponents are within what a single bot changes.</p>
+<p><strong>What it says</strong> <em>(added by hand on 2026-10-14, from the table above)</em>. Writing bots through four personas did not make them stronger: the two arms score the same on average and take the same number of top-five places. The one difference is narrow coverage. The persona mix holds three opponents that nothing else in its field beats in at least 8 of 10 seeds; the all-generalist arm holds none. That is a little more than one bot's worth, in one 13-night run with one model family, so read it as a hint that personas spread the search, not as proof. The generalist also wrote a bot in more of its calls (26 of 26 against 22 of 26).</p>
+<p>The arena is an abstract strategy game with made-up units (<code>u</code>, ticks, credits).</p></article></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

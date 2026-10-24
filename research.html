@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" data-root=""><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Research · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="index.html">Swarm Colosseum</a>
+<a class="live" href="index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="index.html">Arena</a><a href="ladders.html">Ladders</a><a href="replays.html">Replays</a><a href="research.html" aria-current="page" class=wide>Research</a><a href="library/index.html" class=wide>Library</a><a href="changelog.html" class=wide>Changelog</a><a href="seasons.html" class=wide>Seasons</a><a href="about.html" class=wide>About</a><a href="submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="research.html" aria-current="page">Research</a><a href="library/index.html">Library</a><a href="changelog.html">Changelog</a><a href="seasons.html">Seasons</a><a href="about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<div class="page-head"><h1>Research</h1><p>Numbered notes from the arena. Every number in them comes from the league's own records and can be rebuilt with <code>make reproduce</code>. Preliminary notes change as the nights add up.</p></div>
+<ul class="list">
+<li><a href="research/04_annealed_defenders.html"><span class="n">04</span><span><span class="ttl">Does an optimiser beat a greedy rule? A little, unevenly.</span> <span class="tag final">final</span><span class="sum">On this game, joint optimisation gives a small, uneven gain over a greedy pick with the same model. It is more often ahead than behind, it is not reliably…</span><span class="when">2026-10-18</span></span></a></li>
+<li><a href="research/03_persona_ablation.html"><span class="n">03</span><span><span class="ttl">Does persona diversity help? (13-night run)</span> <span class="tag final">final</span><span class="sum">Persona mix vs all-generalist: mean score 0.574 vs 0.578, top-five places 10 vs 10, unique coverage held in at least 8 of 10 seeds 3 vs 0.</span><span class="when">2026-10-14</span></span></a></li>
+<li><a href="research/02_balance_findings.html"><span class="n">02</span><span><span class="ttl">What a self-play league teaches you about your own game</span> <span class="tag final">final</span><span class="sum">A designer can&#x27;t play their own game thousands of times a night. A league of bots can, and it finds the degenerate strategy long before human players would.…</span><span class="when">2026-10-04</span></span></a></li>
+<li><a href="research/01_unaided_discovery.html"><span class="n">01</span><span><span class="ttl">The league found two counters it wasn&#x27;t told about</span> <span class="tag final">final</span><span class="sum">The setup. Every night the house league asks a language model to write new bots. One persona, counter-meta, is shown the current #1 bot on the other side and…</span><span class="when">2026-10-04</span></span></a></li>
+<li><a href="research/00_summary.html"><span class="n">00</span><span><span class="ttl">Swarm Colosseum in one page</span> <span class="tag final">final</span><span class="sum">What it is. An open research benchmark built as a strategy game. Two kinds of short Python program play each other: attackers, which spend a budget of credits…</span><span class="when">2026-10-14</span></span></a></li>
+</ul>
+<section class="section" id="library" style="margin-top:var(--s5)"><div class="doors"><a href="library/index.html"><b>Tactic library</b> <span>— the ideas that worked, one card each</span></a><a href="seasons.html"><b>Seasons</b> <span>— the season so far and the archive</span></a><a href="changelog.html"><b>Changelog</b> <span>— every night, newest first</span></a></div></section></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="site.js" defer></script></body></html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Does an optimiser beat a greedy rule? A little, unevenly. · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" aria-current="page" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html" aria-current="page">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><article class="read"><span class="label">R-04 · <span class="tag final">final</span> · 2026-10-18</span><h1>04 · Does an optimiser beat a greedy rule? A little, unevenly.</h1>
+<p>*Swarm Colosseum, season one, nights 2026-09-30 to 10-10 (eleven nights). This replaces an earlier four-night cut that said "not here"; with the full field, that was too strong. The full tables are in <code>ANALYSIS_annealing.md</code>, made by <code>scripts/ablation_annealing.py</code>.*</p>
+<p><strong>The question.</strong> Every tick a defender decides which threats to send interceptors at and where to point its gun. The <code>annealed_assignment</code> defenders write that decision as a small optimisation problem (a QUBO: launch or not, gun or not, under the launch cap, the stock and the gun's limits) and solve it by simulated annealing. Is the joint optimiser better than just taking the best options one at a time?</p>
+<p><strong>The control.</strong> <code>greedy_value_model</code> uses the <em>same</em> value model (identical code, enforced by a test) and replaces the annealer with a greedy pick: the best-valued threats in turn, up to the cap, skipping any inside the blast radius of one already chosen. The only difference between the two bots is the search.</p>
+<h2>Results</h2>
+<p>Each attacker played both bots on the same ten seeds, giving 140 paired matches. The score is the defender's, from 0 to 1, higher is better; the difference is optimiser minus greedy.</p>
+<div class="scroll"><table><thead><tr><th></th><th>optimiser</th><th>greedy</th></tr></thead><tbody><tr><td>attackers it beats the other on (of 14)</td><td><strong>9</strong></td><td>1 (4 level)</td></tr><tr><td>mean paired difference</td><td><strong>+0.037</strong></td><td></td></tr><tr><td>95% interval on that difference</td><td>−0.038 to +0.106</td><td></td></tr><tr><td>ladder on 10-10 (of 20 defenders)</td><td><strong>#4</strong>, Elo 1087</td><td>#16, Elo 1020</td></tr><tr><td>nights with the higher mean score (of 11)</td><td><strong>10</strong></td><td>1</td></tr><tr><td>median / p99 time per tick</td><td>0.87 / 4.99 ms</td><td>0.64 / 4.19 ms</td></tr></tbody></table></div>
+<p>The biggest differences:</p>
+<ul><li><strong>interleaved_shell_ring +0.27</strong>, staggered_trishell_blast_denial +0.25, shadow_pair_ring +0.11, trickle +0.10;</li><li><strong>depth_shell_saturation −0.34</strong>: the optimiser lost the asset in 10 of 10 matches, greedy in 3.</li></ul>
+<h2>What this says</h2>
+<ul><li><strong>The value model still does most of the work.</strong> Against the baseline greedy defender <code>layered</code>, the value model gained about +0.30 in mean score. The search adds about a tenth of that on average.</li><li><strong>The optimiser is usually ahead, but not by a dependable amount.</strong> It is ahead against 9 attackers and behind against 1 (a sign test gives p = 0.02), yet the average lead's interval includes zero. Its largest wins are against three league-written wave attacks and plain trickle; why those in particular hasn't been tested.</li><li><strong>It isn't robust.</strong> One attacker breaks it completely while greedy mostly holds. A defender that is better on average but has a catastrophic case is a real trade-off, not a free improvement.</li><li><strong>It costs almost nothing.</strong> The search adds about 0.2 ms a tick, against a 2 s limit.</li></ul>
+<p><strong>Bottom line:</strong> on this game, joint optimisation gives a small, uneven gain over a greedy pick with the same model. It is more often ahead than behind, it is not reliably large, and one attack breaks it. The four-night version of this page said it added no reliable value; more data moved that, and this page says so. The comparison is rerun at the end of the season.</p>
+<p><strong>Limits.</strong> The 14 attackers are the league's own field, not a random sample, and several were written against defenders already on the ladder. There is one value model, one game and ten seeds per pairing.</p>
+<p>The arena is an abstract strategy game with made-up units (<code>u</code>, ticks, credits).</p></article></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

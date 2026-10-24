@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>What a self-play league teaches you about your own game · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" aria-current="page" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html" aria-current="page">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><article class="read"><span class="label">R-02 · <span class="tag final">final</span> · 2026-10-04</span><h1>02 · What a self-play league teaches you about your own game</h1>
+<p>*Swarm Colosseum, season one. Rules are frozen for a season; findings are logged in <code>BALANCE.md</code> and acted on only between seasons. Numbers are from the league's records and the season-two test branches.*</p>
+<p>A designer can't play their own game thousands of times a night. A league of bots can, and it finds the degenerate strategy long before human players would. Season one produced four findings, each the kind of thing that only shows up once something is optimising against the rules.</p>
+<h2>S0 — a free backstop made waiting free (fixed before the season)</h2>
+<p>With 400 gun rounds against a match of at most 600 ticks, the gun was effectively unlimited, so a defender lost nothing by waiting to identify every unit before reacting. <code>identify_then_engage</code> won <strong>100%</strong>. Cutting the magazine to 120 made rounds a resource to budget, and the ladder opened up. <em>Lesson: an unlimited fallback removes the trade-off it sits behind.</em></p>
+<h2>S0-1 — decoys were worthless against a patient defender</h2>
+<p><code>discriminating_ledger</code> ignored everything it hadn't identified as a striker and was never breached in 60 matches. Decoys bought attackers nothing: attackers that used none did as well against it as those that used dozens. The cause wasn't the cost of decoys but the timing. A unit is identified with about 31 ticks left, and an interceptor needs about 9, so waiting cost the defender nothing. A leakage test confirmed the defender wasn't seeing anything it shouldn't. <em>Lesson: if certainty arrives in time, deception has no value; the fix belongs to identification, not to prices.</em></p>
+<h2>The winner that spent more than it saved</h2>
+<p>The same defender sat at #1 while spending more credits than it destroyed: its cost exchange ratio was 0.49–0.75 against every attacker. That is exactly the outcome the game exists to penalise. Two season-two candidates were tested, one at a time, against the full field:</p>
+<ul><li><strong>A, imperfect identification.</strong> Identification takes 8 ticks of dwell and is wrong 8% of the time. No bot over 90%, roles near even, and the patient defender drops from 100% to 90%.</li><li><strong>B, rescoring.</strong> Score = survival × trade quality. It punished the patient defender but handed the game to attackers (61%) and created a new 98% bot.</li></ul>
+<p><strong>A was chosen for season two</strong>, and B was rejected for creating the very imbalance it was meant to cure. <em>Lesson: fix the mechanic the degenerate strategy exploits, not the scoreboard that reports it.</em></p>
+<h2>S0-2 — the league broke the splash, then repaired it</h2>
+<p>A counter-meta bot learned to deny blast splash: 30 strikers spaced so no blast catches two, released on one tick, so the 20 interceptors run out and the survivors arrive together. It beat every defender (98%). Rather than change the rules at once, the founder gave the league seven nights to answer, with a test registered in advance: does any defender hold it under 90%? On the second night, two defenders found that a synchronised release contracts into a tight circle and timed their blasts for it (see <code>01_unaided_discovery.md</code>).</p>
+<p>The economy fixes were tested in parallel and none was needed. Only a faster gun (1.75 rounds a tick) passed all three balance tests, and adding ammunition did nothing because ammunition was never the binding constraint. <em>Lesson: some apparent rules flaws are a meta the league hasn't answered yet. Give it time before changing the game.</em></p>
+<p><strong>Status at real night 7 (2026-10-04):</strong> answered in play. Four defenders hold the synchronised wave under 90%, and its win rate is down to 83%. But the role share has swung the other way: defenders now win 62% of matches, and one of the new defenders wins 91%. The league answered the flaw and overshot. That is itself the next finding, and it gets the same treatment: it's logged, and the league gets time to answer it.</p>
+<p>The arena is an abstract strategy game with made-up units (<code>u</code>, ticks, credits). These are findings about a game's design, not about any real system.</p></article></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

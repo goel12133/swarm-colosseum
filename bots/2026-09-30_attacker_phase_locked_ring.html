@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>phase_locked_ring · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head att"><span class="side-tag att">Attacker</span><h1>phase_locked_ring</h1><div class="meta"><span>rank <b class="att">#4</b></span><span>Elo 1261</span><span class="t3">house league, persona generalist</span><span class="t3">2026-09-30_attacker_phase_locked_ring</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Idea: Probe the engine's bearing convention with the first four launches, then use per-drone dogleg waypoints so every striker crosses the 150 u identification ring on the same tick, evenly spaced around the circle.</p>
+<p>Phase-locked ring (attacker).</p>
+<p>How it works ------------</p>
+<ol><li>Tick 0 launches four strikers at requested bearings 0, 90, 180 and 270. Read as degrees, those are four compass points. Read as radians, they are about 0, 96, 193 and 289 degrees. Either way the probe is spread out. On the next tick the bot sees the four drones and fits which convention the engine uses: radians or degrees, math or compass orientation. It then aims every later launch exactly.</li><li>The rest of the budget goes out four per tick, the engine cap: 24 more strikers and 8 decoys. Final approach slots are 36 bearings spaced evenly around the ring.</li><li>Launches are spread over about 9 ticks, so without correction the swarm would arrive over about 9 ticks too. Each drone is steered every tick toward a waypoint on the 150 u ring. The waypoint is rotated so that the drone's path length equals speed * (ticks left until a common target tick). Earlier launches fly a longer dogleg. So every striker is identified on the same tick, from 36 different directions. Decoys aim 3 ticks earlier, slightly ahead of the strikers.</li></ol>
+<p>Why it holds up against each defender ------------------------------------- Inside the id range a striker has about 31 ticks to reach the asset. The defender can launch only 2 interceptors per tick and holds 20. When about 28 strikers appear at once:</p>
+<ul><li>miss_budget_scheduler: every striker's deadline is equally tight, so its model says "only one try fits" for many of them. It then fires pairs, which drains its 20-round magazine even faster. Deadline ordering gives it nothing to sort by. Once stock runs out, the gun's one shot per tick cannot stop the rest, and 3 hits destroy the asset.</li><li>discriminating_ledger: one interceptor per striker still means at most 20 shots against 28 strikers, plus about 3 expected misses. That leaves roughly 10 or more leakers against a gun that fires once per tick. The decoys cost it nothing, but they cost us only 4 credits in total.</li><li>identify_then_engage: it has the same confirmed-only limit as the ledger bot, and it has no pair logic. The result is the same saturation.</li><li>layered: it engages unknowns near the id ring by time to impact. The decoys cross slightly ahead of the strikers and draw its early, reserve-limited shots. The striker wave then arrives all at once.</li><li>nearest_first: it shoots whatever is closest, so the leading decoy screen soaks interceptors before the strikers even come into the picture.</li><li>gun_only: it gets one shot per tick with low probability at range. Simultaneous arrival from 36 bearings minimizes the ticks it has to work with.</li></ul>
+<p>Because arrival is synchronized to the tick, no defender can win by spreading its fixed launch rate over time. Launch rate is the resource this attacker attacks.</p></div>
+<div class="stats4"><div><span class="v">72.2%</span><span class="label">win rate</span></div><div><span class="v">0.57</span><span class="label">cost exchange</span></div><div><span class="v">320</span><span class="label">matches</span></div><div><span class="v">night 3</span><span class="label">first night (2026-09-30)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-29_defender_miss_budget_scheduler.html" class="def">miss_budget_scheduler</a><span>10–0</span></li><li><a href="2026-09-30_defender_reveal_timed_prelaunch.html" class="def">reveal_timed_prelaunch</a><span>10–0</span></li><li><a href="2026-10-05_defender_cluster_blast_column_breaker.html" class="def">cluster_blast_column_breaker</a><span>10–0</span></li><li><a href="2026-10-19_defender_arrival_cohort_fingerprint_edge_strike.html" class="def">arrival_cohort_fingerprint_edge_strike</a><span>10–0</span></li><li><a href="2026-10-20_defender_depth_lag_band_precommit.html" class="def">depth_lag_band_precommit</a><span>10–0</span></li><li><a href="2026-10-20_defender_radar_edge_cohort_timing_full_magazine.html" class="def">radar_edge_cohort_timing_full_magazine</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-10-01_defender_convergence_blast_scheduler.html" class="def">convergence_blast_scheduler</a><span>0–10</span></li><li><a href="2026-10-02_defender_loiter_then_collapse.html" class="def">loiter_then_collapse</a><span>0–10</span></li><li><a href="2026-10-14_defender_parked_hover_ring_doublecover.html" class="def">parked_hover_ring_doublecover</a><span>0–10</span></li><li><a href="2026-10-06_defender_contracting_ring_blaster.html" class="def">contracting_ring_blaster</a><span>1–9</span></li><li><a href="2026-10-10_defender_hover_bank_double_lattice.html" class="def">hover_bank_double_lattice</a><span>1–9</span></li><li><a href="2026-10-18_defender_loiter_pool_convergence_volley.html" class="def">loiter_pool_convergence_volley</a><span>1–9</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-09-30_attacker_phase_locked_ring__gun_only__s2.json.gz&amp;ar=4&amp;dr=29" title="Best match: phase_locked_ring v gun_only" loading="lazy"></iframe><figcaption>vs <span class="def">gun_only</span> · its score 0.926 · seed 2 · <a href="../replays/2026-09-30_attacker_phase_locked_ring__gun_only__s2.html">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-09-30_attacker_phase_locked_ring__2026-10-06_defender_contracting_ring_blaster__s8.json.gz&amp;ar=4&amp;dr=16" title="Worst match: phase_locked_ring v contracting_ring_blaster" loading="lazy"></iframe><figcaption>vs <span class="def">contracting_ring_blaster</span> · its score 0.232 · seed 8 · <a href="../replays/2026-09-30_attacker_phase_locked_ring__2026-10-06_defender_contracting_ring_blaster__s8.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="greedy_value_model.html">greedy_value_model</a></td><td class="num">0.885</td></tr><tr><td class="name"><a href="nearest_first.html">nearest_first</a></td><td class="num">0.881</td></tr><tr><td class="name"><a href="2026-10-22_defender_trailing_cohort_full_magazine_deadline_g.html">trailing_cohort_full_magazine_deadline_g</a></td><td class="num">0.881</td></tr><tr><td class="name"><a href="2026-10-22_defender_cohort_fingerprint_full_magazine_gun_swe.html">cohort_fingerprint_full_magazine_gun_swe</a></td><td class="num">0.879</td></tr><tr><td class="name"><a href="2026-10-24_defender_radar_cohort_screen_skip_edge_magazine.html">radar_cohort_screen_skip_edge_magazine</a></td><td class="num">0.877</td></tr><tr><td class="name"><a href="2026-10-21_defender_cohort_gated_miss_reserve_deadline_gun.html">cohort_gated_miss_reserve_deadline_gun</a></td><td class="num">0.877</td></tr><tr><td class="name"><a href="2026-10-19_defender_arrival_cohort_fingerprint_edge_strike.html">arrival_cohort_fingerprint_edge_strike</a></td><td class="num">0.877</td></tr><tr><td class="name"><a href="2026-10-05_defender_cluster_blast_column_breaker.html">cluster_blast_column_breaker</a></td><td class="num">0.876</td></tr><tr><td class="name"><a href="annealed_assignment_eager.html">annealed_assignment_eager</a></td><td class="num">0.875</td></tr><tr><td class="name"><a href="2026-10-20_defender_radar_edge_cohort_timing_full_magazine.html">radar_edge_cohort_timing_full_magazine</a></td><td class="num">0.875</td></tr><tr><td class="name"><a href="layered.html">layered</a></td><td class="num">0.874</td></tr><tr><td class="name"><a href="2026-10-20_defender_depth_lag_band_precommit.html">depth_lag_band_precommit</a></td><td class="num">0.866</td></tr><tr><td class="name"><a href="2026-09-29_defender_miss_budget_scheduler.html">miss_budget_scheduler</a></td><td class="num">0.865</td></tr><tr><td class="name"><a href="2026-09-30_defender_reveal_timed_prelaunch.html">reveal_timed_prelaunch</a></td><td class="num">0.864</td></tr><tr><td class="name"><a href="identify_then_engage.html">identify_then_engage</a></td><td class="num">0.862</td></tr><tr><td class="name"><a href="2026-10-21_defender_radar_cohort_presort_reserve_finisher.html">radar_cohort_presort_reserve_finisher</a></td><td class="num">0.845</td></tr><tr><td class="name"><a href="annealed_assignment.html">annealed_assignment</a></td><td class="num">0.834</td></tr><tr><td class="name"><a href="2026-10-16_defender_type_ledger_retarget_first.html">type_ledger_retarget_first</a></td><td class="num">0.820</td></tr><tr><td class="name"><a href="2026-10-09_defender_class_gated_magazine_keeper.html">class_gated_magazine_keeper</a></td><td class="num">0.819</td></tr><tr><td class="name"><a href="2026-09-28_defender_discriminating_ledger.html">discriminating_ledger</a></td><td class="num">0.801</td></tr><tr><td class="name"><a href="gun_only.html">gun_only</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="2026-10-11_defender_convergent_deadline_packer.html">convergent_deadline_packer</a></td><td class="num">0.751</td></tr><tr><td class="name"><a href="2026-10-07_defender_deadline_cluster_ledger.html">deadline_cluster_ledger</a></td><td class="num">0.732</td></tr><tr><td class="name"><a href="2026-10-03_defender_backscheduled_blast_packer.html">backscheduled_blast_packer</a></td><td class="num">0.713</td></tr><tr><td class="name"><a href="2026-10-08_defender_hover_bank_late_binder.html">hover_bank_late_binder</a></td><td class="num">0.542</td></tr><tr><td class="name"><a href="2026-10-18_defender_loiter_pool_convergence_volley.html">loiter_pool_convergence_volley</a></td><td class="num">0.459</td></tr><tr><td class="name"><a href="2026-10-04_defender_dither_parked_magazine.html">dither_parked_magazine</a></td><td class="num">0.379</td></tr><tr><td class="name"><a href="2026-10-01_defender_convergence_blast_scheduler.html">convergence_blast_scheduler</a></td><td class="num">0.378</td></tr><tr><td class="name"><a href="2026-10-10_defender_hover_bank_double_lattice.html">hover_bank_double_lattice</a></td><td class="num">0.337</td></tr><tr><td class="name"><a href="2026-10-14_defender_parked_hover_ring_doublecover.html">parked_hover_ring_doublecover</a></td><td class="num">0.337</td></tr><tr><td class="name"><a href="2026-10-02_defender_loiter_then_collapse.html">loiter_then_collapse</a></td><td class="num">0.336</td></tr><tr><td class="name"><a href="2026-10-06_defender_contracting_ring_blaster.html">contracting_ring_blaster</a></td><td class="num">0.318</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">discriminating_ledger</td><td class="num">9</td><td class="good">breached</td><td class="num">0.868</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-09-28_defender_discriminating_ledger__s9.json.gz">watch</a></td></tr><tr><td class="name">miss_budget_scheduler</td><td class="num">9</td><td class="good">breached</td><td class="num">0.864</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-09-29_defender_miss_budget_scheduler__s9.json.gz">watch</a></td></tr><tr><td class="name">reveal_timed_prelaunch</td><td class="num">9</td><td class="good">breached</td><td class="num">0.858</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-09-30_defender_reveal_timed_prelaunch__s9.json.gz">watch</a></td></tr><tr><td class="name">convergence_blast_scheduler</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.237</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-01_defender_convergence_blast_scheduler__s9.json.gz">watch</a></td></tr><tr><td class="name">loiter_then_collapse</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.235</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">backscheduled_blast_packer</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.441</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-03_defender_backscheduled_blast_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">dither_parked_magazine</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.234</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-04_defender_dither_parked_magazine__s9.json.gz">watch</a></td></tr><tr><td class="name">cluster_blast_column_breaker</td><td class="num">9</td><td class="good">breached</td><td class="num">0.864</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">contracting_ring_blaster</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.236</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-06_defender_contracting_ring_blaster__s9.json.gz">watch</a></td></tr><tr><td class="name">deadline_cluster_ledger</td><td class="num">9</td><td class="good">breached</td><td class="num">0.864</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-07_defender_deadline_cluster_ledger__s9.json.gz">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-09-30_attacker_phase_locked_ring.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-09-30</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>escalation</th><td style="white-space:normal">False</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-09-30_attacker_phase_locked_ring</td></tr><tr><th>persona</th><td style="white-space:normal">generalist</td></tr><tr><th>prompt_version</th><td style="white-space:normal">2026-09-29.1</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-09-30T033207_cli_attacker_generalist.md</td></tr><tr><th>result</th><td style="white-space:normal">beat_target: True, field_mean: 0.851, rank: 2</td></tr><tr><th>role</th><td style="white-space:normal">attacker</td></tr><tr><th>target</th><td style="white-space:normal">field</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 4766, output: 11532</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-09-30_attacker_phase_locked_ring.py</summary><pre><code>&quot;&quot;&quot;Idea: Probe the engine&#x27;s bearing convention with the first four launches, then use per-drone dogleg waypoints so every striker crosses the 150 u identification ring on the same tick, evenly spaced around the circle.
+
+Phase-locked ring (attacker).
+
+How it works
+------------
+1. Tick 0 launches four strikers at requested bearings 0, 90, 180 and 270.
+   Read as degrees, those are four compass points. Read as radians, they are
+   about 0, 96, 193 and 289 degrees. Either way the probe is spread out. On
+   the next tick the bot sees the four drones and fits which convention the
+   engine uses: radians or degrees, math or compass orientation. It then aims
+   every later launch exactly.
+2. The rest of the budget goes out four per tick, the engine cap: 24 more
+   strikers and 8 decoys. Final approach slots are 36 bearings spaced evenly
+   around the ring.
+3. Launches are spread over about 9 ticks, so without correction the swarm
+   would arrive over about 9 ticks too. Each drone is steered every tick
+   toward a waypoint on the 150 u ring. The waypoint is rotated so that the
+   drone&#x27;s path length equals speed * (ticks left until a common target
+   tick). Earlier launches fly a longer dogleg. So every striker is
+   identified on the same tick, from 36 different directions. Decoys aim 3
+   ticks earlier, slightly ahead of the strikers.
+
+Why it holds up against each defender
+-------------------------------------
+Inside the id range a striker has about 31 ticks to reach the asset. The
+defender can launch only 2 interceptors per tick and holds 20. When about 28
+strikers appear at once:
+
+* miss_budget_scheduler: every striker&#x27;s deadline is equally tight, so its
+  model says &quot;only one try fits&quot; for many of them. It then fires pairs,
+  which drains its 20-round magazine even faster. Deadline ordering gives it
+  nothing to sort by. Once stock runs out, the gun&#x27;s one shot per tick
+  cannot stop the rest, and 3 hits destroy the asset.
+* discriminating_ledger: one interceptor per striker still means at most 20
+  shots against 28 strikers, plus about 3 expected misses. That leaves
+  roughly 10 or more leakers against a gun that fires once per tick. The
+  decoys cost it nothing, but they cost us only 4 credits in total.
+* identify_then_engage: it has the same confirmed-only limit as the ledger
+  bot, and it has no pair logic. The result is the same saturation.
+* layered: it engages unknowns near the id ring by time to impact. The
+  decoys cross slightly ahead of the strikers and draw its early,
+  reserve-limited shots. The striker wave then arrives all at once.
+* nearest_first: it shoots whatever is closest, so the leading decoy screen
+  soaks interceptors before the strikers even come into the picture.
+* gun_only: it gets one shot per tick with low probability at range.
+  Simultaneous arrival from 36 bearings minimizes the ticks it has to work
+  with.
+
+Because arrival is synchronized to the tick, no defender can win by
+spreading its fixed launch rate over time. Launch rate is the resource this
+attacker attacks.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;phase_locked_ring&quot;
+ROLE = &quot;attacker&quot;
+
+_S = {}
+
+
+def reset(seed=None):
+    _S.clear()
+
+
+def _init():
+    if &quot;init&quot; not in _S:
+        _S.update({
+            &quot;init&quot;: True,
+            &quot;probe_tick&quot;: None,
+            &quot;mode&quot;: None,
+            &quot;plan&quot;: [],
+            &quot;T_arr&quot;: None,
+        })
+
+
+PROBE = [0.0, 90.0, 180.0, 270.0]
+
+# Hypotheses: (request -&gt; actual angle in radians, actual angle -&gt; request)
+HYP = {
+    &quot;rad_math&quot;: (lambda b: b, lambda a: a),
+    &quot;deg_math&quot;: (lambda b: math.radians(b), lambda a: math.degrees(a)),
+    &quot;rad_comp&quot;: (lambda b: math.pi / 2 - b, lambda a: math.pi / 2 - a),
+    &quot;deg_comp&quot;: (lambda b: math.pi / 2 - math.radians(b),
+                 lambda a: 90.0 - math.degrees(a)),
+}
+
+
+def _adiff(a, b):
+    d = (a - b) % (2 * math.pi)
+    if d &gt; math.pi:
+        d -= 2 * math.pi
+    return abs(d)
+
+
+def _theta(r, rho, L):
+    if r &lt;= 1e-6:
+        return 0.0
+    c = (r * r + rho * rho - L * L) / (2.0 * r * rho)
+    c = max(-1.0, min(1.0, c))
+    return math.acos(c)
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+
+
+def _act(obs):
+    _init()
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    budget = float(obs.get(&quot;budget&quot;, 0.0))
+    R = float(rules.get(&quot;spawn_radius&quot;, 490.0))
+    rho = float(rules.get(&quot;id_range&quot;, 150.0))
+    vs = float(rules.get(&quot;striker_speed&quot;, 4.0))
+    vd = float(rules.get(&quot;decoy_speed&quot;, 4.0))
+    cs = float(rules.get(&quot;striker_cost&quot;, 2.0))
+    cd = float(rules.get(&quot;decoy_cost&quot;, 0.5))
+    per_tick = int(rules.get(&quot;attacker_launches_per_tick&quot;, 4))
+    ax, ay = 0.0, 0.0
+    try:
+        ap = obs.get(&quot;asset&quot;, {}).get(&quot;pos&quot;, [0.0, 0.0])
+        ax, ay = float(ap[0]), float(ap[1])
+    except Exception:
+        pass
+
+    drones = obs.get(&quot;drones&quot;, []) or []
+    launch = []
+    steer = {}
+
+    # Phase 0: probe launch
+    if _S[&quot;probe_tick&quot;] is None:
+        n = min(per_tick, 4, int(budget // cs))
+        for b in PROBE[:n]:
+            launch.append({&quot;type&quot;: &quot;striker&quot;, &quot;bearing&quot;: b})
+        _S[&quot;probe_tick&quot;] = tick
+        return {&quot;launch&quot;: launch, &quot;steer&quot;: steer}
+
+    # Phase 1: detect bearing convention, build plan
+    if _S[&quot;mode&quot;] is None:
+        angs = []
+        for d in drones:
+            p = d.get(&quot;pos&quot;, [0, 0])
+            angs.append(math.atan2(p[1] - ay, p[0] - ax))
+        if not angs and tick - _S[&quot;probe_tick&quot;] &lt; 5:
+            return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+        best, berr = &quot;rad_math&quot;, float(&quot;inf&quot;)
+        if angs:
+            for k, (f, _) in HYP.items():
+                preds = [f(b) for b in PROBE]
+                err = sum(min(_adiff(a, p) for p in preds) for a in angs)
+                if err &lt; berr:
+                    best, berr = k, err
+        _S[&quot;mode&quot;] = best
+        f, finv = HYP[best]
+
+        td = tick
+        remaining_slots = 36 - 4
+        batches = (remaining_slots + per_tick - 1) // max(1, per_tick)
+        last = td + batches - 1
+        T_arr = last + int(math.ceil((R - rho) / min(vs, vd))) + 4
+        _S[&quot;T_arr&quot;] = T_arr
+
+        # finals of probe drones
+        finals = []
+        if angs:
+            for d in drones:
+                p = d.get(&quot;pos&quot;, [0, 0])
+                x, y = p[0] - ax, p[1] - ay
+                r = math.hypot(x, y)
+                phi = math.atan2(y, x)
+                L = vs * (T_arr - tick)
+                finals.append(phi + _theta(r, rho, L))
+        else:
+            for b in PROBE:
+                L = vs * (T_arr - _S[&quot;probe_tick&quot;])
+                finals.append(f(b) + _theta(R, rho, L))
+        offset = finals[0] if finals else 0.0
+        step = 2 * math.pi / 36
+        slots = [offset + j * step for j in range(36)]
+        used = set()
+        for fa in finals:
+            bj, bd = None, 9.0
+            for j, s in enumerate(slots):
+                if j in used:
+                    continue
+                dd = _adiff(s, fa)
+                if dd &lt; bd:
+                    bj, bd = j, dd
+            if bj is not None:
+                used.add(bj)
+        free = [slots[j] for j in range(36) if j not in used]
+        plan = []
+        nb = max(1, batches)
+        for i, F in enumerate(free):
+            typ = &quot;decoy&quot; if i % 4 == 2 else &quot;striker&quot;
+            bt = i % nb
+            tl = td + bt
+            T = T_arr - 3 if typ == &quot;decoy&quot; else T_arr
+            spd = vd if typ == &quot;decoy&quot; else vs
+            L = spd * (T - tl)
+            phi = F - _theta(R, rho, L)
+            plan.append((tl, typ, finv(phi)))
+        _S[&quot;plan&quot;] = plan
+
+    # Launch scheduled drones (strikers first within a tick)
+    due = [p for p in _S[&quot;plan&quot;] if p[0] &lt;= tick]
+    due.sort(key=lambda p: (p[0], 0 if p[1] == &quot;striker&quot; else 1))
+    left = budget
+    sent = []
+    for p in due:
+        if len(launch) &gt;= per_tick:
+            break
+        c = cs if p[1] == &quot;striker&quot; else cd
+        typ = p[1]
+        if left + 1e-9 &lt; c:
+            if left + 1e-9 &gt;= cd:
+                typ, c = &quot;decoy&quot;, cd
+            else:
+                sent.append(p)
+                continue
+        launch.append({&quot;type&quot;: typ, &quot;bearing&quot;: float(p[2])})
+        left -= c
+        sent.append(p)
+    if sent:
+        ss = set(id(p) for p in sent)
+        _S[&quot;plan&quot;] = [p for p in _S[&quot;plan&quot;] if id(p) not in ss]
+
+    # Steering: phase-lock arrival at the id ring
+    T_arr = _S[&quot;T_arr&quot;]
+    if T_arr is not None:
+        for d in drones:
+            try:
+                did = d.get(&quot;id&quot;)
+                p = d.get(&quot;pos&quot;, [0, 0])
+                x, y = p[0] - ax, p[1] - ay
+                r = math.hypot(x, y)
+                if r &lt;= rho + 6.0:
+                    continue
+                is_decoy = d.get(&quot;type&quot;) == &quot;decoy&quot;
+                T = T_arr - 3 if is_decoy else T_arr
+                spd = vd if is_decoy else vs
+                L = spd * (T - tick)
+                if L &lt;= (r - rho) + 1.0:
+                    steer[did] = None
+                    continue
+                th = _theta(r, rho, L)
+                phi = math.atan2(y, x) + th
+                steer[did] = [ax + rho * math.cos(phi), ay + rho * math.sin(phi)]
+            except Exception:
+                continue
+
+    return {&quot;launch&quot;: launch, &quot;steer&quot;: steer}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

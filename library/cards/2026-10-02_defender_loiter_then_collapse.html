@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>loiter_then_collapse · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 27: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-10-02_defender_loiter_then_collapse.html">On the ladder now →</a></p>
+<h1>loiter_then_collapse</h1>
+<p><strong>defender</strong> · family: Patient defence · persona: counter_meta · author: house league (model opus) · live</p>
+<p>File: 2026-10-02_defender_loiter_then_collapse.py</p>
+<p><strong>The idea:</strong> Launch interceptors after the ring is released, park them over the asset by retargeting them between two opposite tracks every tick, then fire every one at the same moment at the closing ring so each blast covers three strikers.</p>
+<h2>What it does</h2>
+<p>The release logic. synchronized_ring holds all 30 strikers at radius 190. They are evenly spaced 12 degrees apart. It then sets `steer[did] = asset` for every drone on the same tick. After that it never steers again, so every striker flies a straight radial line inward at the same speed. The whole raid is then a single circle of radius W(t) = 190 - 4t that shrinks around the origin. The arc spacing between neighbours is 2*pi*W/30, about 0.21*W. At W of about 35 the spacing is about 7.3, which is less than the blast radius of 10. One blast centred on a striker also catches both of its neighbours. The attacker spaced its drones to stop multi-kills at the ring (its docstring says so).</p>
+<h2>Record</h2>
+<ul><li>Best finish: #2 defender (2026-10-02).</li><li>In the top five on 6 of the 22 nights it played.</li><li>Written against: <strong>synchronized_ring</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-24.</p>
+<ul><li><strong>rush</strong>: held in 10 of 10 seeds, mean score 0.77</li><li><strong>decoy_screen</strong>: held in 10 of 10 seeds, mean score 0.76</li><li><strong>attacker_blast_isolated_synchronized_rel</strong>: held in 10 of 10 seeds, mean score 0.76</li><li><strong>parked_ring_magazine_drain</strong>: held in 10 of 10 seeds, mean score 0.75</li><li><strong>flanker</strong>: held in 10 of 10 seeds, mean score 0.75</li><li>… and 9 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>bait_count_then_clear_sky_wave</strong>: held in 0 of 10 seeds, mean score 0.03</li><li><strong>2026_10_15_attacker_dark_ring_release</strong>: held in 0 of 10 seeds, mean score 0.07</li><li><strong>blast_proof_depth_interleave</strong>: held in 1 of 10 seeds, mean score 0.16</li><li><strong>interleaved_shell_ring</strong>: held in 2 of 10 seeds, mean score 0.18</li><li><strong>hidden_orbit_screen_then_interleaved_dro</strong>: held in 3 of 10 seeds, mean score 0.30</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>rush</strong>, seed 0: defended in 96 ticks, its score 0.77. <a href="../../replays/rush__2026-10-02_defender_loiter_then_collapse__s0.html">rush__2026-10-02_defender_loiter_then_collapse__s0.json</a></li><li>Worst: vs <strong>bait_count_then_clear_sky_wave</strong>, seed 7: breached in 295 ticks, its score 0.00. <a href="../../replays/2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-02_defender_loiter_then_collapse__s7.html">2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-02_defender_loiter_then_collapse__s7.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;
+Idea: Launch interceptors after the ring is released, park them over the asset by retargeting them between two opposite tracks every tick, then fire every one at the same moment at the closing ring so each blast covers three strikers.
+
+Which part of synchronized_ring this attacks
+--------------------------------------------
+The release logic. synchronized_ring holds all 30 strikers at radius 190.
+They are evenly spaced 12 degrees apart. It then sets `steer[did] = asset`
+for every drone on the same tick. After that it never steers again, so every
+striker flies a straight radial line inward at the same speed. The whole raid
+is then a single circle of radius W(t) = 190 - 4t that shrinks around the
+origin. The arc spacing between neighbours is 2*pi*W/30, about 0.21*W. At
+W of about 35 the spacing is about 7.3, which is less than the blast radius
+of 10. One blast centred on a striker also catches both of its neighbours.
+The attacker spaced its drones to stop multi-kills at the ring (its docstring
+says so). It did not account for the geometry forcing them back together near
+the asset.
+
+What the replays show
+---------------------
+* In every winning match the stock ran out (stock_left 0, 20 launched) before
+  the end. 16 to 18 interceptor kills came from 20 interceptors, which is
+  about one kill per interceptor. Defenders that fire as strikers enter id or
+  engagement range meet them where they are still 15 to 25 units apart.
+* The only defender that held (convergence_blast_scheduler, defended with
+  hp 30) got 22 to 25 interceptor kills from 20 interceptors. Kills above one
+  per interceptor are the whole game here. But the launch cap is 2 per tick.
+  Launching straight at the wave spreads meeting radii over a span of about
+  30 units, so most of its blasts still go off where the spacing is too wide.
+  It still loses about 60% of its matches.
+
+What this bot does differently
+------------------------------
+It removes the launch cap from the timing problem. Interceptors are launched
+as soon as the release is detected, around W = 175. Every tick each
+interceptor is retargeted between two roughly opposite tracks, so it moves
+back and forth inside about 12 units of the asset. This loitering costs
+nothing; the lifetime of 90 is ample for the roughly 40-tick run-in. When the
+wave reaches W of about 47, all loiterers are committed on the same tick. The
+targets are the ring members sorted by angle, at indices round(j*N/k). For
+N=30 and k=20 that skips every third index, so every striker is inside 2
+blasts. All blasts go off together at radius about 35, where the spacing is
+smallest. The gun clears leakers at point-blank range.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;loiter_then_collapse&quot;
+ROLE = &quot;defender&quot;
+
+COMMIT_W = 47.0
+
+_S = {}
+
+
+def reset(seed=None):
+    global _S
+    _S = {
+        &quot;released&quot;: False,
+        &quot;committed&quot;: False,
+        &quot;assign&quot;: {},
+    }
+
+
+reset()
+
+
+def _tr(t, ax, ay):
+    p = t.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    x, y = float(p[0]), float(p[1])
+    r = t.get(&quot;range&quot;)
+    if r is None:
+        r = math.hypot(x - ax, y - ay)
+    return x, y, float(r), math.atan2(y - ay, x - ax)
+
+
+def _act(obs):
+    S = _S
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    ap = asset.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    ax, ay = float(ap[0]), float(ap[1])
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    ints = obs.get(&quot;interceptors&quot;, []) or []
+    stock = int(obs.get(&quot;stock&quot;, 0) or 0)
+    ammo = int(obs.get(&quot;ammo&quot;, 0) or 0)
+    cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    life = int(rules.get(&quot;interceptor_lifetime&quot;, 90))
+
+    intercept = []
+    retarget = {}
+    gun = None
+
+    cands = []
+    for t in tracks:
+        if t.get(&quot;cls&quot;) == &quot;decoy&quot;:
+            continue
+        x, y, r, a = _tr(t, ax, ay)
+        cands.append((t.get(&quot;id&quot;), x, y, r, a))
+    live = set(c[0] for c in cands)
+
+    # Gun: nearest non-decoy in range
+    if ammo &gt; 0:
+        best = None
+        for c in cands:
+            if c[3] &lt;= gun_range and (best is None or c[3] &lt; best[3]):
+                best = c
+        if best is not None:
+            gun = best[0]
+
+    if not cands:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: gun}
+
+    # Release detection
+    if not S[&quot;released&quot;]:
+        inner = [c for c in cands if c[3] &lt; 260.0]
+        n_in = sum(1 for c in inner if c[3] &lt; 175.0)
+        if (len(inner) &gt;= 3 and n_in * 2 &gt;= len(inner)) or \
+                any(c[3] &lt; 120.0 for c in cands):
+            S[&quot;released&quot;] = True
+
+    if not S[&quot;released&quot;]:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: gun}
+
+    wave = [c for c in cands if c[3] &lt; 200.0] or cands
+    rs = sorted(c[3] for c in wave)
+    W = rs[len(rs) // 2]
+    rmin = rs[0]
+
+    if not S[&quot;committed&quot;]:
+        trigger = W &lt;= COMMIT_W or rmin &lt;= 38.0
+        for it in ints:
+            if int(it.get(&quot;age&quot;, 0) or 0) &gt;= life - 6:
+                trigger = True
+        if trigger:
+            S[&quot;committed&quot;] = True
+            srt = sorted(wave, key=lambda c: c[4])
+            N = len(srt)
+            ilist = list(ints)
+            k = len(ilist)
+            targets = []
+            if k &gt; 0:
+                if k &gt;= N:
+                    targets = [srt[j % N] for j in range(k)]
+                else:
+                    seen = set()
+                    for j in range(k):
+                        idx = int(math.floor(j * N / float(k) + 0.5)) % N
+                        while idx in seen and len(seen) &lt; N:
+                            idx = (idx + 1) % N
+                        seen.add(idx)
+                        targets.append(srt[idx])
+            free = list(range(k))
+            for tg in targets:
+                bi, bd = None, 1e18
+                for i in free:
+                    p = ilist[i].get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+                    d = math.hypot(float(p[0]) - tg[1], float(p[1]) - tg[2])
+                    if d &lt; bd:
+                        bd, bi = d, i
+                if bi is None:
+                    break
+                free.remove(bi)
+                iid = ilist[bi].get(&quot;id&quot;)
+                S[&quot;assign&quot;][iid] = tg[0]
+                retarget[iid] = tg[0]
+        else:
+            # Loiter: bounce all interceptors between two opposite tracks
+            A = max(cands, key=lambda c: math.cos(c[4]))
+            B = min(cands, key=lambda c: math.cos(c[4]))
+            lt = A[0] if tick % 2 == 0 else B[0]
+            for it in ints:
+                retarget[it.get(&quot;id&quot;)] = lt
+            n = min(cap, stock)
+            intercept = [lt] * n
+            return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+
+    # Committed phase: keep interceptors on live targets, spend leftover stock
+    assigned = set()
+    for it in ints:
+        iid = it.get(&quot;id&quot;)
+        tg = S[&quot;assign&quot;].get(iid, it.get(&quot;target&quot;))
+        if tg in live:
+            assigned.add(tg)
+            if iid not in S[&quot;assign&quot;]:
+                S[&quot;assign&quot;][iid] = tg
+                retarget[iid] = tg
+            continue
+        p = it.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+        px, py = float(p[0]), float(p[1])
+        best, bd = None, 1e18
+        for c in cands:
+            d = math.hypot(c[1] - px, c[2] - py) + (30.0 if c[0] in assigned else 0.0)
+            if d &lt; bd:
+                bd, best = d, c
+        if best is not None:
+            S[&quot;assign&quot;][iid] = best[0]
+            retarget[iid] = best[0]
+            assigned.add(best[0])
+
+    n = min(cap, stock)
+    if n &gt; 0:
+        order = sorted(cands, key=lambda c: (c[0] in assigned, c[3]))
+        for c in order[:n]:
+            intercept.append(c[0])
+
+    return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 27 (2026-10-24)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>
