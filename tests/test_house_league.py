@@ -354,6 +354,23 @@ def test_escalation_stops_after_three_failed_nights_on_the_same_target():
                             recent_nights=recent) == escalated
 
 
+def test_a_rotation_night_between_failed_escalations_does_not_reset_the_stall():
+    ctx = toy_ctx()
+    night = {"a_top": {"d_top": 0.7, "d_low": 0.1}, "a_low": {"d_top": 0.9, "d_low": 0.4}}
+
+    def record(beat=False, target="d_top"):
+        return {"house_positions": {
+            f"x{i}": dict(role="attacker", persona="counter_meta", target=target,
+                          beat_target=beat) for i in range(2)}}
+    other = record(target="d_x")
+    plan = P.plan_night(ctx, nights=5, last_two_matrices=[night, night],
+                        recent_nights=[record(), record(), other, record()])
+    assert "escalation" not in [p[3] for p in plan]
+    plan = P.plan_night(ctx, nights=5, last_two_matrices=[night, night],
+                        recent_nights=[record(), other, record()])
+    assert plan == [("attacker", "counter_meta", "d_top", "escalation")] * 2
+
+
 def test_only_one_side_can_be_unbeaten_on_a_night():
     import itertools
     import random as _r

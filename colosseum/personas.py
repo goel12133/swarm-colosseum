@@ -115,14 +115,17 @@ def escalation(last_two):
 
 
 def stalled(recent_nights, target, n=3):
-    """True if each of the last `n` ledger records aimed every house bot at `target`
-    and none of them beat it."""
-    recent = list(recent_nights)[-n:]
-    return len(recent) == n and all(
-        (r.get("house_positions") or {}) and all(
-            p.get("target") == target and not p.get("beat_target")
-            for p in r["house_positions"].values())
-        for r in recent)
+    """True if at least `n` ledger records that aimed every house bot at `target` failed
+    to beat it since the last record where a bot beat it. Nights not wholly aimed at
+    `target` (rotation nights) are skipped, so they do not reset the count."""
+    failed = 0
+    for r in recent_nights:
+        positions = list((r.get("house_positions") or {}).values())
+        if any(p.get("target") == target and p.get("beat_target") for p in positions):
+            failed = 0
+        elif positions and all(p.get("target") == target for p in positions):
+            failed += 1
+    return failed >= n
 
 
 def plan_night(ctx, nights: int, last_two_matrices=(), override: str = "",

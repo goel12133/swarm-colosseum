@@ -678,7 +678,7 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
 
     ctx = gather_context(out)
     nights = len(load_history()["nights"])
-    recent = ([json.loads(l) for l in NIGHTS.read_text().splitlines() if l.strip()][-3:]
+    recent = ([json.loads(l) for l in NIGHTS.read_text().splitlines() if l.strip()][-7:]
               if NIGHTS.exists() else [])
     try:
         last_two = last_matrices(out, 2)
