@@ -1,13 +1,8 @@
-# Loop session 2026-10-25 12:00 UTC
+# Loop session 2026-10-25 15:00 UTC
 
-**Status:** merged — 3 commit(s) fast-forwarded onto master
-**Signal:** 5 (it runs itself). The league's biggest repeated loss is replies rejected with "model returned no code block". The founder's item for sorting them is due before the 10-26 season boundary, but its table stops at 10-24. Last night added a new kind of case: a generalist attacker aimed at the whole field. Until now every rejection with a known persona was counter_meta or contrarian. With this row the table is complete for season one. We will know when `grep -n 2026-10-25T033212 FOUNDER_TODO.md` finds the new row and `grep -c "15 house-bot calls" FOUNDER_TODO.md` returns 0.
-**Reviewer:** PASS
-**Tokens:** 53,387 (cap 200,000); **time:** 2908 s; exit 0
-
-**Merged:**
-- 5017692 Signal 5: 'no code block' item: step 3 is one SAFETY: sentence, step 2's refusal class includes safety-check text, Input tokens bullet cites the 10-01/02 call (15,999/17,526 = 0.91), checked against colosseum/house_league.py:252-254.
-- 989ec8e Signal 5: 'no code block' item adds an Input tokens bullet (hypothesis: rejections look like safety checks, not formatting) and step 3 adds a SAFETY: line for refusals, so the loop stops that pairing for good (rule 7). Evidence: .loop/context.md:49-86 rejected calls in/prompt chars 11,559/12,045 = 0.96 (10-23 defender counter_meta), 12,265/12,401 = 0.99 (10-24 second defender), 25,324/14,336 = 1.77 (10-25 attacker generalist, the night's first call); accepted 3,633/7,451 = 0.49, 6,032/12,215 = 0.49, 4,237/9,028 = 0.47; rejected out 5,098-10,540 tokens for 148-523 chars; same signature as PROGRESS.md:940 and colosseum/house_league.py:252-254. Proof: grep -n PROGRESS.md:940 FOUNDER_TODO.md finds line 178; grep -n 1.77 FOUNDER_TODO.md finds line 174; git diff --stat lists only FOUNDER_TODO.md and DECISIONS.local.md; python3 -m pytest tests -q: 413 passed, exit 0.
-- 13b775d Signal 5: 'no code block' item adds the 10-25 row (attacker generalist vs field, 523 chars, out/house_raw/2026-10-25T033212_cli_attacker_generalist.md), Why recount to 16 rejections on 15 lines of 56 calls (29 lines, 28 nights), 8 replies, 10-25 sentence, Personas 8 known: 5 counter_meta, 2 contrarian, 1 generalist. Evidence: .loop/context.md:76-79 persona=generalist target=field prompt=14,336 chars evidence 3000/3000 ['matrix (cut)'], in=25324, raw 523 chars, rejected attacker; out/nights.jsonl grep: 15 matching lines (line 16 both sides), calls 1 on lines 1-2 and 2 on lines 3-29; accepted 10-25 defender 7,213 chars (context.md:82) inside 4,935-10,987. Proof: grep -n 2026-10-25T033212 FOUNDER_TODO.md finds line 164; grep -c '15 house-bot calls' FOUNDER_TODO.md returns 0; grep -n '16 house-bot calls' FOUNDER_TODO.md finds line 126; git diff --stat lists only FOUNDER_TODO.md and DECISIONS.local.md; python3 -m pytest tests -q: 413 passed, exit 0.
+**Status:** nothing — no commits
+**Signal:** none
+**Reviewer:** did not run
+**Tokens:** 13,623 (cap 200,000); **time:** 397 s; exit 0
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
