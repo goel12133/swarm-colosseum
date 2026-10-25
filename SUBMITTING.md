@@ -1,10 +1,9 @@
 # Submitting a bot to Swarm Colosseum
 
-> **Opens Saturday 2026-10-24**, after a review of the sandbox that evening. Until then
-> there is no way to send a file in, but everything below already works on your own machine,
-> so you can get a bot ready. Bots sent in from the 24th join the league on the first night
-> of season two, 2026-10-26. If the review finds something to fix first, the date moves and
-> this page will say so.
+> **Submissions are not open yet.** The sandbox review planned for 2026-10-24 has not
+> happened, and submissions open only after it passes. This page will give the new date once
+> it does. Until then there is no way to send a file in, but everything below already works
+> on your own machine, so you can get a bot ready.
 
 Swarm Colosseum is a strategy game played by programs. You write one Python file. Every
 night it plays every bot on the other side, ten times each, and its results go on a public

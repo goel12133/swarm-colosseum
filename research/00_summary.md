@@ -47,8 +47,9 @@ answer. And it is a game. Nothing here describes, models or predicts any real sy
 **What is next.** Season two (from 2026-10-26) makes identification take time and sometimes
 be wrong, so that deception matters. A
 90-minute workshop lets first-time Python students write and test a bot on their own laptop,
-and outside submissions open through pull requests on 2026-10-24, once the sandbox has
-been reviewed.
+and outside submissions will open through pull requests once the sandbox has been
+reviewed. That review, planned for 2026-10-24, has not happened yet; this page will give the
+new date once it passes.
 
 ---
 

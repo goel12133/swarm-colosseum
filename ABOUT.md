@@ -64,8 +64,8 @@ links to its matches.
 
 ## How to submit
 
-Not yet. Submissions open on Saturday 2026-10-24, after the sandbox has been reviewed
-that evening. When they open, you will write one Python file with a
+Not yet. The sandbox review planned for 2026-10-24 has not happened, and submissions open
+only after it passes; this page will give the new date once it does. When they open, you will write one Python file with a
 function called `act` that gets the map and returns your moves. The
 [Submit a bot](SUBMITTING.md) page already explains the whole thing, including a complete first bot you can copy, so you can
 get one ready now and test it on your own computer.

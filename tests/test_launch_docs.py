@@ -36,8 +36,19 @@ def test_the_citation_has_its_required_keys_and_both_licences():
 
 def test_the_readme_says_submissions_are_closed_and_names_both_licences():
     text = (ROOT / "README.md").read_text()
-    assert "submissions are not open yet" in text and "2026-10-24" in text
+    assert "submissions are not open yet" in text and "open on 2026-10-24" not in text
     assert "Apache License 2.0" in text and "CC BY 4.0" in text
+
+
+def test_the_home_page_says_submissions_are_not_open_yet(tmp_path):
+    from colosseum import site
+    from colosseum.tournament import run_tournament
+    out = tmp_path / "out"
+    run_tournament(seeds=1, out=out, write_replays=False, quiet=True, workers=1)
+    dest = tmp_path / "site"
+    site.build(dest, out, seasons=tmp_path / "no-seasons", research=tmp_path / "no-research")
+    home = (dest / "index.html").read_text()
+    assert "outside submissions · not open yet" in home and "open 24 Oct" not in home
 
 
 def test_citation_readme_and_summary_point_at_the_site_and_repo():

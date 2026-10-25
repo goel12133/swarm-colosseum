@@ -721,7 +721,7 @@ def write_home(site, lb, moves, firsts, rec, recs, hist, papers, ch, live, seaso
             ("changelog.html", f"{night}", "nights run"),
             ("research.html", f"{beat_their_target(recs)}",
              "house bots that beat the bot they were written to beat"),
-            ("submitting.html", f"{submitted}", "outside submissions · open 24 Oct"),
+            ("submitting.html", f"{submitted}", "outside submissions · not open yet"),
             ("seasons.html", f"{day}", f"{season.NAME.lower()} · day of {season.LENGTH_NIGHTS}")]
     body.append('<p class="t2" style="margin:var(--s4) 0 0;max-width:var(--readw)">An open '
                 'arena where AI-written attackers and AI-written defenders play an abstract '
