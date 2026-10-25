@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-10-25",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3500,
+    "dropped": [],
+    "included": [
+      "source"
+    ],
+    "used": 1469
+  },
+  "model": "opus",
+  "name": "2026-10-25_defender_birth_cohort_lull_splitter",
+  "persona": "contrarian",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-25T033319_cli_defender_contrarian.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.537,
+    "rank": 13,
+    "score_vs_target": 0.198
+  },
+  "role": "defender",
+  "target": "2026-10-23_attacker_bait_count_then_clear_sky_wave",
+  "tokens": {
+    "input": 4237,
+    "output": 6566
+  }
+}
