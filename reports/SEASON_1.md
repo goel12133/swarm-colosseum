@@ -1,25 +1,28 @@
-# Season one — draft, 27 of 28 nights (2026-09-28 to 2026-10-24)
-
-The season ends 2026-10-26; every number below is from the nights so far and is rewritten when this report is rerun.
+# Season one — 2026-09-28 to 2026-10-25
 
 ## The season in numbers
 
-- Nights: 27 of 28, none failed.
-- House bots written: 39 (14 attackers, 25 defenders); 39 still on the ladder, 0 retired. Rejected before the ladder: 17.
-- Matches: 76,760 in 26 nightly round-robins; 7,250 distinct results in the cache.
-- Tokens: 1,052,427.
+- Nights: 28 of 28, none failed.
+- House bots written: 40 (14 attackers, 26 defenders); 40 still on the ladder, 0 retired. Rejected before the ladder: 18.
+- Matches: 83,030 in 27 nightly round-robins; 7,440 distinct results in the cache.
+- Tokens: 1,099,094.
 
 ## Top of the ladders
 
-#1 attacker bait_count_then_clear_sky_wave (h) (Elo 1320); #1 defender convergent_deadline_packer (h) (Elo 1186).
+#1 attacker blast_proof_depth_interleave (h) (Elo 1314); #1 defender convergent_deadline_packer (h) (Elo 1186).
 
 ## The five best ideas
 
-1. **bait_count_then_clear_sky_wave (h)** (exploiter, attacker): “Count the defender's interceptor launches from the attacker's own view of the sky and hold every striker on the pad until the bait-drawn magazine is seen to be spent or aged out, then send one interleaved striker wave.” #1 attacker, Elo 1320, wins 90%.
+1. **blast_proof_depth_interleave (h)** (counter_meta, attacker): “Park all 30 strikers motionless on a far staging ring where the scheduler ignores them, then dive in two interleaved shells offset 12 units in depth, so the ring converges with every pair of strikers more than one blast radius apart yet all of them arrive within a three-tick window.” #1 attacker, Elo 1314, wins 90%.
+   Clip: `out/meta/SEASON_1_2026-10-11_attacker_blast_proof_depth_interleave.mp4`, its best match against convergence_blast_scheduler (h) (s3), 0.04 MB at 4x.
 2. **convergent_deadline_packer (h)** (generalist, defender): “Launches are held back until a capacity-aware deadline forces them, and the delay is spent hunting for intercept moments where one blast covers several identified strikers.” #1 defender, Elo 1186, wins 78%.
-3. **blast_proof_depth_interleave (h)** (counter_meta, attacker): “Park all 30 strikers motionless on a far staging ring where the scheduler ignores them, then dive in two interleaved shells offset 12 units in depth, so the ring converges with every pair of strikers more than one blast radius apart yet all of them arrive within a three-tick window.” #2 attacker, Elo 1307, wins 90%.
+   Clip: `out/meta/SEASON_1_2026-10-11_defender_convergent_deadline_packer.mp4`, its best match against parked_ring_magazine_drain (h) (s7), 0.02 MB at 4x.
+3. **bait_count_then_clear_sky_wave (h)** (exploiter, attacker): “Count the defender's interceptor launches from the attacker's own view of the sky and hold every striker on the pad until the bait-drawn magazine is seen to be spent or aged out, then send one interleaved striker wave.” #2 attacker, Elo 1312, wins 89%.
+   Clip: `out/meta/SEASON_1_2026-10-23_attacker_bait_count_then_clear_sky_wave.mp4`, its best match against contracting_ring_blaster (h) (s7), 0.06 MB at 4x.
 4. **parked_hover_ring_doublecover (h)** (exploiter, defender): “Park interceptors in a jittering hover next to the asset, then fire the whole magazine together at the collapsing ring once its spacing falls inside one blast width, so every striker is covered by two blasts.” #2 defender, Elo 1162, wins 81%.
-5. **synchronized_ring (h)** (counter_meta, attacker): “Park every striker just outside the defender's identification gate, spread evenly round a ring, then release them together so the launch cap and the magazine run out before the ring does.” #3 attacker, Elo 1264, wins 77%.
+   Clip: `out/meta/SEASON_1_2026-10-14_defender_parked_hover_ring_doublecover.mp4`, its best match against attacker_blast_isolated_synchronized_rel (h) (s6), 0.02 MB at 4x.
+5. **synchronized_ring (h)** (counter_meta, attacker): “Park every striker just outside the defender's identification gate, spread evenly round a ring, then release them together so the launch cap and the magazine run out before the ring does.” #3 attacker, Elo 1276, wins 78%.
+   Clip: `out/meta/SEASON_1_2026-09-29_attacker_synchronized_ring.mp4`, its best match against discriminating_ledger (h) (s3), 0.04 MB at 4x.
 
 ## Rules findings
 
@@ -41,7 +44,7 @@ Details in BALANCE.md.
 
 ## Coverage at the end
 
-- 19 attackers × 32 defenders, 10 seeds a pairing.
+- 19 attackers × 33 defenders, 10 seeds a pairing.
 - Defenders nobody gets through: none.
 - Attackers no defender stops: none.
 - Unique coverage: none.
