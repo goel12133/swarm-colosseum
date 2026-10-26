@@ -1,11 +1,8 @@
-# Loop session 2026-10-26 06:00 UTC
+# Loop session 2026-10-26 09:00 UTC
 
-**Status:** merged — 1 commit(s) fast-forwarded onto master
-**Signal:** Number 5, it runs itself. Season two's first night did not run, and the next nightly will play on season-one rules unless the founder steps in before 03:30 UTC. Three facts in the context point to this. Health shows `BAD alert out/ALERT.md is present` and also `boundary done (seasons/S1 exists)`. The master log has no "Season boundary: …" commit. There is no 2026-10-26 night in the league log, and no 10-26 publish. The reason the boundary won't retry is in the code. If `colosseum/boundary.py` `run()` fails after `freeze()`, it runs `checkout -f master`, which removes the committed copies. But the clips (`*.mp4`/`*.gif`, ignored by `.gitignore` lines 10-11) stay behind in `seasons/S1/meta/`. Then `due()` (boundary.py:49-51) returns False, so `nightly.sh` skips the boundary from now on. The 10-27 league would then run as season two on the old rules, which breaks hard rule 4 and the "no stray night runs on the old rules" promise in the boundary.py docstring. The failed run's `boundary-s1` branch is also kept, so a rerun by hand would fail at `checkout -b`. All of this is inferred: the loop can't see the host's out/ALERT.md or cron log, so step 1 below confirms it before anything else is done. We will know it is fixed when master has a "Season boundary: merge season2" commit, health reads `ok alert none`, and the next league log starts season two.
-**Reviewer:** PASS
-**Tokens:** 31,237 (cap 200,000); **time:** 1394 s; exit 0
-
-**Merged:**
-- 5537be9 Signal 5: new first FOUNDER_TODO item 'Season boundary failed on 2026-10-26; finish it before 03:30 UTC tonight (about 10 minutes).' The cause is inferred: health shows BAD alert and also boundary done (seasons/S1 exists), master has no Season boundary commit, and there is no 10-26 night. On failure, boundary.py:115-117 runs checkout -f master, which leaves the ignored clips (.gitignore:10-11) in seasons/S1/meta, so due() (:45-51) returns False and nightly.sh:33-39 skips the boundary. The item has six steps: confirm the cause from out/ALERT.md first, check the tree, fix the cause, rm -rf seasons/S1 and git branch -D boundary-s1, rerun --if-due, then check health. It also carries a prepared rmtree fix and test for the founder, because boundary.py is PROTECTED (daily.py:70-76, named on :76; the cited :70-77 was corrected). Evidence: grep -n 'Season boundary failed on 2026-10-26' FOUNDER_TODO.md matches line 6, above the crash item at line 47; git diff --stat lists only DECISIONS.local.md and FOUNDER_TODO.md; python3 -m pytest tests -q: 414 passed, exit 0.
+**Status:** nothing — no commits
+**Signal:** none
+**Reviewer:** did not run
+**Tokens:** 10,002 (cap 200,000); **time:** 407 s; exit 0
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
