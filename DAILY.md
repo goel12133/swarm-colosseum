@@ -1,11 +1,11 @@
-# Loop session 2026-10-27 12:00 UTC
+# Loop session 2026-10-27 15:00 UTC
 
 **Status:** merged — 1 commit(s) fast-forwarded onto master
-**Signal:** 5 (it runs itself). On 2026-10-27 the league wrote no bot for the first time in 30 ledger lines, because both calls came back with "model returned no code block". Neither reply has been read yet. We'll know this landed when `grep -n 2026-10-27T033105 FOUNDER_TODO.md` and `grep -n 2026-10-27T033449 FOUNDER_TODO.md` each find a row in the 'no code block' item, `grep -n '18 house-bot calls' FOUNDER_TODO.md` matches, and `grep -c '16 house-bot calls' FOUNDER_TODO.md` returns 0. After that, the measure is the founder's Class column turning the safety-check guess into a finding.
+**Signal:** 5 (it runs itself). The 2026-10-27T09:00:02 loop session crashed with the same signature as the eight already listed: exit 1, 0 tokens, 9 s, recorded as `nothing`. It is the last-five-sessions block in `.loop/context.md`, and FOUNDER_TODO.md doesn't mention it yet. Its out/ALERT.md is why health reads `BAD alert` right now, but the boundary item at FOUNDER_TODO.md:26 says health reads `ok alert none`, so the founder could take this alert for the boundary failure. We'll know it worked when `grep -n 2026-10-27T0900 FOUNDER_TODO.md` finds the crash item's title, step 1 and a `Cause (10-27T09):` line, `grep -c 'eight loop sessions' FOUNDER_TODO.md` returns 0, and line 26 no longer claims `ok alert none`.
 **Reviewer:** PASS
-**Tokens:** 32,129 (cap 200,000); **time:** 1516 s; exit 0
+**Tokens:** 28,401 (cap 200,000); **time:** 1316 s; exit 0
 
 **Merged:**
-- 65be4ea Signal 5: 'no code block' item gains 10-27 rows (attacker contrarian 245 chars, defender exploiter 118 chars, .loop/context.md:77-84); out/nights.jsonl recount 18 rejections on 16 lines of 30, 58 calls; range 118-611 over 10 replies; 10-27 input ratios 0.91 and 3.64 vs 0.47-0.49 accepted, kept as a guess; title drops stale 10-26 deadline
+- a926903 Signal 5: crash item covers a ninth crash, 2026-10-27T09:00:02 (exit 1, 0 tokens, 9 s, nothing; .loop/context.md:484), whose out/ALERT.md is the BAD alert health shows now (.loop/context.md:41), cleared by the next ok night (house_league.py:656-662), no save step (daily.py:519-520); boundary item line 26 no longer claims ok alert none and says this alert is the loop crash's, not boundary evidence; span corrected to ten days
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
