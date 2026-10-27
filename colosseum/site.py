@@ -756,9 +756,16 @@ def write_home(site, lb, moves, firsts, rec, recs, hist, papers, ch, live, seaso
                 'the arena</span></a></div></section>')
     pct = 100 * min(day, season.LENGTH_NIGHTS) / season.LENGTH_NIGHTS
     nxt = f"{season.ENDS.day} {season.ENDS.strftime('%b')}"
-    body.append(f'<section class="section"><p class="season" style="margin:0">{e(season.NAME)} · '
-                f'day <b>{day}</b> of {season.LENGTH_NIGHTS} · the next season begins '
-                f'<b>{nxt}</b></p><div class="bar" role="progressbar" aria-valuenow="{day}" '
+    try:                                   # the ledger's last night, not the ladder history
+        over = date.fromisoformat(rec.get("date", "")) >= season.ENDS
+    except (TypeError, ValueError):
+        over = False
+    status = (f'{e(season.NAME)} has passed its scheduled {season.LENGTH_NIGHTS} nights · '
+              'the next season has not started yet' if over else
+              f'{e(season.NAME)} · day <b>{day}</b> of {season.LENGTH_NIGHTS} · the next season '
+              f'begins <b>{nxt}</b>')
+    body.append(f'<section class="section"><p class="season" style="margin:0">{status}'
+                f'</p><div class="bar" role="progressbar" aria-valuenow="{day}" '
                 f'aria-valuemin="0" aria-valuemax="{season.LENGTH_NIGHTS}" aria-label="Season '
                 f'progress"><i style="width:{pct:.1f}%"></i></div></section></div>')
     (site / "index.html").write_text(page("The arena", "\n".join(body), current="home"))

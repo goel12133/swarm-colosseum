@@ -51,6 +51,24 @@ def test_the_home_page_says_submissions_are_not_open_yet(tmp_path):
     assert "outside submissions · not open yet" in home and "open 24 Oct" not in home
 
 
+def test_the_home_page_names_no_passed_start_date_once_the_season_is_over(tmp_path):
+    import json
+    from datetime import timedelta
+    from colosseum import season, site
+    from colosseum.tournament import run_tournament
+    out = tmp_path / "out"
+    run_tournament(seeds=1, out=out, write_replays=False, quiet=True, workers=1)
+    for last, over in ((season.ENDS + timedelta(days=1), True),
+                       (season.ENDS - timedelta(days=1), False)):
+        rec = {"date": last.isoformat(), "status": "ok", "house_positions": {}}
+        (out / "nights.jsonl").write_text(json.dumps(rec) + "\n")
+        dest = tmp_path / f"site-{last}"
+        site.build(dest, out, seasons=tmp_path / "no-seasons", research=tmp_path / "no-research")
+        home = (dest / "index.html").read_text()
+        assert ("the next season begins" not in home) == over, last
+        assert ("has not started yet" in home) == over, last
+
+
 def test_citation_readme_and_summary_point_at_the_site_and_repo():
     for f in ("CITATION.cff", "README.md", "research/00_summary.md"):
         text = (ROOT / f).read_text()
