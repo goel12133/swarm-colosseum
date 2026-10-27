@@ -389,7 +389,10 @@ def recap(rec: dict, hist: list, night: int = None) -> str:
     if not rec or not hist:
         return "No night has run yet."
     lb = hist[-1][1]
-    parts = [f"Night {len(hist) if night is None else night} ({e(rec['date'])})."]
+    snap, date = hist[-1][0], rec.get("date")
+    stale = bool(snap and date and str(date) > str(snap))   # no tournament that night
+    parts = ([f"Night of {e(date)}."] if stale else
+             [f"Night {len(hist) if night is None else night} ({e(rec['date'])})."])
     wrote = []
     for name, pos in sorted((rec.get("house_positions") or {}).items()):
         target = target_name(pos.get("target"))
@@ -403,7 +406,10 @@ def recap(rec: dict, hist: list, night: int = None) -> str:
         parts.append("The league wrote " + " and ".join(wrote) + ".")
     elif rec.get("status") == "ok":
         parts.append("The league wrote no new bot.")
-    for role, word in (("attackers", "attacker"), ("defenders", "defender")):
+    if stale:
+        parts.append(f"No new bot passed validation, so no tournament ran; the ladders below "
+                     f"are still those of {e(snap)}.")
+    for role, word in (("attackers", "attacker"), ("defenders", "defender")) if not stale else ():
         top = lb[role][0]["name"]
         prev = hist[-2][1][role][0]["name"] if len(hist) > 1 else None
         n = held_for(hist, role)

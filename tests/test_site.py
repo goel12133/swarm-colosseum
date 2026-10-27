@@ -317,6 +317,15 @@ def test_the_recap_is_read_from_the_ledger():
     assert "20 matches" in text and "4 of" in text
 
 
+def test_the_recap_of_a_night_without_a_tournament_names_the_last_snapshot():
+    lb = lambda a, d: {"attackers": [dict(name=a, mean_cer=1)], "defenders": [dict(name=d, mean_cer=.5)]}
+    hist = [("2026-10-01", lb("x", "y")), ("2026-10-02", lb("z", "y"))]
+    rec = {"date": "2026-10-04", "status": "ok", "house_positions": None, "cache": None}
+    text = site.recap(rec, hist)
+    assert "Night of 2026-10-04" in text and "still those of 2026-10-02" in text
+    assert "took the top" not in text and "Night 2" not in text
+
+
 def test_the_season_day_is_the_calendar_day_of_the_last_night(tmp_path):
     out = tmp_path / "out"
     run_tournament(seeds=1, out=out, write_replays=False, quiet=True, workers=1)
