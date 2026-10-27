@@ -406,9 +406,11 @@ def recap(rec: dict, hist: list, night: int = None) -> str:
         parts.append("The league wrote " + " and ".join(wrote) + ".")
     elif rec.get("status") == "ok":
         parts.append("The league wrote no new bot.")
-    if stale:
+    if stale and rec.get("status") == "ok":
         parts.append(f"No new bot passed validation, so no tournament ran; the ladders below "
                      f"are still those of {e(snap)}.")
+    elif stale:
+        parts.append(f"The night didn't complete; the ladders below are still those of {e(snap)}.")
     for role, word in (("attackers", "attacker"), ("defenders", "defender")) if not stale else ():
         top = lb[role][0]["name"]
         prev = hist[-2][1][role][0]["name"] if len(hist) > 1 else None

@@ -324,6 +324,9 @@ def test_the_recap_of_a_night_without_a_tournament_names_the_last_snapshot():
     text = site.recap(rec, hist)
     assert "Night of 2026-10-04" in text and "still those of 2026-10-02" in text
     assert "took the top" not in text and "Night 2" not in text
+    failed = site.recap({"date": "2026-10-04", "status": "error", "reason": "boom"}, hist)
+    assert "still those of 2026-10-02" in failed and "didn't complete" in failed
+    assert "passed validation" not in failed and "took the top" not in failed
 
 
 def test_the_season_day_is_the_calendar_day_of_the_last_night(tmp_path):
