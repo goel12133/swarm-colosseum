@@ -347,8 +347,13 @@ def test_the_home_page_does_not_call_an_older_snapshot_last_night(tmp_path):
     assert "night of 2026-10-02" in later and "on the 2026-10-02 ladder" in later
     assert "Replays of last night" not in later
     assert "last night&#x27;s ladder" not in later and "last night's ladder" not in later
+    replays = (dest / "replays.html").read_text()
+    assert "round robin of 2026-10-02" in replays and "from last night" not in replays
+    assert "last night's round robin" not in replays
     same = home("2026-10-02")
     assert "Replays of last night" in same and "last night&#x27;s ladder" in same
+    replays = (dest / "replays.html").read_text()
+    assert "from last night" in replays and "round robin of 2026-10-02" not in replays
 
 
 def test_the_season_day_is_the_calendar_day_of_the_last_night(tmp_path):

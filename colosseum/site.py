@@ -687,7 +687,7 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
     for role in ("attackers", "defenders"):
         for r in lb[role]:
             write_bot_page(site, r, role, matrix, metas, full, rank, firsts)
-    write_replays_index(site, current, metas, full)
+    write_replays_index(site, current, metas, full, rec, hist)
     write_changelog(site, recs, hist)
     write_submit(site)
     (site / "about.html").write_text(page("About", '<div class="read">' + md_to_html(
@@ -831,7 +831,9 @@ def write_replay_page(site: Path, stem: str, m: dict, rank: dict):
         page(f"{display(a)} v {display(d)}", body, 1, current="replays"))
 
 
-def write_replays_index(site, current, metas, full):
+def write_replays_index(site, current, metas, full, rec, hist):
+    snap = hist[-1][0] if hist else None
+    stale = bool(snap and rec.get("date") and str(rec["date"]) > str(snap))
     items = []
     for p in current:
         m = metas[p.stem]
@@ -843,8 +845,10 @@ def write_replays_index(site, current, metas, full):
                      f'{e(m["outcome"])} · {m["ticks"]} ticks · {kind} · <a href="replays/data/'
                      f'{e(slugify(p.stem))}.json.gz">data</a></span></li>')
     body = ('<div class="wrap">' + page_head(
-        "Replays", f"{len(current):,} matches from last night's round robin. The "
-        f"{len(full):,} first played this week or last, and each bot's best and worst, have "
+        "Replays", (f"{len(current):,} matches from the round robin of {e(snap)}, the last "
+                    "night with a tournament. The " if stale else
+                    f"{len(current):,} matches from last night's round robin. The ")
+        + f"{len(full):,} first played this week or last, and each bot's best and worst, have "
         "their own page; the rest open in the same viewer, which loads the match when you ask "
         "for it. <b>data</b> is the replay itself (gzipped JSON; <code>python -m "
         "colosseum.replay_pack unpack</code> turns it back into the full replay).")
