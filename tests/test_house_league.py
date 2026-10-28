@@ -371,6 +371,26 @@ def test_a_rotation_night_between_failed_escalations_does_not_reset_the_stall():
     assert plan == [("attacker", "counter_meta", "d_top", "escalation")] * 2
 
 
+def test_a_night_without_a_tournament_moves_the_rotation_on():
+    """10-27 and 10-28 ran no tournament and got the identical plan: the index counted
+    snapshots only. A no-tournament ledger night must now advance the rotation."""
+    ctx = toy_ctx()
+    snapshots = 5
+    ledger = [{"date": f"2026-10-{d:02d}", "tournament_seconds": 60.0 + d} for d in range(1, 6)]
+    assert P.rotation_nights(snapshots, ledger) == snapshots
+    base = P.rotation_nights(snapshots, ledger)
+    ledger.append({"date": "2026-10-27", "tournament_seconds": None})
+    first = P.rotation_nights(snapshots, ledger)
+    ledger.append({"date": "2026-10-28", "tournament_seconds": None})
+    second = P.rotation_nights(snapshots, ledger)
+    assert (first, second) == (base + 1, base + 2)
+    for role in ("attacker", "defender"):
+        before = P.choose(role, ctx, base)
+        assert P.choose(role, ctx, first) != before
+        assert P.choose(role, ctx, second) != before
+        assert P.choose(role, ctx, first) != P.choose(role, ctx, second)
+
+
 def test_only_one_side_can_be_unbeaten_on_a_night():
     import itertools
     import random as _r

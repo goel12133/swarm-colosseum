@@ -677,9 +677,10 @@ def _run_night(caps, dry_run, out, seeds, phases) -> dict:
     log(f"night {when} starting: {caps.describe()} dry_run={dry_run}")
 
     ctx = gather_context(out)
-    nights = len(load_history()["nights"])
-    recent = ([json.loads(l) for l in NIGHTS.read_text().splitlines() if l.strip()][-7:]
+    ledger = ([json.loads(l) for l in NIGHTS.read_text().splitlines() if l.strip()]
               if NIGHTS.exists() else [])
+    nights = personas.rotation_nights(len(load_history()["nights"]), ledger)
+    recent = ledger[-7:]
     try:
         last_two = last_matrices(out, 2)
         plan = personas.plan_night(ctx, nights, last_two,

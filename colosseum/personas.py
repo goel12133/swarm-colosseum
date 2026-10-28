@@ -82,6 +82,13 @@ def target_for(persona, role, ctx):
     return max(worst, key=worst.get)
 
 
+def rotation_nights(snapshots: int, ledger) -> int:
+    """The rotation index: snapshot nights plus ledger nights that ran no tournament
+    (tournament_seconds None). A night with no surviving bot writes no snapshot, so
+    counting snapshots alone would hand the next night the identical plan."""
+    return snapshots + sum(1 for r in ledger if r.get("tournament_seconds") is None)
+
+
 def choose(role, ctx, nights: int, override: str = "") -> str:
     wanted = dict(kv.strip().split("=", 1) for kv in override.split(",") if "=" in kv)
     if wanted.get(role):
