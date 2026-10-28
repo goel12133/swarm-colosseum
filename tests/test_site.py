@@ -329,6 +329,28 @@ def test_the_recap_of_a_night_without_a_tournament_names_the_last_snapshot():
     assert "passed validation" not in failed and "took the top" not in failed
 
 
+def test_the_home_page_does_not_call_an_older_snapshot_last_night(tmp_path):
+    out = tmp_path / "out"
+    run_tournament(seeds=1, out=out, write_replays=True, quiet=True, workers=1)
+    (out / "history" / "2026-10-02").mkdir(parents=True)
+    (out / "history" / "2026-10-02" / "leaderboard.json").write_text(
+        (out / "leaderboard.json").read_text())
+    dest = tmp_path / "site"
+
+    def home(day):
+        (out / "nights.jsonl").write_text(json.dumps(
+            {"date": day, "status": "ok", "house_positions": {}}) + "\n")
+        site.build(dest, out, seasons=tmp_path / "no-seasons", research=tmp_path / "no-research")
+        return (dest / "index.html").read_text()
+
+    later = home("2026-10-04")
+    assert "night of 2026-10-02" in later and "on the 2026-10-02 ladder" in later
+    assert "Replays of last night" not in later
+    assert "last night&#x27;s ladder" not in later and "last night's ladder" not in later
+    same = home("2026-10-02")
+    assert "Replays of last night" in same and "last night&#x27;s ladder" in same
+
+
 def test_the_season_day_is_the_calendar_day_of_the_last_night(tmp_path):
     out = tmp_path / "out"
     run_tournament(seeds=1, out=out, write_replays=False, quiet=True, workers=1)

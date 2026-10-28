@@ -703,13 +703,18 @@ def build(site: Path = SITE, out: Path = DEFAULT_OUT, library: Path = None,
 def write_home(site, lb, moves, firsts, rec, recs, hist, papers, ch, live, season):
     night = nights_run(recs, hist)
     first_item = ch["items"][0] if ch["items"] else None
+    snap = hist[-1][0] if hist else None
+    stale = bool(snap and rec.get("date") and str(rec["date"]) > str(snap))
     if first_item:
         frame = ('<iframe class="viewer" src="replays/viewer.html?mode=broadcast&amp;'
                  'channel=channel.json" title="Replay channel: last night\'s featured '
                  'matches"></iframe>')
         has_page = (site / "replays" / first_item["page"]).exists()
-        line = ('<p class="stage-line t3">Replays of last night\'s matches, not a live feed: '
-                'every match was played in the sandbox at 03:30 UTC.'
+        line = ('<p class="stage-line t3">'
+                + (f'Replays from the night of {e(snap)}, the last night with a tournament, '
+                   'not a live feed: ' if stale else
+                   'Replays of last night\'s matches, not a live feed: ')
+                + 'every match was played in the sandbox at 03:30 UTC.'
                 + (f' <a href="replays/{e(first_item["page"])}">Watch with controls →</a>'
                    if has_page else "") + "</p>")
     else:
@@ -724,7 +729,7 @@ def write_home(site, lb, moves, firsts, rec, recs, hist, papers, ch, live, seaso
                     for _ in (ROOT / "bots" / "submitted" / d).glob("*.py"))
     day = (date.fromisoformat(hist[-1][0]) - season.FIRST_NIGHT).days + 1 if hist else 0
     day = max(0, min(day, season.LENGTH_NIGHTS))
-    nums = [("ladders.html", f"{lb.get('matches', 0):,}", "matches on last night's ladder"),
+    nums = [("ladders.html", f"{lb.get('matches', 0):,}", f"matches on the {snap} ladder" if stale else "matches on last night's ladder"),
             ("ladders.html", f"{len(live)}", "bots in the arena"),
             ("changelog.html", f"{night}", "nights run"),
             ("research.html", f"{beat_their_target(recs)}",
