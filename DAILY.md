@@ -1,14 +1,8 @@
-# Loop session 2026-10-28 09:00 UTC
+# Loop session 2026-10-28 12:00 UTC
 
-**Status:** merged — 4 commit(s) fast-forwarded onto master
-**Signal:** 5 (it runs itself). The season boundary is still stuck, and the founder's item for it is out of date. Last night, 2026-10-28, finished with status ok at 03:32:25 (`out/nights.jsonl` line 31). That makes it the second night in a row on season-one rules after 2026-10-27 (line 30), and each such night breaks hard rule 4 again. FOUNDER_TODO.md still asks for the fix "before 03:30 UTC on 2026-10-28", a deadline that has passed. Its lines 26 and 115 say health "now" reads `BAD alert`, but health reads `ok alert none`, because the 10-28 night cleared the alert. We'll know it worked when these checks pass:
-**Reviewer:** PASS
-**Tokens:** 55,049 (cap 200,000); **time:** 5169 s; exit 0
-
-**Merged:**
-- cd1da07 Signal 5: FOUNDER_TODO.md 'no code block' item drops the comparison to other nights; identical-plan sentence now says 'Because the same prompts were rejected on two consecutive nights, a one-off failure is unlikely for these two pairings.'; 10-27 input-token citation corrected from .loop/context.md:77-84 (the 10-28 calls) to .loop/context.md:63-71 (the 10-27 calls, confirmed by reading lines 61-86); full suite 418 passed, exit 0
-- 2d63594 Signal 5: FOUNDER_TODO.md 'no code block' item, identical-plan sentence now cites both nights (league log 2026-10-27T03:30:03-03:34:49, .loop/context.md:63-71, and 2026-10-28T03:30:02-03:32:25, .loop/context.md:74-86) and says 'Among the nights whose plan is in the league log, this is the only pairing rejected on consecutive nights with an unchanged prompt' instead of 'the first pairing'; full suite 418 passed, exit 0
-- 8e3c0d8 Signal 5: FOUNDER_TODO.md 'no code block' item adds the 2026-10-28 night (out/nights.jsonl line 31): title says 10-27 and 10-28 both rejected; Why bullet recounted with grep to 20 rejections on 17 lines (10-12, 10-27, 10-28 both sides) out of 60 calls (1 on lines 1-2, 2 on lines 3-31; 31 lines, 30 nights), 12 known reply lengths 118-611 chars, plus the identical-plan sentence (contrarian vs convergent_deadline_packer 13,716 chars, exploiter vs blast_isolated_synchronized_rel 7,060 chars, all four rejected, league log 03:30:02-03:32:25); two table rows (495 and 337 chars, paths from .loop/context.md:79,83); personas 12 known (5 counter_meta, 4 contrarian, 1 generalist, 2 exploiter); input tokens 12,453/13,716 = 0.91 (6,968 out) and 6,965/7,060 = 0.99 (4,499 out), plus the 10-29 rotation sentence; checks: grep -n 2026-10-28 finds lines 217, 244, 245, 263 in the item, grep -c '18 house-bot' is 0, full suite 418 passed, exit 0
-- 7cd4d40 Signal 5: FOUNDER_TODO.md boundary item refreshed for the 2026-10-28 night (out/nights.jsonl line 31, ok, finished 2026-10-28T03:32:25+00:00, season.py:9 NUMBER = 1); title now says 10-26 skipped and 10-27 and 10-28 ran on season-one rules, deadline before 03:30 UTC on 2026-10-29; health claims corrected to 'ok alert none' (the 10-27T09 crash alert was cleared by the 10-28 ok night, house_league.py:656-662) in the boundary and crash items; step 1 adds the 2026-10-28 cron log grep, step 5 asks about lines 30 and 31 with no default; checks: grep for the old deadline finds nothing, grep 'line 31' finds lines 25 and 119, grep -c 'shows now' is 0, full suite 418 passed, exit 0
+**Status:** nothing — no commits
+**Signal:** none
+**Reviewer:** did not run
+**Tokens:** 11,355 (cap 200,000); **time:** 447 s; exit 0
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
