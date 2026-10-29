@@ -1,11 +1,8 @@
-# Loop session 2026-10-29 00:00 UTC
+# Loop session 2026-10-29 06:00 UTC
 
-**Status:** merged — 1 commit(s) fast-forwarded onto master
-**Signal:** 5 (it runs itself). The founder's health check is the night's incident detector, and it says `ok boundary done (seasons/S1 exists)` even though the boundary never ran. Three nights (10-26 skipped, 10-27 and 10-28 run) went by on season-one rules while health stayed green. We'll know the fix works when tomorrow's health reads `BAD boundary` until a real boundary commit exists, and when the new test passes in a full green suite.
-**Reviewer:** PASS
-**Tokens:** 30,195 (cap 200,000); **time:** 1106 s; exit 0
-
-**Merged:**
-- 4c35ce1 health: boundary is done only when seasons/S{N} holds committed files (signal 5)
+**Status:** dirty — uncommitted changes left: ['DECISIONS.local.md', 'FOUNDER_TODO.md']
+**Signal:** 5 (it runs itself), with a rule-8 correction that also serves 4. The 2026-10-29 night broke two predictions in FOUNDER_TODO.md, and the boundary item's deadline has passed. We'll know it worked when FOUNDER_TODO.md's two items match last night's league log and `out/nights.jsonl` line 32, a grep for "before 03:30 UTC on 2026-10-29" finds nothing, and the full suite is green (exit code checked directly, not through a pipe).
+**Reviewer:** BLOCK
+**Tokens:** 28,102 (cap 200,000); **time:** 1449 s; exit 0
 
 Founder items: FOUNDER_TODO.md. Every session: out/daily/sessions.jsonl.
