@@ -403,5 +403,11 @@ def test_health_boundary_reports_a_clean_or_conflicting_next_season(tmp_path):
     g("commit", "-q", "-am", "clash")
     ok, detail = health.check_boundary(r)
     assert not ok and "f.txt" in detail
-    boundary.archive(r).mkdir(parents=True)
+    (boundary.archive(r) / "meta").mkdir(parents=True)
+    (boundary.archive(r) / "meta" / "SEASON_1_clip.gif").write_bytes(b"GIF89a")
+    ok, detail = health.check_boundary(r)
+    assert ok is False and "no committed files" in detail
+    (boundary.archive(r) / "README.md").write_text("season one\n")
+    rel = boundary.archive(r).relative_to(r).as_posix()
+    g("add", f"{rel}/README.md"); g("commit", "-q", "-m", "boundary")
     assert health.check_boundary(r)[0] is True

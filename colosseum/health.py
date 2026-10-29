@@ -98,7 +98,12 @@ def check_boundary(root: Path = None):
     from . import boundary
     root = root or boundary.ROOT
     if boundary.archive(root).exists():
-        return True, f"done ({boundary.archive(root).relative_to(root)} exists)"
+        rel = boundary.archive(root).relative_to(root).as_posix()
+        tracked = _run(["git", "-C", str(root), "ls-files", "--", rel])
+        if tracked.returncode == 0 and tracked.stdout.strip():
+            return True, f"done ({rel} is committed)"
+        return False, (f"{rel} exists but holds no committed files: leftovers from a failed "
+                       "boundary run, so the boundary has not happened")
     if _run(["git", "-C", str(root), "rev-parse", "--verify", "-q",
              boundary.NEXT_BRANCH]).returncode:
         return False, f"branch {boundary.NEXT_BRANCH} is missing"
