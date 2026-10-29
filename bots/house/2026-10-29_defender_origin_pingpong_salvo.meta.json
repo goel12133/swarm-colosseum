@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-10-29",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 1500,
+    "dropped": [],
+    "included": [
+      "lopsided",
+      "target_doc"
+    ],
+    "used": 906
+  },
+  "model": "opus",
+  "name": "2026-10-29_defender_origin_pingpong_salvo",
+  "persona": "exploiter",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-29T034113_cli_defender_exploiter.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.674,
+    "rank": 7,
+    "score_vs_target": 0.871
+  },
+  "role": "defender",
+  "target": "2026-10-09_attacker_attacker_blast_isolated_synchronized_rel",
+  "tokens": {
+    "input": 3448,
+    "output": 23632
+  }
+}
