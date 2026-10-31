@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-root=""><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>About · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="index.html">Swarm Colosseum</a>
+<a class="live" href="index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="index.html">Arena</a><a href="ladders.html">Ladders</a><a href="replays.html">Replays</a><a href="research.html" class=wide>Research</a><a href="library/index.html" class=wide>Library</a><a href="changelog.html" class=wide>Changelog</a><a href="seasons.html" class=wide>Seasons</a><a href="about.html" aria-current="page" class=wide>About</a><a href="submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="research.html">Research</a><a href="library/index.html">Library</a><a href="changelog.html">Changelog</a><a href="seasons.html">Seasons</a><a href="about.html" aria-current="page">About</a></div></details></nav>
+</div></header><main id="main"><div class="read"><h1>About Swarm Colosseum</h1>
+<h2>What this is</h2>
+<p>Swarm Colosseum is a strategy game played by computer programs. One side, the <strong>attacker</strong>, sends a swarm of small drones at something in the middle of the map. The other side, the <strong>defender</strong>, tries to protect it. Both sides are short Python programs called <strong>bots</strong>. Nobody steers anything by hand: each bot looks at the map every turn and decides what to do on its own.</p>
+<p>Every night every attacker plays every defender, and the results go on two ladders, one per side. Swarm Colosseum is built by Pelennor.</p>
+<h2>Why it exists</h2>
+<p>Some games are interesting because there is no single best move, only moves that are good against what the other side is doing. This is one of them. Sending everything at once beats some defenders and loses badly to others. Holding fire looks wasteful until it suddenly isn't.</p>
+<p>We want to find out which ideas actually work, and keep a record of them. That record is the <strong>tactic library</strong>: one page per idea that earned a place, with what it beats, what beats it, and the code. Some of the bots are written by people, and many are written every night by an AI model that reads the ladder and tries to beat the current leaders. Seeing what the AI comes up with, and what people come up with, is part of the experiment.</p>
+<h2>How a match works</h2>
+<ul><li>The map is a flat, empty square. In the middle is the <strong>asset</strong>, with <strong>30 HP</strong>.</li><li>The attacker has <strong>60 credits</strong> to spend. A <strong>striker</strong> costs 2 and does 10 damage if it reaches the asset. A <strong>decoy</strong> costs 0.5 and does no damage. Both fly at the same speed and look the same on radar until they get close, so the defender has to guess.</li><li>The defender has <strong>20 interceptors</strong> (fast, they explode near a drone), a short-range <strong>gun</strong> with 120 rounds, and a <strong>radar</strong> that sees far but can only tell a striker from a decoy inside 150 u.</li><li>Time moves in <strong>ticks</strong>. On each tick both bots see the map and answer with their moves. A match lasts at most <strong>600 ticks</strong>.</li><li>The attacker wins a match if enough strikers get through to bring the asset down to 0 HP (we call that a <strong>breach</strong>; three strikers do it). The defender wins if the asset still has any HP left when the match ends.</li><li>The defender is also scored on <strong>cost</strong>. An interceptor costs 4 credits. Spending one on a 0.5-credit decoy is a bad trade, even if it hits.</li></ul>
+<p>The same two bots with the same <strong>seed</strong> (a number that fixes the random parts, like whether an interceptor hits) always play exactly the same match. So any result can be checked by anyone, and every match is saved as a <strong>replay</strong> you can watch.</p>
+<h2>How to read the ladder</h2>
+<p>Each side has its own ladder, best at the top.</p>
+<ul><li><strong>Elo</strong> is the rating. Everyone starts at 1000. Beat a strong bot and you go up a lot; lose to a weak one and you go down a lot. Only the order matters, not the exact number.</li><li><strong>Wins</strong> is how often the bot won its matches in the latest tournament.</li><li><strong>Mean score</strong> is the average match score, from 0 to 1. A defender's score counts both how much of the asset survived and whether it spent less than it shot down, so a defender can win the match and still score badly by wasting interceptors.</li><li>The tag after the name says where the bot came from: <strong>baseline</strong> (hand-written by us, to anchor the ladder), <strong>house</strong> (written by the AI league), or <strong>submitted</strong> (sent in by someone).</li></ul>
+<p>Click a bot's name to see what it says it does, how it does against every opponent, and links to its matches.</p>
+<h2>How to submit</h2>
+<p>Not yet. The sandbox review planned for 2026-10-24 has not happened, and submissions open only after it passes; this page will give the new date once it does. When they open, you will write one Python file with a function called <code>act</code> that gets the map and returns your moves. The <a href="submitting.html">Submit a bot</a> page already explains the whole thing, including a complete first bot you can copy, so you can get one ready now and test it on your own computer.</p>
+<h2>Abstract only, and why</h2>
+<p>A swarm attacking something sounds military, and we won't pretend it doesn't. So here is the rule we hold ourselves to: <strong>everything in the game is made up.</strong> Distances are in <code>u</code>, time in <code>ticks</code>, money in <code>credits</code>. No real weapons, vehicles, places, armies or companies appear anywhere, in the code, the bots, the reports or this site, and nothing in it comes from secret or private information.</p>
+<p>The numbers were chosen to make a good game, not to copy anything real. A tactic that works here works in this game; we make no claim that it says anything about the real world, and you shouldn't read it that way. Think of it like chess: the pieces are called knights and bishops, but nobody learns to fight from playing it.</p>
+<p>If a bot written by the AI ever mentions a real system, it is thrown out and never published.</p></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="site.js" defer></script></body></html>

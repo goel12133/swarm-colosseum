@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>birth_cohort_lull_splitter · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head def"><span class="side-tag def">Defender</span><h1>birth_cohort_lull_splitter</h1><div class="meta"><span>rank <b class="def">#14</b></span><span>Elo 1034</span><span class="t3">house league, persona contrarian</span><span class="t3">2026-10-25_defender_birth_cohort_lull_splitter</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Idea: Sort radar tracks into birth cohorts by the tick each was first seen, split at quiet gaps, and fire long-range interceptors at every unknown track born after a lull while ignoring the earliest cohort until radar reveals its type.</p>
+<p>Swarm Colosseum is an abstract game. Everything here is made-up units.</p>
+<p>Why this is not the obvious counter ----------------------------------- There are two obvious answers to bait_count_then_clear_sky_wave: (a) "never fire at unknowns, wait for the id_range reveal", or (b) "keep interceptors airborne so the attacker never sees a clear sky". Option (a) gives up range. A striker identified at 150 is about 31 ticks from impact, so every engagement gets squeezed into the last moments. Option (b) burns the magazine and the lifetime clock. That is exactly what the bait is designed to make us do.</p>
+<p>This bot does neither. It fires at unknowns, and it fires early, at long range. But it chooses its targets by when they were born, not by what they look like. Any attacker that baits first and then waits must leave a quiet gap in its launch stream, because that gap is the whole point of the bait. The first cohort (the bait) gets no interceptors at all, only classification-gated fire. Every cohort born after a lull is presumed to be the real wave. It gets interceptors at roughly 300+ range, two per tick, starting the moment those tracks appear. That leaves time to retarget, double-cover the close-in leakers, and still have the gun for the end.</p>
+<p>Safety nets ----------- Any track the radar reveals as a striker is engaged no matter its cohort. Interceptors whose target turns out to be a decoy, or whose target has vanished, are retargeted to the nearest uncovered threat. The gun never shoots revealed decoys.</p></div>
+<div class="stats4"><div><span class="v">70.5%</span><span class="label">win rate</span></div><div><span class="v">0.62</span><span class="label">cost exchange</span></div><div><span class="v">200</span><span class="label">matches</span></div><div><span class="v">night 27</span><span class="label">first night (2026-10-25)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-28_attacker_staggered_screen_trickle.html" class="att">staggered_screen_trickle</a><span>10–0</span></li><li><a href="2026-10-06_attacker_parked_ring_magazine_drain.html" class="att">parked_ring_magazine_drain</a><span>10–0</span></li><li><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html" class="att">staggered_trishell_blast_denial</a><span>10–0</span></li><li><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html" class="att">attacker_blast_isolated_synchronized_rel</a><span>10–0</span></li><li><a href="2026-10-10_attacker_shadow_pair_ring.html" class="att">shadow_pair_ring</a><span>10–0</span></li><li><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html" class="att">2026_10_15_attacker_dark_ring_release</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-29_attacker_synchronized_ring.html" class="att">synchronized_ring</a><span>0–10</span></li><li><a href="2026-10-04_attacker_interleaved_shell_ring.html" class="att">interleaved_shell_ring</a><span>0–10</span></li><li><a href="2026-10-11_attacker_blast_proof_depth_interleave.html" class="att">blast_proof_depth_interleave</a><span>0–10</span></li><li><a href="2026-09-30_attacker_phase_locked_ring.html" class="att">phase_locked_ring</a><span>1–9</span></li><li><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html" class="att">hidden_orbit_screen_then_interleaved_dro</a><span>2–8</span></li><li><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html" class="att">bait_count_then_clear_sky_wave</a><span>2–8</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/rush__2026-10-25_defender_birth_cohort_lull_splitter__s9.json.gz&amp;ar=20&amp;dr=14" title="Best match: birth_cohort_lull_splitter v rush" loading="lazy"></iframe><figcaption>vs <span class="att">rush</span> · its score 0.771 · seed 9 · <a href="../replays/rush__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-25_defender_birth_cohort_lull_splitter__s2.json.gz&amp;ar=5&amp;dr=14" title="Worst match: birth_cohort_lull_splitter v blast_proof_depth_interleave" loading="lazy"></iframe><figcaption>vs <span class="att">blast_proof_depth_interleave</span> · its score 0.102 · seed 2 · <a href="../replays/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-25_defender_birth_cohort_lull_splitter__s2.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="2026-10-29_attacker_cluster_bait_bloom.html">cluster_bait_bloom</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="rush.html">rush</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="flanker.html">flanker</a></td><td class="num">0.770</td></tr><tr><td class="name"><a href="2026-10-06_attacker_parked_ring_magazine_drain.html">parked_ring_magazine_drain</a></td><td class="num">0.769</td></tr><tr><td class="name"><a href="decoy_screen.html">decoy_screen</a></td><td class="num">0.766</td></tr><tr><td class="name"><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html">attacker_blast_isolated_synchronized_rel</a></td><td class="num">0.758</td></tr><tr><td class="name"><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">2026_10_15_attacker_dark_ring_release</a></td><td class="num">0.749</td></tr><tr><td class="name"><a href="trickle.html">trickle</a></td><td class="num">0.744</td></tr><tr><td class="name"><a href="2026-10-10_attacker_shadow_pair_ring.html">shadow_pair_ring</a></td><td class="num">0.742</td></tr><tr><td class="name"><a href="2026-09-28_attacker_staggered_screen_trickle.html">staggered_screen_trickle</a></td><td class="num">0.730</td></tr><tr><td class="name"><a href="multi_axis.html">multi_axis</a></td><td class="num">0.702</td></tr><tr><td class="name"><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html">staggered_trishell_blast_denial</a></td><td class="num">0.645</td></tr><tr><td class="name"><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html">column_free_tiered_ring_dive</a></td><td class="num">0.600</td></tr><tr><td class="name"><a href="2026-10-03_attacker_depth_shell_saturation.html">depth_shell_saturation</a></td><td class="num">0.503</td></tr><tr><td class="name"><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html">bait_count_then_clear_sky_wave</a></td><td class="num">0.198</td></tr><tr><td class="name"><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html">hidden_orbit_screen_then_interleaved_dro</a></td><td class="num">0.197</td></tr><tr><td class="name"><a href="2026-09-30_attacker_phase_locked_ring.html">phase_locked_ring</a></td><td class="num">0.157</td></tr><tr><td class="name"><a href="2026-10-04_attacker_interleaved_shell_ring.html">interleaved_shell_ring</a></td><td class="num">0.138</td></tr><tr><td class="name"><a href="2026-09-29_attacker_synchronized_ring.html">synchronized_ring</a></td><td class="num">0.137</td></tr><tr><td class="name"><a href="2026-10-11_attacker_blast_proof_depth_interleave.html">blast_proof_depth_interleave</a></td><td class="num">0.123</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">staggered_screen_trickle</td><td class="num">9</td><td class="good">defended</td><td class="num">0.730</td><td><a href="../replays/2026-09-28_attacker_staggered_screen_trickle__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">synchronized_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.135</td><td><a href="../replays/2026-09-29_attacker_synchronized_ring__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">phase_locked_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.145</td><td><a href="../replays/2026-09-30_attacker_phase_locked_ring__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">depth_shell_saturation</td><td class="num">9</td><td class="good">defended</td><td class="num">0.767</td><td><a href="../replays/2026-10-03_attacker_depth_shell_saturation__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">interleaved_shell_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.154</td><td><a href="../replays/2026-10-04_attacker_interleaved_shell_ring__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">parked_ring_magazine_drain</td><td class="num">9</td><td class="good">defended</td><td class="num">0.769</td><td><a href="../replays/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">staggered_trishell_blast_denial</td><td class="num">9</td><td class="good">defended</td><td class="num">0.766</td><td><a href="../replays/2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">attacker_blast_isolated_synchronized_rel</td><td class="num">9</td><td class="good">defended</td><td class="num">0.758</td><td><a href="../replays/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">shadow_pair_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.742</td><td><a href="../replays/2026-10-10_attacker_shadow_pair_ring__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr><tr><td class="name">blast_proof_depth_interleave</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.107</td><td><a href="../replays/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-25_defender_birth_cohort_lull_splitter__s9.html">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-10-25_defender_birth_cohort_lull_splitter.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-10-25</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>escalation</th><td style="white-space:normal">False</td></tr><tr><th>evidence</th><td style="white-space:normal">budget: 3500, dropped: [], included: [&#x27;source&#x27;], used: 1469</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-10-25_defender_birth_cohort_lull_splitter</td></tr><tr><th>persona</th><td style="white-space:normal">contrarian</td></tr><tr><th>prompt_version</th><td style="white-space:normal">2026-10-03.1</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-10-25T033319_cli_defender_contrarian.md</td></tr><tr><th>result</th><td style="white-space:normal">beat_target: False, field_mean: 0.537, rank: 13, score_vs_target: 0.198</td></tr><tr><th>role</th><td style="white-space:normal">defender</td></tr><tr><th>target</th><td style="white-space:normal">2026-10-23_attacker_bait_count_then_clear_sky_wave</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 4237, output: 6566</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-10-25_defender_birth_cohort_lull_splitter.py</summary><pre><code>&quot;&quot;&quot;Idea: Sort radar tracks into birth cohorts by the tick each was first seen, split at quiet gaps, and fire long-range interceptors at every unknown track born after a lull while ignoring the earliest cohort until radar reveals its type.
+
+Swarm Colosseum is an abstract game. Everything here is made-up units.
+
+Why this is not the obvious counter
+-----------------------------------
+There are two obvious answers to bait_count_then_clear_sky_wave:
+  (a) &quot;never fire at unknowns, wait for the id_range reveal&quot;, or
+  (b) &quot;keep interceptors airborne so the attacker never sees a clear sky&quot;.
+Option (a) gives up range. A striker identified at 150 is about 31 ticks
+from impact, so every engagement gets squeezed into the last moments.
+Option (b) burns the magazine and the lifetime clock. That is exactly what
+the bait is designed to make us do.
+
+This bot does neither. It fires at unknowns, and it fires early, at long
+range. But it chooses its targets by when they were born, not by what
+they look like. Any attacker that baits first and then waits must leave a
+quiet gap in its launch stream, because that gap is the whole point of the
+bait. The first cohort (the bait) gets no interceptors at all, only
+classification-gated fire. Every cohort born after a lull is presumed to be
+the real wave. It gets interceptors at roughly 300+ range, two per tick,
+starting the moment those tracks appear. That leaves time to retarget,
+double-cover the close-in leakers, and still have the gun for the end.
+
+Safety nets
+-----------
+Any track the radar reveals as a striker is engaged no matter its cohort.
+Interceptors whose target turns out to be a decoy, or whose target has
+vanished, are retargeted to the nearest uncovered threat. The gun never
+shoots revealed decoys.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;birth_cohort_lull_splitter&quot;
+ROLE = &quot;defender&quot;
+
+_state = {}
+
+
+def reset(seed=0):
+    _state.clear()
+    _state.update({
+        &quot;first_seen&quot;: {},     # track id -&gt; first tick seen
+        &quot;cohort_of&quot;: {},      # track id -&gt; cohort index
+        &quot;cohort&quot;: 0,
+        &quot;last_birth&quot;: None,
+        &quot;known_decoy&quot;: set(),
+        &quot;known_striker&quot;: set(),
+    })
+
+
+reset(0)
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+
+
+def _rng(t):
+    r = t.get(&quot;range&quot;)
+    if r is None:
+        p = t.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+        r = math.hypot(p[0], p[1])
+    return float(r)
+
+
+def _act(obs):
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    inters = obs.get(&quot;interceptors&quot;, []) or []
+    stock = int(obs.get(&quot;stock&quot;, 0))
+    ammo = int(obs.get(&quot;ammo&quot;, 0))
+    per_tick = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    lull_gap = 15
+
+    fs = _state[&quot;first_seen&quot;]
+    co = _state[&quot;cohort_of&quot;]
+
+    # Birth bookkeeping: open a new cohort after a quiet gap in births.
+    new_ids = [t.get(&quot;id&quot;) for t in tracks if t.get(&quot;id&quot;) not in fs]
+    if new_ids:
+        lb = _state[&quot;last_birth&quot;]
+        if lb is not None and tick - lb &gt;= lull_gap:
+            _state[&quot;cohort&quot;] += 1
+        _state[&quot;last_birth&quot;] = tick
+        for tid in new_ids:
+            fs[tid] = tick
+            co[tid] = _state[&quot;cohort&quot;]
+
+    # Remember revealed types (they persist even if cls flickers).
+    for t in tracks:
+        c = t.get(&quot;cls&quot;)
+        tid = t.get(&quot;id&quot;)
+        if c == &quot;decoy&quot;:
+            _state[&quot;known_decoy&quot;].add(tid)
+        elif c == &quot;striker&quot;:
+            _state[&quot;known_striker&quot;].add(tid)
+
+    by_id = {t.get(&quot;id&quot;): t for t in tracks}
+
+    def kind(tid):
+        if tid in _state[&quot;known_striker&quot;]:
+            return &quot;striker&quot;
+        if tid in _state[&quot;known_decoy&quot;]:
+            return &quot;decoy&quot;
+        return &quot;unknown&quot;
+
+    def is_threat(tid):
+        k = kind(tid)
+        if k == &quot;striker&quot;:
+            return True
+        if k == &quot;decoy&quot;:
+            return False
+        return co.get(tid, 0) &gt;= 1
+
+    threats = [t for t in tracks if is_threat(t.get(&quot;id&quot;))]
+    threats.sort(key=_rng)
+
+    # Count current coverage per target.
+    cover = {}
+    valid_inters = []
+    for it in inters:
+        tg = it.get(&quot;target&quot;)
+        if tg in by_id and is_threat(tg):
+            cover[tg] = cover.get(tg, 0) + 1
+            valid_inters.append(it)
+
+    # Retarget interceptors whose targets are gone or revealed as decoys.
+    retarget = {}
+    for it in inters:
+        tg = it.get(&quot;target&quot;)
+        if tg in by_id and is_threat(tg):
+            continue
+        ip = it.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+        best, bd = None, None
+        for t in threats:
+            tid = t.get(&quot;id&quot;)
+            if cover.get(tid, 0) &gt;= 1:
+                continue
+            p = t.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+            d = math.hypot(p[0] - ip[0], p[1] - ip[1])
+            if bd is None or d &lt; bd:
+                best, bd = tid, d
+        if best is None:
+            # Fall back to any revealed striker, even if it is already covered.
+            for t in threats:
+                if kind(t.get(&quot;id&quot;)) == &quot;striker&quot;:
+                    p = t.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+                    d = math.hypot(p[0] - ip[0], p[1] - ip[1])
+                    if bd is None or d &lt; bd:
+                        best, bd = t.get(&quot;id&quot;), d
+        if best is not None and best != tg:
+            retarget[it.get(&quot;id&quot;)] = best
+            cover[best] = cover.get(best, 0) + 1
+
+    # New launches.
+    intercept = []
+    reserve = 3
+    avail = stock
+    uncovered = [t for t in threats if cover.get(t.get(&quot;id&quot;), 0) == 0]
+    for t in uncovered:
+        if len(intercept) &gt;= per_tick or avail &lt;= 0:
+            break
+        tid = t.get(&quot;id&quot;)
+        if kind(tid) != &quot;striker&quot; and avail &lt;= reserve:
+            continue
+        intercept.append(tid)
+        cover[tid] = 1
+        avail -= 1
+
+    # Double cover close revealed strikers when the magazine is ample.
+    if len(intercept) &lt; per_tick and avail &gt; 0:
+        n_unc = sum(1 for t in threats if cover.get(t.get(&quot;id&quot;), 0) == 0)
+        for t in threats:
+            if len(intercept) &gt;= per_tick or avail &lt;= n_unc:
+                break
+            tid = t.get(&quot;id&quot;)
+            if (kind(tid) == &quot;striker&quot; and cover.get(tid, 0) == 1
+                    and _rng(t) &lt; 200.0 and tid not in intercept):
+                intercept.append(tid)
+                cover[tid] = 2
+                avail -= 1
+
+    # Gun: nearest revealed striker in range, else nearest non-decoy unknown.
+    gun = None
+    if ammo &gt; 0:
+        best, br = None, None
+        for t in tracks:
+            tid = t.get(&quot;id&quot;)
+            r = _rng(t)
+            if r &gt; gun_range or kind(tid) != &quot;striker&quot;:
+                continue
+            if br is None or r &lt; br:
+                best, br = tid, r
+        if best is None:
+            for t in tracks:
+                tid = t.get(&quot;id&quot;)
+                r = _rng(t)
+                if r &gt; gun_range or kind(tid) != &quot;unknown&quot;:
+                    continue
+                if br is None or r &lt; br:
+                    best, br = tid, r
+        gun = best
+
+    return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

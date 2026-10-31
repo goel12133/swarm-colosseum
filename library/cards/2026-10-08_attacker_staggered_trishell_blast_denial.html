@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>staggered_trishell_blast_denial · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-10-08_attacker_staggered_trishell_blast_denial.html">On the ladder now →</a></p>
+<h1>staggered_trishell_blast_denial</h1>
+<p><strong>attacker</strong> · family: Unsorted · persona: generalist · author: house league (model opus) · live</p>
+<p>File: 2026-10-08_attacker_staggered_trishell_blast_denial.py</p>
+<p><strong>The idea:</strong> Stage thirty strikers just outside radar range on three interleaved shells, each rotated 12 degrees and set 12 units deeper than the last, so no two strikers are ever inside one blast radius.</p>
+<h2>What it does</h2>
+<p>Slots. There are 30 slots in 3 shells of 10. Inside a shell the slots are 36 degrees apart. Shell k is rotated 12*k degrees and staged at radius 456 + 12*k. All three shells sit outside radar range (450), so the defender sees nothing during staging. Staging. Strikers launch 4 per tick on their slot bearings. Each one is steered to its slot and held there with a small tangential dither. Drones are matched to slots by angle each tick, so the bearing convention does not matter. Release. When every striker is on station (or at the tick-60 failsafe), every waypoint is cleared on the same tick. All strikers then fly straight in.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #5 attacker (2026-10-08).</li><li>In the top five on 4 of the 20 nights it played.</li><li>Written against: <strong>field</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-31.</p>
+<ul><li><strong>gun_only</strong>: breached in 10 of 10 seeds, mean score 0.68</li><li><strong>cluster_blast_column_breaker</strong>: breached in 7 of 10 seeds, mean score 0.73</li><li><strong>reveal_timed_prelaunch</strong>: breached in 6 of 10 seeds, mean score 0.74</li><li><strong>nearest_first</strong>: breached in 6 of 10 seeds, mean score 0.69</li><li><strong>layered</strong>: breached in 6 of 10 seeds, mean score 0.65</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>convergent_deadline_packer</strong>: breached in 0 of 10 seeds, mean score 0.23</li><li><strong>hover_bank_late_binder</strong>: breached in 0 of 10 seeds, mean score 0.27</li><li><strong>parked_hover_ring_doublecover</strong>: breached in 0 of 10 seeds, mean score 0.33</li><li><strong>birth_cohort_lull_splitter</strong>: breached in 0 of 10 seeds, mean score 0.36</li><li><strong>contracting_ring_blaster</strong>: breached in 0 of 10 seeds, mean score 0.36</li><li>… and 24 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>hover_bank_double_lattice</strong>, seed 3: breached in 124 ticks, its score 0.96. <a href="../../replays/2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-10_defender_hover_bank_double_lattice__s3.html">2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-10_defender_hover_bank_double_lattice__s3.json</a></li><li>Worst: vs <strong>origin_pingpong_salvo</strong>, seed 0: defended in 165 ticks, its score 0.19. <a href="../../replays/2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-29_defender_origin_pingpong_salvo__s0.html">2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-29_defender_origin_pingpong_salvo__s0.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Idea: Stage thirty strikers just outside radar range on three interleaved shells, each rotated 12 degrees and set 12 units deeper than the last, so no two strikers are ever inside one blast radius. Then release them all on one tick.
+
+How it works
+------------
+* Slots. There are 30 slots in 3 shells of 10. Inside a shell the slots are 36
+  degrees apart. Shell k is rotated 12*k degrees and staged at radius
+  456 + 12*k. All three shells sit outside radar range (450), so the defender
+  sees nothing during staging.
+* Staging. Strikers launch 4 per tick on their slot bearings. Each one is
+  steered to its slot and held there with a small tangential dither. Drones are
+  matched to slots by angle each tick, so the bearing convention does not
+  matter.
+* Release. When every striker is on station (or at the tick-60 failsafe), every
+  waypoint is cleared on the same tick. All strikers then fly straight in.
+  Shells reach the asset 3 ticks apart, and the whole wave arrives within about
+  6 ticks.
+
+Why this holds up against the whole field
+-----------------------------------------
+* Blast-packing defenders (convergence_blast_scheduler,
+  backscheduled_blast_packer, cluster_blast_column_breaker,
+  contracting_ring_blaster, loiter_then_collapse). These win by waiting until
+  strikers squeeze within one 10-unit blast.
+  - Neighbours in angle are in different shells, so they are always at least
+    12 units apart along the radius.
+  - Strikers in the same shell are 36 degrees apart. At the asset edge (r=25)
+    their chord is about 15.5 units.
+  - So no pair ever fits inside one blast. Each interceptor kills at most one
+    striker, and the 20-round magazine kills at most about 17.
+  - Waiting for a squeeze that never comes only leaves less time to shoot.
+* Ledger, value-model, annealing and nearest-first defenders. These already
+  fire one-for-one, so they cannot shoot fast enough. At 2 launches per tick
+  against a 6-tick arrival window, and with no early radar picture, they also
+  hit the magazine limit. The gun gets roughly one shot per tick for about 30
+  ticks. That is not enough to stop the 13 or more strikers left over, and only
+  3 need to get through.
+* Shell-by-shell defenders (dither / parked magazine). The shells are so close
+  together that no defender can clear one shell and reload its picture before
+  the next arrives.
+* No decoys. Every point of budget buys a striker, and type reveal (id range
+  150) gives the defender nothing to filter out.
+&quot;&quot;&quot;
+
+import math
+import random
+
+NAME = &quot;staggered_trishell_blast_denial&quot;
+ROLE = &quot;attacker&quot;
+
+N_STRIKERS = 30
+N_SHELLS = 3
+PER_SHELL = 10
+BASE_R = 456.0
+SHELL_GAP = 12.0
+
+_state = {}
+
+
+def reset(seed=0):
+    rng = random.Random(seed)
+    rot = rng.uniform(0.0, 2.0 * math.pi)
+    slots = []
+    # interleave shells so early launches already spread out
+    for j in range(PER_SHELL):
+        for k in range(N_SHELLS):
+            ang = rot + j * (2.0 * math.pi / PER_SHELL) + k * (2.0 * math.pi / (PER_SHELL * N_SHELLS))
+            ang = math.atan2(math.sin(ang), math.cos(ang))
+            slots.append((ang, BASE_R + SHELL_GAP * k))
+    _state.clear()
+    _state[&quot;slots&quot;] = slots
+    _state[&quot;launched&quot;] = 0
+    _state[&quot;assign&quot;] = {}
+    _state[&quot;released&quot;] = False
+
+
+def _angdiff(a, b):
+    d = a - b
+    return abs(math.atan2(math.sin(d), math.cos(d)))
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+
+
+def _act(obs):
+    if &quot;slots&quot; not in _state:
+        reset(0)
+    slots = _state[&quot;slots&quot;]
+    tick = obs.get(&quot;tick&quot;, 0)
+    budget = float(obs.get(&quot;budget&quot;, 0.0))
+    asset = obs.get(&quot;asset&quot;, {}).get(&quot;pos&quot;, [0.0, 0.0])
+    ax, ay = float(asset[0]), float(asset[1])
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    cap = int(rules.get(&quot;attacker_launches_per_tick&quot;, 4))
+    cost = float(rules.get(&quot;striker_cost&quot;, 2.0))
+
+    action = {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+
+    # launches
+    n = min(cap, N_STRIKERS - _state[&quot;launched&quot;], int(budget // cost) if cost &gt; 0 else 0)
+    for _ in range(max(0, n)):
+        ang = slots[_state[&quot;launched&quot;]][0]
+        action[&quot;launch&quot;].append({&quot;type&quot;: &quot;striker&quot;, &quot;bearing&quot;: ang})
+        _state[&quot;launched&quot;] += 1
+
+    drones = [d for d in obs.get(&quot;drones&quot;, []) if d.get(&quot;type&quot;, &quot;striker&quot;) == &quot;striker&quot;]
+    try:
+        drones.sort(key=lambda d: str(d[&quot;id&quot;]))
+    except Exception:
+        pass
+
+    assign = _state[&quot;assign&quot;]
+    alive_ids = set(d[&quot;id&quot;] for d in drones)
+    for did in list(assign.keys()):
+        if did not in alive_ids:
+            assign.pop(did, None)
+
+    if _state[&quot;released&quot;]:
+        return action
+
+    used = set(assign.values())
+    for d in drones:
+        if d[&quot;id&quot;] in assign:
+            continue
+        px, py = float(d[&quot;pos&quot;][0]) - ax, float(d[&quot;pos&quot;][1]) - ay
+        a = math.atan2(py, px)
+        best, bd = None, 1e9
+        for i, (sa, sr) in enumerate(slots):
+            if i in used:
+                continue
+            v = _angdiff(a, sa)
+            if v &lt; bd:
+                bd, best = v, i
+        if best is not None:
+            assign[d[&quot;id&quot;]] = best
+            used.add(best)
+
+    # readiness check
+    ready = _state[&quot;launched&quot;] &gt;= N_STRIKERS and len(drones) &gt;= N_STRIKERS - 0
+    targets = {}
+    for d in drones:
+        i = assign.get(d[&quot;id&quot;])
+        if i is None:
+            continue
+        sa, sr = slots[i]
+        tx, ty = ax + sr * math.cos(sa), ay + sr * math.sin(sa)
+        dist = math.hypot(float(d[&quot;pos&quot;][0]) - tx, float(d[&quot;pos&quot;][1]) - ty)
+        targets[d[&quot;id&quot;]] = (tx, ty, sa, dist)
+        if dist &gt; 12.0:
+            ready = False
+    if len(targets) &lt; len(drones):
+        ready = False
+
+    if ready or tick &gt;= 60:
+        _state[&quot;released&quot;] = True
+        for d in drones:
+            action[&quot;steer&quot;][d[&quot;id&quot;]] = None
+        return action
+
+    sign = 1.0 if (tick // 2) % 2 == 0 else -1.0
+    for d in drones:
+        t = targets.get(d[&quot;id&quot;])
+        if t is None:
+            continue
+        tx, ty, sa, dist = t
+        if dist &gt; 10.0:
+            action[&quot;steer&quot;][d[&quot;id&quot;]] = [tx, ty]
+        else:
+            txn, tyn = -math.sin(sa), math.cos(sa)
+            action[&quot;steer&quot;][d[&quot;id&quot;]] = [tx + sign * 10.0 * txn, ty + sign * 10.0 * tyn]
+    return action</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

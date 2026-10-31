@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>loiter_then_collapse · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head def"><span class="side-tag def">Defender</span><h1>loiter_then_collapse</h1><div class="meta"><span>rank <b class="def">#32</b></span><span>Elo 952</span><span class="t3">house league, persona counter_meta</span><span class="t3">2026-10-02_defender_loiter_then_collapse</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Idea: Launch interceptors after the ring is released, park them over the asset by retargeting them between two opposite tracks every tick, then fire every one at the same moment at the closing ring so each blast covers three strikers.</p>
+<p>Which part of synchronized_ring this attacks -------------------------------------------- The release logic. synchronized_ring holds all 30 strikers at radius 190. They are evenly spaced 12 degrees apart. It then sets <code>steer[did] = asset</code> for every drone on the same tick. After that it never steers again, so every striker flies a straight radial line inward at the same speed. The whole raid is then a single circle of radius W(t) = 190 - 4t that shrinks around the origin. The arc spacing between neighbours is 2*pi*W/30, about 0.21*W. At W of about 35 the spacing is about 7.3, which is less than the blast radius of 10. One blast centred on a striker also catches both of its neighbours. The attacker spaced its drones to stop multi-kills at the ring (its docstring says so). It did not account for the geometry forcing them back together near the asset.</p>
+<p>What the replays show ---------------------</p>
+<ul><li>In every winning match the stock ran out (stock_left 0, 20 launched) before the end. 16 to 18 interceptor kills came from 20 interceptors, which is about one kill per interceptor. Defenders that fire as strikers enter id or engagement range meet them where they are still 15 to 25 units apart.</li><li>The only defender that held (convergence_blast_scheduler, defended with hp 30) got 22 to 25 interceptor kills from 20 interceptors. Kills above one per interceptor are the whole game here. But the launch cap is 2 per tick. Launching straight at the wave spreads meeting radii over a span of about 30 units, so most of its blasts still go off where the spacing is too wide. It still loses about 60% of its matches.</li></ul>
+<p>What this bot does differently ------------------------------ It removes the launch cap from the timing problem. Interceptors are launched as soon as the release is detected, around W = 175. Every tick each interceptor is retargeted between two roughly opposite tracks, so it moves back and forth inside about 12 units of the asset. This loitering costs nothing; the lifetime of 90 is ample for the roughly 40-tick run-in. When the wave reaches W of about 47, all loiterers are committed on the same tick. The targets are the ring members sorted by angle, at indices round(j*N/k). For N=30 and k=20 that skips every third index, so every striker is inside 2 blasts. All blasts go off together at radius about 35, where the spacing is smallest. The gun clears leakers at point-blank range.</p></div>
+<div class="stats4"><div><span class="v">72.0%</span><span class="label">win rate</span></div><div><span class="v">0.57</span><span class="label">cost exchange</span></div><div><span class="v">200</span><span class="label">matches</span></div><div><span class="v">night 5</span><span class="label">first night (2026-10-02)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-30_attacker_phase_locked_ring.html" class="att">phase_locked_ring</a><span>10–0</span></li><li><a href="2026-10-06_attacker_parked_ring_magazine_drain.html" class="att">parked_ring_magazine_drain</a><span>10–0</span></li><li><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html" class="att">attacker_blast_isolated_synchronized_rel</a><span>10–0</span></li><li><a href="2026-10-10_attacker_shadow_pair_ring.html" class="att">shadow_pair_ring</a><span>10–0</span></li><li><a href="2026-10-29_attacker_cluster_bait_bloom.html" class="att">cluster_bait_bloom</a><span>10–0</span></li><li><a href="decoy_screen.html" class="att">decoy_screen</a><span>10–0</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html" class="att">2026_10_15_attacker_dark_ring_release</a><span>0–10</span></li><li><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html" class="att">bait_count_then_clear_sky_wave</a><span>0–10</span></li><li><a href="2026-10-11_attacker_blast_proof_depth_interleave.html" class="att">blast_proof_depth_interleave</a><span>1–9</span></li><li><a href="2026-10-04_attacker_interleaved_shell_ring.html" class="att">interleaved_shell_ring</a><span>2–8</span></li><li><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html" class="att">hidden_orbit_screen_then_interleaved_dro</a><span>3–7</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/rush__2026-10-02_defender_loiter_then_collapse__s9.json.gz&amp;ar=20&amp;dr=32" title="Best match: loiter_then_collapse v rush" loading="lazy"></iframe><figcaption>vs <span class="att">rush</span> · its score 0.771 · seed 9 · <a href="../replays/viewer.html?r=data/rush__2026-10-02_defender_loiter_then_collapse__s9.json.gz">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-02_defender_loiter_then_collapse__s7.json.gz&amp;ar=1&amp;dr=32" title="Worst match: loiter_then_collapse v bait_count_then_clear_sky_wave" loading="lazy"></iframe><figcaption>vs <span class="att">bait_count_then_clear_sky_wave</span> · its score 0.002 · seed 7 · <a href="../replays/2026-10-23_attacker_bait_count_then_clear_sky_wave__2026-10-02_defender_loiter_then_collapse__s7.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="2026-10-29_attacker_cluster_bait_bloom.html">cluster_bait_bloom</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="rush.html">rush</a></td><td class="num">0.771</td></tr><tr><td class="name"><a href="decoy_screen.html">decoy_screen</a></td><td class="num">0.762</td></tr><tr><td class="name"><a href="2026-10-09_attacker_attacker_blast_isolated_synchronized_rel.html">attacker_blast_isolated_synchronized_rel</a></td><td class="num">0.758</td></tr><tr><td class="name"><a href="2026-10-06_attacker_parked_ring_magazine_drain.html">parked_ring_magazine_drain</a></td><td class="num">0.753</td></tr><tr><td class="name"><a href="flanker.html">flanker</a></td><td class="num">0.749</td></tr><tr><td class="name"><a href="multi_axis.html">multi_axis</a></td><td class="num">0.722</td></tr><tr><td class="name"><a href="2026-10-10_attacker_shadow_pair_ring.html">shadow_pair_ring</a></td><td class="num">0.716</td></tr><tr><td class="name"><a href="2026-09-30_attacker_phase_locked_ring.html">phase_locked_ring</a></td><td class="num">0.664</td></tr><tr><td class="name"><a href="2026-09-29_attacker_synchronized_ring.html">synchronized_ring</a></td><td class="num">0.647</td></tr><tr><td class="name"><a href="2026-09-28_attacker_staggered_screen_trickle.html">staggered_screen_trickle</a></td><td class="num">0.609</td></tr><tr><td class="name"><a href="2026-10-13_attacker_column_free_tiered_ring_dive.html">column_free_tiered_ring_dive</a></td><td class="num">0.515</td></tr><tr><td class="name"><a href="2026-10-08_attacker_staggered_trishell_blast_denial.html">staggered_trishell_blast_denial</a></td><td class="num">0.437</td></tr><tr><td class="name"><a href="2026-10-03_attacker_depth_shell_saturation.html">depth_shell_saturation</a></td><td class="num">0.397</td></tr><tr><td class="name"><a href="trickle.html">trickle</a></td><td class="num">0.390</td></tr><tr><td class="name"><a href="2026-10-17_attacker_hidden_orbit_screen_then_interleaved_dro.html">hidden_orbit_screen_then_interleaved_dro</a></td><td class="num">0.299</td></tr><tr><td class="name"><a href="2026-10-04_attacker_interleaved_shell_ring.html">interleaved_shell_ring</a></td><td class="num">0.181</td></tr><tr><td class="name"><a href="2026-10-11_attacker_blast_proof_depth_interleave.html">blast_proof_depth_interleave</a></td><td class="num">0.157</td></tr><tr><td class="name"><a href="2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">2026_10_15_attacker_dark_ring_release</a></td><td class="num">0.069</td></tr><tr><td class="name"><a href="2026-10-23_attacker_bait_count_then_clear_sky_wave.html">bait_count_then_clear_sky_wave</a></td><td class="num">0.034</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">staggered_screen_trickle</td><td class="num">9</td><td class="good">defended</td><td class="num">0.729</td><td><a href="../replays/viewer.html?r=data/2026-09-28_attacker_staggered_screen_trickle__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">synchronized_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.769</td><td><a href="../replays/viewer.html?r=data/2026-09-29_attacker_synchronized_ring__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">phase_locked_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.765</td><td><a href="../replays/viewer.html?r=data/2026-09-30_attacker_phase_locked_ring__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">depth_shell_saturation</td><td class="num">9</td><td class="good">defended</td><td class="num">0.359</td><td><a href="../replays/viewer.html?r=data/2026-10-03_attacker_depth_shell_saturation__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">interleaved_shell_ring</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.086</td><td><a href="../replays/viewer.html?r=data/2026-10-04_attacker_interleaved_shell_ring__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">parked_ring_magazine_drain</td><td class="num">9</td><td class="good">defended</td><td class="num">0.754</td><td><a href="../replays/viewer.html?r=data/2026-10-06_attacker_parked_ring_magazine_drain__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">staggered_trishell_blast_denial</td><td class="num">9</td><td class="good">defended</td><td class="num">0.564</td><td><a href="../replays/viewer.html?r=data/2026-10-08_attacker_staggered_trishell_blast_denial__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">attacker_blast_isolated_synchronized_rel</td><td class="num">9</td><td class="good">defended</td><td class="num">0.758</td><td><a href="../replays/viewer.html?r=data/2026-10-09_attacker_attacker_blast_isolated_synchronized_rel__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">shadow_pair_ring</td><td class="num">9</td><td class="good">defended</td><td class="num">0.737</td><td><a href="../replays/viewer.html?r=data/2026-10-10_attacker_shadow_pair_ring__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">blast_proof_depth_interleave</td><td class="num">9</td><td class="bad">breached</td><td class="num">0.094</td><td><a href="../replays/viewer.html?r=data/2026-10-11_attacker_blast_proof_depth_interleave__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-10-02_defender_loiter_then_collapse.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-10-02</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>escalation</th><td style="white-space:normal">True</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-10-02_defender_loiter_then_collapse</td></tr><tr><th>persona</th><td style="white-space:normal">counter_meta</td></tr><tr><th>prompt_version</th><td style="white-space:normal">2026-09-29.1</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-10-02T033611_cli_defender_counter_meta.md</td></tr><tr><th>result</th><td style="white-space:normal">beat_target: True, field_mean: 0.664, rank: 2, score_vs_target: 0.647</td></tr><tr><th>role</th><td style="white-space:normal">defender</td></tr><tr><th>target</th><td style="white-space:normal">2026-09-29_attacker_synchronized_ring</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 7929, output: 13621</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-10-02_defender_loiter_then_collapse.py</summary><pre><code>&quot;&quot;&quot;
+Idea: Launch interceptors after the ring is released, park them over the asset by retargeting them between two opposite tracks every tick, then fire every one at the same moment at the closing ring so each blast covers three strikers.
+
+Which part of synchronized_ring this attacks
+--------------------------------------------
+The release logic. synchronized_ring holds all 30 strikers at radius 190.
+They are evenly spaced 12 degrees apart. It then sets `steer[did] = asset`
+for every drone on the same tick. After that it never steers again, so every
+striker flies a straight radial line inward at the same speed. The whole raid
+is then a single circle of radius W(t) = 190 - 4t that shrinks around the
+origin. The arc spacing between neighbours is 2*pi*W/30, about 0.21*W. At
+W of about 35 the spacing is about 7.3, which is less than the blast radius
+of 10. One blast centred on a striker also catches both of its neighbours.
+The attacker spaced its drones to stop multi-kills at the ring (its docstring
+says so). It did not account for the geometry forcing them back together near
+the asset.
+
+What the replays show
+---------------------
+* In every winning match the stock ran out (stock_left 0, 20 launched) before
+  the end. 16 to 18 interceptor kills came from 20 interceptors, which is
+  about one kill per interceptor. Defenders that fire as strikers enter id or
+  engagement range meet them where they are still 15 to 25 units apart.
+* The only defender that held (convergence_blast_scheduler, defended with
+  hp 30) got 22 to 25 interceptor kills from 20 interceptors. Kills above one
+  per interceptor are the whole game here. But the launch cap is 2 per tick.
+  Launching straight at the wave spreads meeting radii over a span of about
+  30 units, so most of its blasts still go off where the spacing is too wide.
+  It still loses about 60% of its matches.
+
+What this bot does differently
+------------------------------
+It removes the launch cap from the timing problem. Interceptors are launched
+as soon as the release is detected, around W = 175. Every tick each
+interceptor is retargeted between two roughly opposite tracks, so it moves
+back and forth inside about 12 units of the asset. This loitering costs
+nothing; the lifetime of 90 is ample for the roughly 40-tick run-in. When the
+wave reaches W of about 47, all loiterers are committed on the same tick. The
+targets are the ring members sorted by angle, at indices round(j*N/k). For
+N=30 and k=20 that skips every third index, so every striker is inside 2
+blasts. All blasts go off together at radius about 35, where the spacing is
+smallest. The gun clears leakers at point-blank range.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;loiter_then_collapse&quot;
+ROLE = &quot;defender&quot;
+
+COMMIT_W = 47.0
+
+_S = {}
+
+
+def reset(seed=None):
+    global _S
+    _S = {
+        &quot;released&quot;: False,
+        &quot;committed&quot;: False,
+        &quot;assign&quot;: {},
+    }
+
+
+reset()
+
+
+def _tr(t, ax, ay):
+    p = t.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    x, y = float(p[0]), float(p[1])
+    r = t.get(&quot;range&quot;)
+    if r is None:
+        r = math.hypot(x - ax, y - ay)
+    return x, y, float(r), math.atan2(y - ay, x - ax)
+
+
+def _act(obs):
+    S = _S
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    ap = asset.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    ax, ay = float(ap[0]), float(ap[1])
+    tracks = obs.get(&quot;tracks&quot;, []) or []
+    ints = obs.get(&quot;interceptors&quot;, []) or []
+    stock = int(obs.get(&quot;stock&quot;, 0) or 0)
+    ammo = int(obs.get(&quot;ammo&quot;, 0) or 0)
+    cap = int(rules.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    gun_range = float(rules.get(&quot;gun_range&quot;, 100.0))
+    life = int(rules.get(&quot;interceptor_lifetime&quot;, 90))
+
+    intercept = []
+    retarget = {}
+    gun = None
+
+    cands = []
+    for t in tracks:
+        if t.get(&quot;cls&quot;) == &quot;decoy&quot;:
+            continue
+        x, y, r, a = _tr(t, ax, ay)
+        cands.append((t.get(&quot;id&quot;), x, y, r, a))
+    live = set(c[0] for c in cands)
+
+    # Gun: nearest non-decoy in range
+    if ammo &gt; 0:
+        best = None
+        for c in cands:
+            if c[3] &lt;= gun_range and (best is None or c[3] &lt; best[3]):
+                best = c
+        if best is not None:
+            gun = best[0]
+
+    if not cands:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: gun}
+
+    # Release detection
+    if not S[&quot;released&quot;]:
+        inner = [c for c in cands if c[3] &lt; 260.0]
+        n_in = sum(1 for c in inner if c[3] &lt; 175.0)
+        if (len(inner) &gt;= 3 and n_in * 2 &gt;= len(inner)) or \
+                any(c[3] &lt; 120.0 for c in cands):
+            S[&quot;released&quot;] = True
+
+    if not S[&quot;released&quot;]:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: gun}
+
+    wave = [c for c in cands if c[3] &lt; 200.0] or cands
+    rs = sorted(c[3] for c in wave)
+    W = rs[len(rs) // 2]
+    rmin = rs[0]
+
+    if not S[&quot;committed&quot;]:
+        trigger = W &lt;= COMMIT_W or rmin &lt;= 38.0
+        for it in ints:
+            if int(it.get(&quot;age&quot;, 0) or 0) &gt;= life - 6:
+                trigger = True
+        if trigger:
+            S[&quot;committed&quot;] = True
+            srt = sorted(wave, key=lambda c: c[4])
+            N = len(srt)
+            ilist = list(ints)
+            k = len(ilist)
+            targets = []
+            if k &gt; 0:
+                if k &gt;= N:
+                    targets = [srt[j % N] for j in range(k)]
+                else:
+                    seen = set()
+                    for j in range(k):
+                        idx = int(math.floor(j * N / float(k) + 0.5)) % N
+                        while idx in seen and len(seen) &lt; N:
+                            idx = (idx + 1) % N
+                        seen.add(idx)
+                        targets.append(srt[idx])
+            free = list(range(k))
+            for tg in targets:
+                bi, bd = None, 1e18
+                for i in free:
+                    p = ilist[i].get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+                    d = math.hypot(float(p[0]) - tg[1], float(p[1]) - tg[2])
+                    if d &lt; bd:
+                        bd, bi = d, i
+                if bi is None:
+                    break
+                free.remove(bi)
+                iid = ilist[bi].get(&quot;id&quot;)
+                S[&quot;assign&quot;][iid] = tg[0]
+                retarget[iid] = tg[0]
+        else:
+            # Loiter: bounce all interceptors between two opposite tracks
+            A = max(cands, key=lambda c: math.cos(c[4]))
+            B = min(cands, key=lambda c: math.cos(c[4]))
+            lt = A[0] if tick % 2 == 0 else B[0]
+            for it in ints:
+                retarget[it.get(&quot;id&quot;)] = lt
+            n = min(cap, stock)
+            intercept = [lt] * n
+            return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+
+    # Committed phase: keep interceptors on live targets, spend leftover stock
+    assigned = set()
+    for it in ints:
+        iid = it.get(&quot;id&quot;)
+        tg = S[&quot;assign&quot;].get(iid, it.get(&quot;target&quot;))
+        if tg in live:
+            assigned.add(tg)
+            if iid not in S[&quot;assign&quot;]:
+                S[&quot;assign&quot;][iid] = tg
+                retarget[iid] = tg
+            continue
+        p = it.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+        px, py = float(p[0]), float(p[1])
+        best, bd = None, 1e18
+        for c in cands:
+            d = math.hypot(c[1] - px, c[2] - py) + (30.0 if c[0] in assigned else 0.0)
+            if d &lt; bd:
+                bd, best = d, c
+        if best is not None:
+            S[&quot;assign&quot;][iid] = best[0]
+            retarget[iid] = best[0]
+            assigned.add(best[0])
+
+    n = min(cap, stock)
+    if n &gt; 0:
+        order = sorted(cands, key=lambda c: (c[0] in assigned, c[3]))
+        for c in order[:n]:
+            intercept.append(c[0])
+
+    return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>

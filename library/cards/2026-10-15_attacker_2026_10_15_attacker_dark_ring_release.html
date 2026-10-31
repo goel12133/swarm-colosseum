@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>2026_10_15_attacker_dark_ring_release · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.html">On the ladder now →</a></p>
+<h1>2026_10_15_attacker_dark_ring_release</h1>
+<p><strong>attacker</strong> · family: Unsorted · persona: exploiter · author: house league (model opus) · live</p>
+<p>File: 2026-10-15_attacker_2026_10_15_attacker_dark_ring_release.py</p>
+<p><strong>The idea:</strong> Park every striker just outside radar range and hold it there, invisible, until decoys have drawn the defender's whole interceptor magazine, then release all strikers at once from equal radius so they arrive together.</p>
+<h2>What it does</h2>
+<p>Weakness targeted: nearest_first commits one interceptor to the nearest unengaged track and never checks what that track is. It only fires at tracks it can see, and radar range is 450 while drones spawn at 490. Strikers waiting at radius ~475 are never tracks, so they can never draw an interceptor. Decoys flood in first, and the defender spends all 20 interceptors (4 credits each) on 0.5-credit decoys. The strikers are then released from the same radius at the same time. They cross the 100-unit gun band within about 25 ticks of each other. The single gun can engage only one target per tick, so it can stop only a few of them, and three hits break the asset.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #5 attacker (2026-10-22).</li><li>In the top five on 1 of the 14 nights it played.</li><li>Written against: <strong>nearest_first</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-31.</p>
+<ul><li><strong>contracting_ring_blaster</strong>: breached in 10 of 10 seeds, mean score 0.95</li><li><strong>loiter_then_collapse</strong>: breached in 10 of 10 seeds, mean score 0.93</li><li><strong>cohort_screen_skip_shell_balanced_gun</strong>: breached in 10 of 10 seeds, mean score 0.93</li><li><strong>nearest_first</strong>: breached in 10 of 10 seeds, mean score 0.93</li><li><strong>cohort_fingerprint_full_magazine_gun_swe</strong>: breached in 10 of 10 seeds, mean score 0.93</li><li>… and 12 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>convergence_blast_scheduler</strong>: breached in 0 of 10 seeds, mean score 0.11</li><li><strong>backscheduled_blast_packer</strong>: breached in 0 of 10 seeds, mean score 0.12</li><li><strong>origin_pingpong_salvo</strong>: breached in 0 of 10 seeds, mean score 0.14</li><li><strong>deadline_cluster_ledger</strong>: breached in 0 of 10 seeds, mean score 0.15</li><li><strong>convergent_deadline_packer</strong>: breached in 0 of 10 seeds, mean score 0.16</li><li>… and 15 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>contracting_ring_blaster</strong>, seed 1: breached in 297 ticks, its score 0.98. <a href="../../replays/2026-10-15_attacker_2026_10_15_attacker_dark_ring_release__2026-10-06_defender_contracting_ring_blaster__s1.html">2026-10-15_attacker_2026_10_15_attacker_dark_ring_release__2026-10-06_defender_contracting_ring_blaster__s1.json</a></li><li>Worst: vs <strong>convergence_blast_scheduler</strong>, seed 3: defended in 354 ticks, its score 0.07. <a href="../../replays/2026-10-15_attacker_2026_10_15_attacker_dark_ring_release__2026-10-01_defender_convergence_blast_scheduler__s3.html">2026-10-15_attacker_2026_10_15_attacker_dark_ring_release__2026-10-01_defender_convergence_blast_scheduler__s3.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Idea: Park every striker just outside radar range and hold it there, invisible, until decoys have drawn the defender&#x27;s whole interceptor magazine, then release all strikers at once from equal radius so they arrive together.
+
+Weakness targeted: nearest_first commits one interceptor to the nearest unengaged
+track and never checks what that track is. It only fires at tracks it can see, and
+radar range is 450 while drones spawn at 490. Strikers waiting at radius ~475 are
+never tracks, so they can never draw an interceptor. Decoys flood in first, and the
+defender spends all 20 interceptors (4 credits each) on 0.5-credit decoys.
+
+The strikers are then released from the same radius at the same time. They cross the
+100-unit gun band within about 25 ticks of each other. The single gun can engage only
+one target per tick, so it can stop only a few of them, and three hits break the asset.
+
+Pairing that shows it: 2026-10-06_attacker_parked_ring_magazine_drain vs nearest_first
+(mean score_defender 0.058). In seed 0 the defender ended with stock_left 0, and 19 of
+its 20 interceptors killed decoys while 20 strikers impacted. This bot keeps that
+magazine drain and adds two things: strikers stay fully outside radar until the drain
+is confirmed, and a reserve decoy wave is sent if the magazine is not yet empty.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;2026-10-15_attacker_dark_ring_release&quot;
+ROLE = &quot;attacker&quot;
+
+PARK_R = 475.0
+N_STRIKERS = 20
+FIRST_DECOYS = 24
+
+_s = {}
+
+
+def reset(seed=0):
+    _s.clear()
+    _s.update({
+        &quot;strikers_launched&quot;: 0,
+        &quot;decoys_launched&quot;: 0,
+        &quot;decoy_wave_target&quot;: FIRST_DECOYS,
+        &quot;park&quot;: {},
+        &quot;released&quot;: False,
+        &quot;prev_icount&quot;: 0,
+        &quot;est_launched&quot;: 0,
+        &quot;spent&quot;: 0.0,
+    })
+
+
+reset()
+
+
+def _act(obs):
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    tick = obs.get(&quot;tick&quot;, 0)
+    budget = float(obs.get(&quot;budget&quot;, 0.0))
+    per_tick = int(rules.get(&quot;attacker_launches_per_tick&quot;, 4))
+    s_cost = float(rules.get(&quot;striker_cost&quot;, 2.0))
+    d_cost = float(rules.get(&quot;decoy_cost&quot;, 0.5))
+    stock = int(rules.get(&quot;interceptor_stock&quot;, 20))
+    max_ticks = int(rules.get(&quot;max_ticks&quot;, 600))
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    ax, ay = (asset.get(&quot;pos&quot;) or [0.0, 0.0])[:2]
+
+    drones = obs.get(&quot;drones&quot;, []) or []
+    icount = len(obs.get(&quot;interceptors&quot;, []) or [])
+    if icount &gt; _s[&quot;prev_icount&quot;]:
+        _s[&quot;est_launched&quot;] += icount - _s[&quot;prev_icount&quot;]
+    _s[&quot;prev_icount&quot;] = icount
+
+    launches = []
+    slots = per_tick
+
+    # Strikers first; they spawn outside radar and stay there.
+    while slots &gt; 0 and _s[&quot;strikers_launched&quot;] &lt; N_STRIKERS and budget &gt;= s_cost:
+        k = _s[&quot;strikers_launched&quot;]
+        b = 2.0 * math.pi * k / N_STRIKERS
+        launches.append({&quot;type&quot;: &quot;striker&quot;, &quot;bearing&quot;: b})
+        _s[&quot;strikers_launched&quot;] += 1
+        budget -= s_cost
+        slots -= 1
+
+    # Decoy waves, spread around the ring to dilute blast double-kills.
+    if _s[&quot;strikers_launched&quot;] &gt;= N_STRIKERS or budget &lt; s_cost:
+        while (slots &gt; 0 and _s[&quot;decoys_launched&quot;] &lt; _s[&quot;decoy_wave_target&quot;]
+               and budget &gt;= d_cost):
+            k = _s[&quot;decoys_launched&quot;]
+            b = 2.0 * math.pi * ((k * 0.618034) % 1.0)
+            launches.append({&quot;type&quot;: &quot;decoy&quot;, &quot;bearing&quot;: b})
+            _s[&quot;decoys_launched&quot;] += 1
+            budget -= d_cost
+            slots -= 1
+
+    decoys_alive = sum(1 for d in drones if d.get(&quot;type&quot;) == &quot;decoy&quot;)
+    wave_done = _s[&quot;decoys_launched&quot;] &gt;= _s[&quot;decoy_wave_target&quot;]
+
+    if not _s[&quot;released&quot;]:
+        drained = _s[&quot;est_launched&quot;] &gt;= stock
+        quiet = icount == 0
+        if drained and quiet:
+            _s[&quot;released&quot;] = True
+        elif wave_done and decoys_alive == 0 and quiet and tick &gt; 20:
+            # Magazine may not be empty: send another wave if we can afford it.
+            if budget &gt;= d_cost * 4:
+                extra = int(min(16, budget // d_cost))
+                _s[&quot;decoy_wave_target&quot;] += extra
+            else:
+                _s[&quot;released&quot;] = True
+        if tick &gt;= max_ticks - 150:
+            _s[&quot;released&quot;] = True
+
+    steer = {}
+    for d in drones:
+        if d.get(&quot;type&quot;) != &quot;striker&quot;:
+            continue
+        did = d.get(&quot;id&quot;)
+        if _s[&quot;released&quot;]:
+            steer[did] = None
+            continue
+        pk = _s[&quot;park&quot;].get(did)
+        if pk is None:
+            px, py = (d.get(&quot;pos&quot;) or [ax + PARK_R, ay])[:2]
+            dx, dy = px - ax, py - ay
+            r = math.hypot(dx, dy) or 1.0
+            pk = [ax + dx / r * PARK_R, ay + dy / r * PARK_R]
+            _s[&quot;park&quot;][did] = pk
+        steer[did] = [pk[0], pk[1]]
+
+    return {&quot;launch&quot;: launches, &quot;steer&quot;: steer}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

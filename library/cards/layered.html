@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>layered · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/layered.html">On the ladder now →</a></p>
+<h1>layered</h1>
+<p><strong>defender</strong> · family: Budgeted defence · persona: hand-written baseline · author: Pelennor · live</p>
+<p>File: layered.py</p>
+<p><strong>The idea:</strong> Prioritise by time to impact, keep interceptors back for confirmed strikers, and let the gun take whatever leaks through.</p>
+<h2>What it does</h2>
+<p>Layered: prioritise by time to impact, keep interceptors back for confirmed strikers, and let the gun take whatever leaks through. Tests whether a defender should think in time rather than distance, and whether holding magazine depth beats engaging everything early. Unknown tracks are engaged only when they are close enough that waiting for identification would cost the intercept, and the reserve shrinks as the match runs out of time for new threats to matter.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #3 defender (2026-09-28).</li><li>In the top five on 2 of the 30 nights it played.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-31.</p>
+<ul><li><strong>rush</strong>: held in 10 of 10 seeds, mean score 0.81</li><li><strong>cluster_bait_bloom</strong>: held in 10 of 10 seeds, mean score 0.81</li><li><strong>decoy_screen</strong>: held in 10 of 10 seeds, mean score 0.80</li><li><strong>attacker_blast_isolated_synchronized_rel</strong>: held in 10 of 10 seeds, mean score 0.79</li><li><strong>shadow_pair_ring</strong>: held in 10 of 10 seeds, mean score 0.77</li><li>… and 3 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>bait_count_then_clear_sky_wave</strong>: held in 0 of 10 seeds, mean score 0.09</li><li><strong>hidden_orbit_screen_then_interleaved_dro</strong>: held in 0 of 10 seeds, mean score 0.10</li><li><strong>parked_ring_magazine_drain</strong>: held in 0 of 10 seeds, mean score 0.12</li><li><strong>phase_locked_ring</strong>: held in 0 of 10 seeds, mean score 0.13</li><li><strong>staggered_screen_trickle</strong>: held in 0 of 10 seeds, mean score 0.13</li><li>… and 7 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>cluster_bait_bloom</strong>, seed 1: defended in 96 ticks, its score 0.81. <a href="../../replays/2026-10-29_attacker_cluster_bait_bloom__layered__s1.html">2026-10-29_attacker_cluster_bait_bloom__layered__s1.json</a></li><li>Worst: vs <strong>bait_count_then_clear_sky_wave</strong>, seed 7: breached in 257 ticks, its score 0.07. <a href="../../replays/2026-10-23_attacker_bait_count_then_clear_sky_wave__layered__s7.html">2026-10-23_attacker_bait_count_then_clear_sky_wave__layered__s7.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Layered: prioritise by time to impact, keep interceptors back for confirmed strikers,
+and let the gun take whatever leaks through.
+
+Tests whether a defender should think in time rather than distance, and whether holding
+magazine depth beats engaging everything early. Unknown tracks are engaged only when they
+are close enough that waiting for identification would cost the intercept, and the reserve
+shrinks as the match runs out of time for new threats to matter.
+&quot;&quot;&quot;
+NAME = &quot;layered&quot;
+ROLE = &quot;defender&quot;
+
+
+def _time_to_impact(track, rules):
+    speed = max(rules[&quot;striker_speed&quot;], 1e-9)
+    return max(0.0, (track[&quot;range&quot;] - rules[&quot;asset_radius&quot;]) / speed)
+
+
+def act(obs):
+    rules = obs[&quot;rules&quot;]
+    tracks = obs[&quot;tracks&quot;]
+    by_id = {t[&quot;id&quot;]: t for t in tracks}
+    engaged = {i[&quot;target&quot;] for i in obs[&quot;interceptors&quot;] if i[&quot;target&quot;] in by_id}
+
+    ranked = sorted(tracks, key=lambda t: _time_to_impact(t, rules))
+    confirmed = [t for t in ranked if t[&quot;cls&quot;] == &quot;striker&quot;]
+    unknown_close = [t for t in ranked
+                     if t[&quot;cls&quot;] == &quot;unknown&quot; and _time_to_impact(t, rules) &lt; 45.0]
+
+    retarget, claimed = {}, set(engaged)
+    free = [t for t in confirmed if t[&quot;id&quot;] not in claimed]
+    for i in obs[&quot;interceptors&quot;]:
+        if i[&quot;target&quot;] not in by_id and free:
+            t = free.pop(0)
+            retarget[i[&quot;id&quot;]] = t[&quot;id&quot;]
+            claimed.add(t[&quot;id&quot;])
+
+    # Hold some stock back early: a magazine emptied on the first wave cannot answer the
+    # second. The reserve is released as the match runs out of time.
+    ticks_left = max(0, rules[&quot;max_ticks&quot;] - obs[&quot;tick&quot;])
+    reserve = 6 if ticks_left &gt; 300 else (3 if ticks_left &gt; 120 else 0)
+    allowed = max(0, obs[&quot;stock&quot;] - reserve)
+
+    queue = [t for t in confirmed if t[&quot;id&quot;] not in claimed]
+    queue += [t for t in unknown_close if t[&quot;id&quot;] not in claimed]
+    intercept = [t[&quot;id&quot;] for t in queue][:int(rules[&quot;interceptor_launches_per_tick&quot;])]
+    intercept = intercept[:allowed]
+
+    gun_range = rules[&quot;gun_range&quot;]
+    leakers = [t for t in ranked if t[&quot;range&quot;] &lt;= gun_range and t[&quot;cls&quot;] != &quot;decoy&quot;]
+    if not leakers:
+        leakers = [t for t in ranked if t[&quot;range&quot;] &lt;= gun_range]
+    return {&quot;intercept&quot;: intercept, &quot;retarget&quot;: retarget,
+            &quot;gun&quot;: leakers[0][&quot;id&quot;] if leakers else None}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

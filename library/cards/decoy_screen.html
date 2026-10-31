@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>decoy_screen · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/decoy_screen.html">On the ladder now →</a></p>
+<h1>decoy_screen</h1>
+<p><strong>attacker</strong> · family: Decoy screening · persona: hand-written baseline · author: Pelennor · live</p>
+<p>File: decoy_screen.py</p>
+<p><strong>The idea:</strong> A wall of decoys first, strikers following behind it.</p>
+<h2>What it does</h2>
+<p>Decoy screen: a wall of decoys first, strikers following behind it. Tests whether cheap drones can absorb interceptors. Decoys and strikers move at the same speed, so before the identification range the defender cannot tell them apart -- the screen is only wasted if the defender waits until 150 u to commit.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #5 attacker (2026-09-28).</li><li>In the top five on 1 of the 30 nights it played.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-10-31.</p>
+<ul><li><strong>nearest_first</strong>: breached in 10 of 10 seeds, mean score 0.89</li><li><strong>gun_only</strong>: breached in 10 of 10 seeds, mean score 0.77</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>convergence_blast_scheduler</strong>: breached in 0 of 10 seeds, mean score 0.14</li><li><strong>origin_pingpong_salvo</strong>: breached in 0 of 10 seeds, mean score 0.14</li><li><strong>deadline_cluster_ledger</strong>: breached in 0 of 10 seeds, mean score 0.16</li><li><strong>convergent_deadline_packer</strong>: breached in 0 of 10 seeds, mean score 0.17</li><li><strong>layered</strong>: breached in 0 of 10 seeds, mean score 0.20</li><li>… and 31 more.</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>nearest_first</strong>, seed 9: breached in 123 ticks, its score 0.91. <a href="../../replays/decoy_screen__nearest_first__s9.html">decoy_screen__nearest_first__s9.json</a></li><li>Worst: vs <strong>convergence_blast_scheduler</strong>, seed 4: defended in 119 ticks, its score 0.11. <a href="../../replays/decoy_screen__2026-10-01_defender_convergence_blast_scheduler__s4.html">decoy_screen__2026-10-01_defender_convergence_blast_scheduler__s4.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Decoy screen: a wall of decoys first, strikers following behind it.
+
+Tests whether cheap drones can absorb interceptors. Decoys and strikers move at the same
+speed, so before the identification range the defender cannot tell them apart -- the
+screen is only wasted if the defender waits until 150 u to commit.
+&quot;&quot;&quot;
+NAME = &quot;decoy_screen&quot;
+ROLE = &quot;attacker&quot;
+BEARING = 45.0
+SCREEN_TICKS = 4
+
+
+def act(obs):
+    rules = obs[&quot;rules&quot;]
+    budget = obs[&quot;budget&quot;]
+    per_tick = int(rules[&quot;attacker_launches_per_tick&quot;])
+    if obs[&quot;tick&quot;] &lt;= SCREEN_TICKS:
+        dtype, cost = &quot;decoy&quot;, rules[&quot;decoy_cost&quot;]
+    else:
+        dtype, cost = &quot;striker&quot;, rules[&quot;striker_cost&quot;]
+    n = min(per_tick, int(budget // cost))
+    spread = [-6.0, -2.0, 2.0, 6.0]
+    return {&quot;launch&quot;: [{&quot;type&quot;: dtype, &quot;bearing&quot;: BEARING + spread[i % len(spread)]}
+                       for i in range(n)],
+            &quot;steer&quot;: {}}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en" data-root="../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>column_free_tiered_ring_dive · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../index.html">Swarm Colosseum</a>
+<a class="live" href="../index.html#broadcast" aria-label="Now showing a replay from night 33: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../index.html">Arena</a><a href="../ladders.html" aria-current="page">Ladders</a><a href="../replays.html">Replays</a><a href="../research.html" class=wide>Research</a><a href="../library/index.html" class=wide>Library</a><a href="../changelog.html" class=wide>Changelog</a><a href="../seasons.html" class=wide>Seasons</a><a href="../about.html" class=wide>About</a><a href="../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../research.html">Research</a><a href="../library/index.html">Library</a><a href="../changelog.html">Changelog</a><a href="../seasons.html">Seasons</a><a href="../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="wrap">
+<header class="bot-head att"><span class="side-tag att">Attacker</span><h1>column_free_tiered_ring_dive</h1><div class="meta"><span>rank <b class="att">#8</b></span><span>Elo 1056</span><span class="t3">house league, persona generalist</span><span class="t3">2026-10-13_attacker_column_free_tiered_ring_dive</span></div></header>
+<div class="read" style="padding:0;margin:0"><p>Idea: Every drone holds on its own bearing just outside radar range, then the whole ring dives together, with neighbouring bearings in three depth tiers about 14 units apart, so no bearing carries a stacked column and no two drones ever sit within one blast radius.</p>
+<p>Plan: 27 strikers and 12 decoys (60 budget) on 39 evenly spaced bearings. Decoys are spread evenly through the ring. Drones launch at 4 per tick. Each holds just outside radar range (radii 462, 476 and 490, set by tier) by oscillating radially with waypoints. Once every drone is in place, all waypoints are cleared on the same tick.</p>
+<p>The engine's bearing convention is learned from two probe launches on tick 0 (radians or degrees, which direction, where zero is). After that, each drone is matched by its observed angle to the nearest free slot of its own type, so a wrong guess about convention cannot scatter the ring.</p>
+<p>How it fares against each kind of defender:</p>
+<ul><li>Nearest-first, gun-only and layered: the shell-ring attackers lose to these because shells arrive one after another. Here the whole ring lands inside about 7 ticks. One gun shot per tick and 2 launches per tick cannot clear a wave that arrives all at once.</li><li>Cluster/column breakers, which beat depth-interleave: there are no columns to break. Each bearing carries exactly one drone.</li><li>Convergence-blast, contracting-ring and loiter-collapse: these wait for drones to bunch up. Angular neighbours are always at least 14 units apart in radius, and drones three slots apart in the same tier only come within 10 units inside about r=30, right at the asset. A single interceptor almost never kills two drones.</li><li>Discriminating and ID-gated defenders: they ignore the decoys, which cost only 6 budget. Even if all 20 interceptors are fired, they kill about 17 of 27 strikers, and the gun's short window cannot cover the remaining 10. Three hits destroy the asset.</li><li>Eager and annealed assigners: they see 39 unidentified tracks appear at once at 450 range and spend interceptors on the 12 cheap decoys.</li><li>Magazine-drain-resistant and hover-bank defenders: there is no trickle to wait out. The defender's first look at the attack is the attack itself.</li></ul></div>
+<div class="stats4"><div><span class="v">20.0%</span><span class="label">win rate</span></div><div><span class="v">0.75</span><span class="label">cost exchange</span></div><div><span class="v">380</span><span class="label">matches</span></div><div><span class="v">night 15</span><span class="label">first night (2026-10-13)</span></div></div>
+<section class="section" style="margin-top:var(--s5)"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Beats</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="gun_only.html" class="def">gun_only</a><span>10–0</span></li><li><a href="nearest_first.html" class="def">nearest_first</a><span>10–0</span></li><li><a href="2026-10-24_defender_radar_cohort_screen_skip_edge_magazine.html" class="def">radar_cohort_screen_skip_edge_magazine</a><span>8–2</span></li><li><a href="2026-10-20_defender_depth_lag_band_precommit.html" class="def">depth_lag_band_precommit</a><span>6–4</span></li><li><a href="2026-10-31_defender_decoy_carrier_retarget_shell_balancer.html" class="def">decoy_carrier_retarget_shell_balancer</a><span>6–4</span></li><li><a href="2026-10-31_defender_first_cohort_screen_skip_balanced_magazi.html" class="def">first_cohort_screen_skip_balanced_magazi</a><span>6–4</span></li></ul></div><div class="panel"><div class="panel-head"><h2>Loses to</h2><span class="label">wins–losses, last night</span></div><ul class="h2h"><li><a href="2026-09-28_defender_discriminating_ledger.html" class="def">discriminating_ledger</a><span>0–10</span></li><li><a href="2026-10-01_defender_convergence_blast_scheduler.html" class="def">convergence_blast_scheduler</a><span>0–10</span></li><li><a href="2026-10-03_defender_backscheduled_blast_packer.html" class="def">backscheduled_blast_packer</a><span>0–10</span></li><li><a href="2026-10-04_defender_dither_parked_magazine.html" class="def">dither_parked_magazine</a><span>0–10</span></li><li><a href="2026-10-06_defender_contracting_ring_blaster.html" class="def">contracting_ring_blaster</a><span>0–10</span></li><li><a href="2026-10-07_defender_deadline_cluster_ledger.html" class="def">deadline_cluster_ledger</a><span>0–10</span></li></ul></div></div></section>
+<section class="section"><div class="grid2"><figure><span class="label">Best match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-10_defender_hover_bank_double_lattice__s6.json.gz&amp;ar=8&amp;dr=30" title="Best match: column_free_tiered_ring_dive v hover_bank_double_lattice" loading="lazy"></iframe><figcaption>vs <span class="def">hover_bank_double_lattice</span> · its score 0.990 · seed 6 · <a href="../replays/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-10_defender_hover_bank_double_lattice__s6.html">open →</a></figcaption></figure><figure><span class="label">Worst match</span><iframe class="viewer embed fit" src="../replays/viewer.html?mode=embed&amp;r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-01_defender_convergence_blast_scheduler__s6.json.gz&amp;ar=8&amp;dr=4" title="Worst match: column_free_tiered_ring_dive v convergence_blast_scheduler" loading="lazy"></iframe><figcaption>vs <span class="def">convergence_blast_scheduler</span> · its score 0.198 · seed 6 · <a href="../replays/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-01_defender_convergence_blast_scheduler__s6.html">open →</a></figcaption></figure></div></section>
+<section class="section"><div class="grid2"><div class="panel"><div class="panel-head"><h2>Against each opponent</h2><span class="label">its mean score</span></div><div class="tbl-wrap"><table><tbody><tr><td class="name"><a href="nearest_first.html">nearest_first</a></td><td class="num">0.866</td></tr><tr><td class="name"><a href="2026-10-31_defender_decoy_carrier_retarget_shell_balancer.html">decoy_carrier_retarget_shell_balancer</a></td><td class="num">0.754</td></tr><tr><td class="name"><a href="2026-10-24_defender_radar_cohort_screen_skip_edge_magazine.html">radar_cohort_screen_skip_edge_magazine</a></td><td class="num">0.749</td></tr><tr><td class="name"><a href="gun_only.html">gun_only</a></td><td class="num">0.701</td></tr><tr><td class="name"><a href="2026-10-31_defender_first_cohort_screen_skip_balanced_magazi.html">first_cohort_screen_skip_balanced_magazi</a></td><td class="num">0.691</td></tr><tr><td class="name"><a href="2026-10-10_defender_hover_bank_double_lattice.html">hover_bank_double_lattice</a></td><td class="num">0.685</td></tr><tr><td class="name"><a href="2026-10-20_defender_depth_lag_band_precommit.html">depth_lag_band_precommit</a></td><td class="num">0.670</td></tr><tr><td class="name"><a href="2026-10-05_defender_cluster_blast_column_breaker.html">cluster_blast_column_breaker</a></td><td class="num">0.667</td></tr><tr><td class="name"><a href="layered.html">layered</a></td><td class="num">0.597</td></tr><tr><td class="name"><a href="2026-10-02_defender_loiter_then_collapse.html">loiter_then_collapse</a></td><td class="num">0.485</td></tr><tr><td class="name"><a href="2026-09-30_defender_reveal_timed_prelaunch.html">reveal_timed_prelaunch</a></td><td class="num">0.482</td></tr><tr><td class="name"><a href="2026-10-30_defender_cohort_screen_skip_shell_balanced_gun.html">cohort_screen_skip_shell_balanced_gun</a></td><td class="num">0.464</td></tr><tr><td class="name"><a href="2026-10-20_defender_radar_edge_cohort_timing_full_magazine.html">radar_edge_cohort_timing_full_magazine</a></td><td class="num">0.461</td></tr><tr><td class="name"><a href="2026-10-22_defender_cohort_fingerprint_full_magazine_gun_swe.html">cohort_fingerprint_full_magazine_gun_swe</a></td><td class="num">0.442</td></tr><tr><td class="name"><a href="annealed_assignment_eager.html">annealed_assignment_eager</a></td><td class="num">0.440</td></tr><tr><td class="name"><a href="2026-10-25_defender_birth_cohort_lull_splitter.html">birth_cohort_lull_splitter</a></td><td class="num">0.400</td></tr><tr><td class="name"><a href="greedy_value_model.html">greedy_value_model</a></td><td class="num">0.399</td></tr><tr><td class="name"><a href="2026-10-21_defender_radar_cohort_presort_reserve_finisher.html">radar_cohort_presort_reserve_finisher</a></td><td class="num">0.380</td></tr><tr><td class="name"><a href="2026-10-22_defender_trailing_cohort_full_magazine_deadline_g.html">trailing_cohort_full_magazine_deadline_g</a></td><td class="num">0.380</td></tr><tr><td class="name"><a href="2026-10-09_defender_class_gated_magazine_keeper.html">class_gated_magazine_keeper</a></td><td class="num">0.339</td></tr><tr><td class="name"><a href="2026-10-21_defender_cohort_gated_miss_reserve_deadline_gun.html">cohort_gated_miss_reserve_deadline_gun</a></td><td class="num">0.338</td></tr><tr><td class="name"><a href="2026-10-19_defender_arrival_cohort_fingerprint_edge_strike.html">arrival_cohort_fingerprint_edge_strike</a></td><td class="num">0.338</td></tr><tr><td class="name"><a href="2026-10-16_defender_type_ledger_retarget_first.html">type_ledger_retarget_first</a></td><td class="num">0.338</td></tr><tr><td class="name"><a href="2026-10-06_defender_contracting_ring_blaster.html">contracting_ring_blaster</a></td><td class="num">0.319</td></tr><tr><td class="name"><a href="2026-10-18_defender_loiter_pool_convergence_volley.html">loiter_pool_convergence_volley</a></td><td class="num">0.319</td></tr><tr><td class="name"><a href="2026-09-29_defender_miss_budget_scheduler.html">miss_budget_scheduler</a></td><td class="num">0.319</td></tr><tr><td class="name"><a href="identify_then_engage.html">identify_then_engage</a></td><td class="num">0.296</td></tr><tr><td class="name"><a href="2026-10-30_defender_id_only_deadline_magazine_gun_releaser.html">id_only_deadline_magazine_gun_releaser</a></td><td class="num">0.277</td></tr><tr><td class="name"><a href="2026-10-03_defender_backscheduled_blast_packer.html">backscheduled_blast_packer</a></td><td class="num">0.276</td></tr><tr><td class="name"><a href="annealed_assignment.html">annealed_assignment</a></td><td class="num">0.276</td></tr><tr><td class="name"><a href="2026-10-14_defender_parked_hover_ring_doublecover.html">parked_hover_ring_doublecover</a></td><td class="num">0.269</td></tr><tr><td class="name"><a href="2026-09-28_defender_discriminating_ledger.html">discriminating_ledger</a></td><td class="num">0.257</td></tr><tr><td class="name"><a href="2026-10-04_defender_dither_parked_magazine.html">dither_parked_magazine</a></td><td class="num">0.257</td></tr><tr><td class="name"><a href="2026-10-07_defender_deadline_cluster_ledger.html">deadline_cluster_ledger</a></td><td class="num">0.249</td></tr><tr><td class="name"><a href="2026-10-01_defender_convergence_blast_scheduler.html">convergence_blast_scheduler</a></td><td class="num">0.247</td></tr><tr><td class="name"><a href="2026-10-08_defender_hover_bank_late_binder.html">hover_bank_late_binder</a></td><td class="num">0.237</td></tr><tr><td class="name"><a href="2026-10-11_defender_convergent_deadline_packer.html">convergent_deadline_packer</a></td><td class="num">0.230</td></tr><tr><td class="name"><a href="2026-10-29_defender_origin_pingpong_salvo.html">origin_pingpong_salvo</a></td><td class="num">0.221</td></tr></tbody></table></div></div>
+<div class="panel"><div class="panel-head"><h2>Matches</h2><span class="label">last night</span></div><div class="tbl-wrap"><table><thead><tr><th>Opponent</th><th class="num">Seed</th><th>Result</th><th class="num">Score</th><th></th></tr></thead><tbody><tr><td class="name">discriminating_ledger</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.237</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-09-28_defender_discriminating_ledger__s9.json.gz">watch</a></td></tr><tr><td class="name">miss_budget_scheduler</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.234</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-09-29_defender_miss_budget_scheduler__s9.json.gz">watch</a></td></tr><tr><td class="name">reveal_timed_prelaunch</td><td class="num">9</td><td class="good">breached</td><td class="num">0.847</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-09-30_defender_reveal_timed_prelaunch__s9.json.gz">watch</a></td></tr><tr><td class="name">convergence_blast_scheduler</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.225</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-01_defender_convergence_blast_scheduler__s9.json.gz">watch</a></td></tr><tr><td class="name">loiter_then_collapse</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.643</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-02_defender_loiter_then_collapse__s9.json.gz">watch</a></td></tr><tr><td class="name">backscheduled_blast_packer</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.442</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-03_defender_backscheduled_blast_packer__s9.json.gz">watch</a></td></tr><tr><td class="name">dither_parked_magazine</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.237</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-04_defender_dither_parked_magazine__s9.json.gz">watch</a></td></tr><tr><td class="name">cluster_blast_column_breaker</td><td class="num">9</td><td class="good">breached</td><td class="num">0.856</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-05_defender_cluster_blast_column_breaker__s9.json.gz">watch</a></td></tr><tr><td class="name">contracting_ring_blaster</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.237</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-06_defender_contracting_ring_blaster__s9.json.gz">watch</a></td></tr><tr><td class="name">deadline_cluster_ledger</td><td class="num">9</td><td class="bad">defended</td><td class="num">0.222</td><td><a href="../replays/viewer.html?r=data/2026-10-13_attacker_column_free_tiered_ring_dive__2026-10-07_defender_deadline_cluster_ledger__s9.json.gz">watch</a></td></tr></tbody></table></div></div></div></section>
+<details class="src" style="margin-bottom:var(--s3)"><summary>Record · 2026-10-13_attacker_column_free_tiered_ring_dive.meta.json</summary><div class="tbl-wrap"><table><tbody><tr><th>backend</th><td style="white-space:normal">cli</td></tr><tr><th>date</th><td style="white-space:normal">2026-10-13</td></tr><tr><th>dry_run</th><td style="white-space:normal">False</td></tr><tr><th>escalation</th><td style="white-space:normal">False</td></tr><tr><th>evidence</th><td style="white-space:normal">budget: 3000, dropped: [&#x27;top_three&#x27;], included: [&#x27;matrix (cut)&#x27;], used: 3000</td></tr><tr><th>model</th><td style="white-space:normal">opus</td></tr><tr><th>name</th><td style="white-space:normal">2026-10-13_attacker_column_free_tiered_ring_dive</td></tr><tr><th>persona</th><td style="white-space:normal">generalist</td></tr><tr><th>prompt_version</th><td style="white-space:normal">2026-10-03.1</td></tr><tr><th>raw_response</th><td style="white-space:normal">out/house_raw/2026-10-13T033217_cli_attacker_generalist.md</td></tr><tr><th>result</th><td style="white-space:normal">beat_target: False, field_mean: 0.411, rank: 7</td></tr><tr><th>role</th><td style="white-space:normal">attacker</td></tr><tr><th>target</th><td style="white-space:normal">field</td></tr><tr><th>tokens</th><td style="white-space:normal">input: 7473, output: 12171</td></tr></tbody></table></div></details>
+<details class="src"><summary>Source · bots/house/2026-10-13_attacker_column_free_tiered_ring_dive.py</summary><pre><code>&quot;&quot;&quot;Idea: Every drone holds on its own bearing just outside radar range, then the whole ring dives together, with neighbouring bearings in three depth tiers about 14 units apart, so no bearing carries a stacked column and no two drones ever sit within one blast radius.
+
+Plan: 27 strikers and 12 decoys (60 budget) on 39 evenly spaced bearings.
+Decoys are spread evenly through the ring. Drones launch at 4 per tick. Each
+holds just outside radar range (radii 462, 476 and 490, set by tier) by
+oscillating radially with waypoints. Once every drone is in place, all
+waypoints are cleared on the same tick.
+
+The engine&#x27;s bearing convention is learned from two probe launches on tick 0
+(radians or degrees, which direction, where zero is). After that, each drone is
+matched by its observed angle to the nearest free slot of its own type, so a
+wrong guess about convention cannot scatter the ring.
+
+How it fares against each kind of defender:
+- Nearest-first, gun-only and layered: the shell-ring attackers lose to these
+  because shells arrive one after another. Here the whole ring lands inside
+  about 7 ticks. One gun shot per tick and 2 launches per tick cannot clear a
+  wave that arrives all at once.
+- Cluster/column breakers, which beat depth-interleave: there are no columns
+  to break. Each bearing carries exactly one drone.
+- Convergence-blast, contracting-ring and loiter-collapse: these wait for drones
+  to bunch up. Angular neighbours are always at least 14 units apart in
+  radius, and drones three slots apart in the same tier only come within 10
+  units inside about r=30, right at the asset. A single interceptor almost
+  never kills two drones.
+- Discriminating and ID-gated defenders: they ignore the decoys, which cost
+  only 6 budget. Even if all 20 interceptors are fired, they kill about 17 of
+  27 strikers, and the gun&#x27;s short window cannot cover the remaining 10.
+  Three hits destroy the asset.
+- Eager and annealed assigners: they see 39 unidentified tracks appear at once
+  at 450 range and spend interceptors on the 12 cheap decoys.
+- Magazine-drain-resistant and hover-bank defenders: there is no trickle to
+  wait out. The defender&#x27;s first look at the attack is the attack itself.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;column_free_tiered_ring_dive&quot;
+ROLE = &quot;attacker&quot;
+
+N_STRIKE = 27
+N_DECOY = 12
+N = N_STRIKE + N_DECOY
+HOLD_R = [462.0, 476.0, 490.0]
+GO_DEADLINE = 48
+
+_st = {}
+
+
+def _wrap(a):
+    while a &gt; math.pi:
+        a -= 2 * math.pi
+    while a &lt;= -math.pi:
+        a += 2 * math.pi
+    return a
+
+
+def reset(seed=None):
+    _st.clear()
+    types = []
+    for i in range(N):
+        d = (i * N_DECOY) // N != ((i + 1) * N_DECOY) // N
+        types.append(&quot;decoy&quot; if d else &quot;striker&quot;)
+    # Fix count exactly
+    nd = types.count(&quot;decoy&quot;)
+    if nd != N_DECOY:
+        types = [&quot;striker&quot;] * N
+        for k in range(N_DECOY):
+            types[(k * N) // N_DECOY + 1 if (k * N) // N_DECOY + 1 &lt; N else 0] = &quot;decoy&quot;
+    _st[&quot;types&quot;] = types
+    _st[&quot;tier&quot;] = [i % 3 for i in range(N)]
+    # launch order: inner tiers first (longest travel to hold point)
+    order = sorted(range(N), key=lambda i: (_st[&quot;tier&quot;][i], i))
+    _st[&quot;probe&quot;] = [0, None]
+    _st[&quot;launch_order&quot;] = order
+    _st[&quot;launched&quot;] = set()
+    _st[&quot;map&quot;] = None  # (a0, sign*scale)
+    _st[&quot;probe_ids&quot;] = None
+    _st[&quot;assign&quot;] = {}
+    _st[&quot;slot_used&quot;] = set()
+    _st[&quot;go&quot;] = False
+    _st[&quot;spent&quot;] = 0.0
+
+
+def _slot_angle(k):
+    a0 = _st[&quot;map&quot;][0] if _st[&quot;map&quot;] else 0.0
+    return a0 + 2 * math.pi * k / N
+
+
+def _bearing_for(k):
+    if _st[&quot;map&quot;] is None:
+        return 2 * math.pi * k / N
+    a0, f = _st[&quot;map&quot;]
+    tgt = _slot_angle(k)
+    return _wrap(tgt - a0) / f
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+
+
+def _act(obs):
+    if &quot;types&quot; not in _st:
+        reset(0)
+    tick = obs.get(&quot;tick&quot;, 0)
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    ap = asset.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    ax, ay = float(ap[0]), float(ap[1])
+    budget = float(obs.get(&quot;budget&quot;, 0.0))
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    sc = float(rules.get(&quot;striker_cost&quot;, 2.0))
+    dc = float(rules.get(&quot;decoy_cost&quot;, 0.5))
+    cap = int(rules.get(&quot;attacker_launches_per_tick&quot;, 4))
+    drones = obs.get(&quot;drones&quot;, []) or []
+    types = _st[&quot;types&quot;]
+
+    launch = []
+    steer = {}
+
+    # Probe slot j about 1.5 rad from slot 0
+    j = max(1, int(round(1.5 / (2 * math.pi / N))))
+    _st[&quot;probe&quot;][1] = j
+
+    # Learn bearing mapping
+    if _st[&quot;map&quot;] is None and _st[&quot;probe_ids&quot;] is None and drones and 0 in _st[&quot;launched&quot;]:
+        ds = sorted(drones, key=lambda d: str(d.get(&quot;id&quot;)) if not isinstance(d.get(&quot;id&quot;), (int, float)) else &quot;%012d&quot; % int(d.get(&quot;id&quot;)))
+        if len(ds) &gt;= 2:
+            p0, p1 = ds[0][&quot;pos&quot;], ds[1][&quot;pos&quot;]
+            a0 = math.atan2(p0[1] - ay, p0[0] - ax)
+            a1 = math.atan2(p1[1] - ay, p1[0] - ax)
+            d = _wrap(a1 - a0)
+            br = 2 * math.pi * j / N
+            sgn = 1.0 if d &gt;= 0 else -1.0
+            if abs(abs(d) - br) &lt; 0.25:
+                f = sgn
+            elif abs(abs(d) - math.radians(br)) &lt; 0.02:
+                f = sgn * math.pi / 180.0
+            else:
+                f = 1.0
+            _st[&quot;map&quot;] = (a0, f)
+        else:
+            if drones:
+                p0 = drones[0][&quot;pos&quot;]
+                _st[&quot;map&quot;] = (math.atan2(p0[1] - ay, p0[0] - ax), 1.0)
+        _st[&quot;probe_ids&quot;] = True
+
+    # Launches
+    if tick == 0 and not _st[&quot;launched&quot;]:
+        for k in (0, j):
+            c = sc if types[k] == &quot;striker&quot; else dc
+            if budget &gt;= c - 1e-9:
+                launch.append({&quot;type&quot;: types[k], &quot;bearing&quot;: float(2 * math.pi * k / N)})
+                _st[&quot;launched&quot;].add(k)
+                budget -= c
+    elif _st[&quot;map&quot;] is not None or tick &gt;= 3:
+        if _st[&quot;map&quot;] is None:
+            _st[&quot;map&quot;] = (0.0, 1.0)
+        for k in _st[&quot;launch_order&quot;]:
+            if len(launch) &gt;= cap:
+                break
+            if k in _st[&quot;launched&quot;]:
+                continue
+            c = sc if types[k] == &quot;striker&quot; else dc
+            if budget &lt; c - 1e-9:
+                continue
+            launch.append({&quot;type&quot;: types[k], &quot;bearing&quot;: float(_bearing_for(k))})
+            _st[&quot;launched&quot;].add(k)
+            budget -= c
+
+    # Assign drones to slots
+    assign = _st[&quot;assign&quot;]
+    used = _st[&quot;slot_used&quot;]
+    if _st[&quot;map&quot;] is not None:
+        for d in drones:
+            did = d.get(&quot;id&quot;)
+            if did in assign:
+                continue
+            p = d[&quot;pos&quot;]
+            ang = math.atan2(p[1] - ay, p[0] - ax)
+            best, bd = None, 1e9
+            for k in range(N):
+                if k in used or types[k] != d.get(&quot;type&quot;):
+                    continue
+                e = abs(_wrap(ang - _slot_angle(k)))
+                if e &lt; bd:
+                    bd, best = e, k
+            if best is not None:
+                assign[did] = best
+                used.add(best)
+
+    all_launched = len(_st[&quot;launched&quot;]) &gt;= N or budget &lt; dc - 1e-9
+    if not _st[&quot;go&quot;] and all_launched and tick &gt;= 2:
+        ready = True
+        for d in drones:
+            k = assign.get(d.get(&quot;id&quot;))
+            if k is None:
+                continue
+            p = d[&quot;pos&quot;]
+            r = math.hypot(p[0] - ax, p[1] - ay)
+            hr = HOLD_R[_st[&quot;tier&quot;][k]]
+            ang = math.atan2(p[1] - ay, p[0] - ax)
+            if abs(r - hr) &gt; 6.0 or abs(_wrap(ang - _slot_angle(k))) * r &gt; 8.0:
+                ready = False
+                break
+        if ready or tick &gt;= GO_DEADLINE:
+            _st[&quot;go&quot;] = True
+
+    for d in drones:
+        did = d.get(&quot;id&quot;)
+        if _st[&quot;go&quot;]:
+            steer[did] = None
+            continue
+        k = assign.get(did)
+        p = d[&quot;pos&quot;]
+        r = math.hypot(p[0] - ax, p[1] - ay)
+        if k is None:
+            ang = math.atan2(p[1] - ay, p[0] - ax)
+            hr = 476.0
+        else:
+            ang = _slot_angle(k)
+            hr = HOLD_R[_st[&quot;tier&quot;][k]]
+        cx, cy = ax + hr * math.cos(ang), ay + hr * math.sin(ang)
+        if math.hypot(p[0] - cx, p[1] - cy) &gt; 6.0:
+            # head toward hold point, pushed beyond so it is never &quot;reached&quot;
+            dx, dy = cx - p[0], cy - p[1]
+            n = math.hypot(dx, dy) or 1.0
+            steer[did] = [cx + dx / n * 30.0, cy + dy / n * 30.0]
+        else:
+            rr = hr + 60.0 if r &lt; hr else hr - 60.0
+            steer[did] = [ax + rr * math.cos(ang), ay + rr * math.sin(ang)]
+
+    return {&quot;launch&quot;: launch, &quot;steer&quot;: steer}
+</code></pre></details>
+</div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 33 (2026-10-31)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../site.js" defer></script></body></html>
