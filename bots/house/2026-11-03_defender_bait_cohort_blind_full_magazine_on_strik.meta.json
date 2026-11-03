@@ -1,0 +1,33 @@
+{
+  "backend": "cli",
+  "date": "2026-11-03",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 4000,
+    "dropped": [],
+    "included": [
+      "source",
+      "closest",
+      "row"
+    ],
+    "used": 2535
+  },
+  "model": "opus",
+  "name": "2026-11-03_defender_bait_cohort_blind_full_magazine_on_strik",
+  "persona": "counter_meta",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-03T033243_cli_defender_counter_meta.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.535,
+    "rank": 24,
+    "score_vs_target": 0.241
+  },
+  "role": "defender",
+  "target": "2026-10-23_attacker_bait_count_then_clear_sky_wave",
+  "tokens": {
+    "input": 6266,
+    "output": 8401
+  }
+}
