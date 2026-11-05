@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-11-05",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3500,
+    "dropped": [],
+    "included": [
+      "source"
+    ],
+    "used": 2426
+  },
+  "model": "opus",
+  "name": "2026-11-05_defender_magazine_staging_pingpong",
+  "persona": "contrarian",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-05T033521_cli_defender_contrarian.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.621,
+    "rank": 8,
+    "score_vs_target": 0.729
+  },
+  "role": "defender",
+  "target": "2026-09-29_attacker_synchronized_ring",
+  "tokens": {
+    "input": 5790,
+    "output": 17320
+  }
+}

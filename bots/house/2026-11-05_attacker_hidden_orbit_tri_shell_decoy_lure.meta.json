@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-11-05",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [
+      "top_three"
+    ],
+    "included": [
+      "matrix (cut)"
+    ],
+    "used": 3000
+  },
+  "model": "opus",
+  "name": "2026-11-05_attacker_hidden_orbit_tri_shell_decoy_lure",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-05T033211_cli_attacker_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.799,
+    "rank": 3
+  },
+  "role": "attacker",
+  "target": "field",
+  "tokens": {
+    "input": 7742,
+    "output": 11776
+  }
+}
