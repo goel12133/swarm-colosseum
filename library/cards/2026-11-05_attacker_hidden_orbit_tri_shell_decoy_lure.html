@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>hidden_orbit_tri_shell_decoy_lure · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 39: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-11-05_attacker_hidden_orbit_tri_shell_decoy_lure.html">On the ladder now →</a></p>
+<h1>hidden_orbit_tri_shell_decoy_lure</h1>
+<p><strong>attacker</strong> · family: Unsorted · persona: generalist · author: house league (model opus) · live</p>
+<p>File: 2026-11-05_attacker_hidden_orbit_tri_shell_decoy_lure.py</p>
+<p><strong>The idea:</strong> Strikers launch just outside radar range and orbit there unseen while a decoy ring draws interceptors in, then they dive as three angle-interleaved, time-staggered shells, so no single blast can catch two of them.</p>
+<h2>What it does</h2>
+<p>Why it holds up across the defender field: Long-range and eager defenders (greedy, annealed, nearest_first, and the cohort/fingerprint "full magazine" family): Only the 12-decoy ring is visible for the first ~50 ticks. Defenders that fire at unknown tracks spend interceptors on decoys. That leaves too little magazine for the 27 strikers that follow. ID-gated and deadline defenders (class_gated, id_only, deadline_queue, ledger types): They ignore the decoys. They then face 27 strikers against 20 interceptors (pk 0.85) plus a gun. The gun only has about 25 ticks of range. So at least 3 strikers (30 hp) are expected to get through.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #3 attacker (2026-11-05).</li><li>In the top five on 2 of the 2 nights it played.</li><li>Written against: <strong>field</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-11-06.</p>
+<ul><li><strong>layered</strong>: breached in 10 of 10 seeds, mean score 0.91</li><li><strong>nearest_first</strong>: breached in 10 of 10 seeds, mean score 0.91</li><li><strong>origin_pingpong_salvo</strong>: breached in 10 of 10 seeds, mean score 0.90</li><li><strong>greedy_value_model</strong>: breached in 10 of 10 seeds, mean score 0.89</li><li><strong>decoy_carrier_retarget_shell_balancer</strong>: breached in 10 of 10 seeds, mean score 0.89</li><li>… and 35 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>cohort_screen_skip_shell_balanced_gun</strong>: breached in 4 of 10 seeds, mean score 0.55</li><li><strong>convergent_deadline_packer</strong>: breached in 4 of 10 seeds, mean score 0.63</li><li><strong>parked_hover_ring_doublecover</strong>: breached in 4 of 10 seeds, mean score 0.67</li><li><strong>loiter_then_collapse</strong>: breached in 4 of 10 seeds, mean score 0.68</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>layered</strong>, seed 6: breached in 169 ticks, its score 0.95. <a href="../../replays/2026-11-05_attacker_hidden_orbit_tri_shell_decoy_lure__layered__s6.html">2026-11-05_attacker_hidden_orbit_tri_shell_decoy_lure__layered__s6.json</a></li><li>Worst: vs <strong>hover_bank_double_lattice</strong>, seed 7: defended in 178 ticks, its score 0.24. <a href="../../replays/2026-11-05_attacker_hidden_orbit_tri_shell_decoy_lure__2026-10-10_defender_hover_bank_double_lattice__s7.html">2026-11-05_attacker_hidden_orbit_tri_shell_decoy_lure__2026-10-10_defender_hover_bank_double_lattice__s7.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;
+Idea: Strikers launch just outside radar range and orbit there unseen while a decoy ring draws interceptors in, then they dive as three angle-interleaved, time-staggered shells, so no single blast can catch two of them.
+
+Why it holds up across the defender field:
+- Long-range and eager defenders (greedy, annealed, nearest_first, and the
+  cohort/fingerprint &quot;full magazine&quot; family):
+  - Only the 12-decoy ring is visible for the first ~50 ticks.
+  - Defenders that fire at unknown tracks spend interceptors on decoys.
+  - That leaves too little magazine for the 27 strikers that follow.
+- ID-gated and deadline defenders (class_gated, id_only, deadline_queue,
+  ledger types):
+  - They ignore the decoys.
+  - They then face 27 strikers against 20 interceptors (pk 0.85) plus a gun.
+  - The gun only has about 25 ticks of range.
+  - So at least 3 strikers (30 hp) are expected to get through.
+- Blast-packing and convergence schedulers (convergent_deadline_packer,
+  convergence_blast_scheduler, cluster_blast_column_breaker):
+  - Strikers sit on 27 evenly spaced bearings.
+  - Each shell of 9 is 40 degrees apart.
+  - Shells arrive 6 ticks (24 units) apart, more than the blast diameter.
+  - So no single blast can catch two strikers, even near the asset where
+    paths converge.
+- Parked, hover, and loiter defenders (parked_hover_ring_doublecover,
+  loiter_then_collapse, loiter_pool, origin_pingpong):
+  - These are the only ones that resist a plain synchronized ring.
+  - Here they park interceptors when the decoys appear.
+  - Interceptors only live 90 ticks.
+  - The strikers arrive more than 150 ticks after the decoys are detected.
+  - So the parked screen has expired or has been spent on decoys before the
+    real wave arrives.
+- Hiding: until the dive, every striker orbits at about 478 units, outside
+  the 450-unit radar. Defenders that profile or fingerprint cohorts see nothing
+  to work with.
+- Robustness: the bearing convention (radians or degrees, orientation) is
+  measured from the first launch instead of assumed.
+&quot;&quot;&quot;
+
+import math
+
+NAME = &quot;hidden_orbit_tri_shell_decoy_lure&quot;
+ROLE = &quot;attacker&quot;
+
+TWO_PI = 2.0 * math.pi
+ORBIT_R = 478.0
+N_DECOYS = 12
+N_STRIKERS = 27
+N_SHELLS = 3
+DIVE_TICK = 55
+SHELL_LAG = 6
+
+_S = {}
+
+
+def _wrap(a):
+    while a &gt; math.pi:
+        a -= TWO_PI
+    while a &lt; -math.pi:
+        a += TWO_PI
+    return a
+
+
+def _idkey(i):
+    s = str(i)
+    return (len(s), s)
+
+
+def reset(seed=None):
+    _S.clear()
+    _S[&quot;mapped&quot;] = False
+    _S[&quot;scale&quot;] = 1.0       # bearing units -&gt; radians
+    _S[&quot;sgn&quot;] = 1.0
+    _S[&quot;offset&quot;] = 0.0
+    _S[&quot;probe_ids&quot;] = []
+    _S[&quot;decoys_left&quot;] = N_DECOYS
+    _S[&quot;decoy_queue&quot;] = []
+    _S[&quot;striker_queue&quot;] = []  # list of (slot_angle, shell)
+    _S[&quot;pending&quot;] = []        # (expected_angle, shell) launched, not yet seen
+    _S[&quot;role&quot;] = {}           # drone id -&gt; (&quot;decoy&quot;,) or (&quot;striker&quot;, shell)
+    _S[&quot;seen&quot;] = set()
+    _S[&quot;omega&quot;] = 4.0 / ORBIT_R
+    _S[&quot;first_tick&quot;] = None
+    base = math.pi / N_STRIKERS
+    q = []
+    for j in range(N_STRIKERS):
+        q.append((base + TWO_PI * j / N_STRIKERS, j % N_SHELLS))
+    # Interleave the launch order so that shells are mixed.
+    _S[&quot;striker_queue&quot;] = q
+
+
+reset()
+
+
+def _to_bearing(angle):
+    b = _S[&quot;sgn&quot;] * (angle - _S[&quot;offset&quot;]) / _S[&quot;scale&quot;]
+    if _S[&quot;scale&quot;] != 1.0:
+        b = b % 360.0
+    else:
+        b = b % TWO_PI
+    return b
+
+
+def _act(obs):
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    budget = float(obs.get(&quot;budget&quot;, 0.0))
+    rules = obs.get(&quot;rules&quot;, {}) or {}
+    sc = float(rules.get(&quot;striker_cost&quot;, 2.0))
+    dc = float(rules.get(&quot;decoy_cost&quot;, 0.5))
+    per_tick = int(rules.get(&quot;attacker_launches_per_tick&quot;, 4))
+    spd = float(rules.get(&quot;striker_speed&quot;, 4.0))
+    spawn_r = float(rules.get(&quot;spawn_radius&quot;, 490.0))
+    _S[&quot;omega&quot;] = spd / max(ORBIT_R, 1.0)
+    if _S[&quot;first_tick&quot;] is None:
+        _S[&quot;first_tick&quot;] = tick
+    t0 = _S[&quot;first_tick&quot;]
+    rel = tick - t0
+
+    asset = obs.get(&quot;asset&quot;, {}) or {}
+    ap = asset.get(&quot;pos&quot;, [0.0, 0.0]) or [0.0, 0.0]
+    ax, ay = float(ap[0]), float(ap[1])
+
+    drones = obs.get(&quot;drones&quot;, []) or []
+    launches = []
+    steer = {}
+
+    # --- Probe the bearing convention ---
+    if rel == 0 and not _S[&quot;probe_ids&quot;]:
+        probes = [0.0, math.pi / 2.0, math.pi, 1.5 * math.pi]
+        for b in probes:
+            if budget &gt;= dc and _S[&quot;decoys_left&quot;] &gt; 0:
+                launches.append({&quot;type&quot;: &quot;decoy&quot;, &quot;bearing&quot;: b})
+                budget -= dc
+                _S[&quot;decoys_left&quot;] -= 1
+        _S[&quot;probe_ids&quot;] = [&quot;pending&quot;]
+        return {&quot;launch&quot;: launches, &quot;steer&quot;: steer}
+
+    if not _S[&quot;mapped&quot;]:
+        ds = sorted(drones, key=lambda d: _idkey(d.get(&quot;id&quot;)))
+        if len(ds) &gt;= 2:
+            angs = []
+            for d in ds[:4]:
+                p = d.get(&quot;pos&quot;, [1.0, 0.0])
+                angs.append(math.atan2(float(p[1]) - ay, float(p[0]) - ax))
+            spread = max(abs(_wrap(a - angs[0])) for a in angs)
+            if spread &lt; 0.3:
+                _S[&quot;scale&quot;] = math.pi / 180.0
+                d1 = _wrap(angs[-1] - angs[0])
+                _S[&quot;sgn&quot;] = 1.0 if d1 &gt;= 0 else -1.0
+            else:
+                _S[&quot;scale&quot;] = 1.0
+                d1 = _wrap(angs[1] - angs[0])
+                _S[&quot;sgn&quot;] = 1.0 if d1 &gt;= 0 else -1.0
+            _S[&quot;offset&quot;] = angs[0]
+            _S[&quot;mapped&quot;] = True
+            for d in ds:
+                _S[&quot;role&quot;][d.get(&quot;id&quot;)] = (&quot;decoy&quot;,)
+                _S[&quot;seen&quot;].add(d.get(&quot;id&quot;))
+        elif rel &gt;= 4:
+            _S[&quot;mapped&quot;] = True
+            for d in drones:
+                _S[&quot;role&quot;][d.get(&quot;id&quot;)] = (&quot;decoy&quot;,)
+                _S[&quot;seen&quot;].add(d.get(&quot;id&quot;))
+        else:
+            return {&quot;launch&quot;: [], &quot;steer&quot;: {}}
+        # Build the remaining decoy queue, offset between the probe bearings.
+        n = _S[&quot;decoys_left&quot;]
+        _S[&quot;decoy_queue&quot;] = [_S[&quot;offset&quot;] + math.pi / 4.0 + TWO_PI * i / max(n, 1)
+                             for i in range(n)]
+
+    # --- Assign roles to newly seen drones ---
+    for d in drones:
+        did = d.get(&quot;id&quot;)
+        if did in _S[&quot;seen&quot;]:
+            continue
+        _S[&quot;seen&quot;].add(did)
+        if d.get(&quot;type&quot;) == &quot;striker&quot; and _S[&quot;pending&quot;]:
+            p = d.get(&quot;pos&quot;, [1.0, 0.0])
+            a = math.atan2(float(p[1]) - ay, float(p[0]) - ax)
+            best, bi = None, 0
+            for i, (ea, sh) in enumerate(_S[&quot;pending&quot;]):
+                e = abs(_wrap(a - ea))
+                if best is None or e &lt; best:
+                    best, bi = e, i
+            ea, sh = _S[&quot;pending&quot;].pop(bi)
+            _S[&quot;role&quot;][did] = (&quot;striker&quot;, sh)
+        elif d.get(&quot;type&quot;) == &quot;striker&quot;:
+            _S[&quot;role&quot;][did] = (&quot;striker&quot;, N_SHELLS - 1)
+        else:
+            _S[&quot;role&quot;][did] = (&quot;decoy&quot;,)
+
+    # --- Launches: decoys first, then strikers ---
+    n_launch = 0
+    while n_launch &lt; per_tick and _S[&quot;decoy_queue&quot;] and budget &gt;= dc:
+        a = _S[&quot;decoy_queue&quot;].pop(0)
+        launches.append({&quot;type&quot;: &quot;decoy&quot;, &quot;bearing&quot;: _to_bearing(a)})
+        budget -= dc
+        n_launch += 1
+    while n_launch &lt; per_tick and _S[&quot;striker_queue&quot;] and budget &gt;= sc:
+        s, sh = _S[&quot;striker_queue&quot;].pop(0)
+        a = s + _S[&quot;omega&quot;] * rel
+        launches.append({&quot;type&quot;: &quot;striker&quot;, &quot;bearing&quot;: _to_bearing(a)})
+        _S[&quot;pending&quot;].append((a, sh))
+        budget -= sc
+        n_launch += 1
+
+    # --- Steering ---
+    for d in drones:
+        did = d.get(&quot;id&quot;)
+        role = _S[&quot;role&quot;].get(did, (&quot;decoy&quot;,))
+        if role[0] != &quot;striker&quot;:
+            continue
+        sh = role[1]
+        if rel &gt;= DIVE_TICK + SHELL_LAG * sh:
+            steer[did] = None
+            continue
+        p = d.get(&quot;pos&quot;, [spawn_r, 0.0])
+        px, py = float(p[0]) - ax, float(p[1]) - ay
+        r = math.hypot(px, py)
+        if r &lt; 1.0:
+            steer[did] = None
+            continue
+        a = math.atan2(py, px)
+        wr = ORBIT_R + (ORBIT_R - r) * 3.0
+        wr = max(ORBIT_R - 10.0, min(ORBIT_R + 25.0, wr))
+        wa = a + 30.0 / r
+        steer[did] = [ax + wr * math.cos(wa), ay + wr * math.sin(wa)]
+
+    return {&quot;launch&quot;: launches, &quot;steer&quot;: steer}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return {&quot;launch&quot;: [], &quot;steer&quot;: {}}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 39 (2026-11-07)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>

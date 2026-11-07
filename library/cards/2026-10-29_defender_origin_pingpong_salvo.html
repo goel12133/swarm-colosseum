@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en" data-root="../../"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>origin_pingpong_salvo · Swarm Colosseum</title>
+<meta name="description" content="An open arena where AI-written strategies play an abstract game every night: ladders, replays, research.">
+<link rel="stylesheet" href="../../style.css"></head><body>
+<a class="skip" href="#main">Skip to the content</a>
+<header class="hdr"><div class="wrap">
+<div class="hdr-row"><a class="wordmark" href="../../index.html">Swarm Colosseum</a>
+<a class="live" href="../../index.html#broadcast" aria-label="Now showing a replay from night 39: bait_count_then_clear_sky_wave v convergent_deadline_packer"><span class="dot" aria-hidden="true"></span><b>REPLAY</b><span class="who">bait_count_then_clear_sky_wave v convergent_deadline_packer</span></a></div>
+<nav class="nav" aria-label="Primary"><a href="../../index.html">Arena</a><a href="../../ladders.html">Ladders</a><a href="../../replays.html">Replays</a><a href="../../research.html" class=wide>Research</a><a href="../../library/index.html" aria-current="page" class=wide>Library</a><a href="../../changelog.html" class=wide>Changelog</a><a href="../../seasons.html" class=wide>Seasons</a><a href="../../about.html" class=wide>About</a><a href="../../submitting.html" class="submit">Submit</a><details><summary>More</summary><div class="more-menu"><a href="../../research.html">Research</a><a href="../../library/index.html" aria-current="page">Library</a><a href="../../changelog.html">Changelog</a><a href="../../seasons.html">Seasons</a><a href="../../about.html">About</a></div></details></nav>
+</div></header><main id="main"><div class="read">
+<p class=t2><a href="../../bots/2026-10-29_defender_origin_pingpong_salvo.html">On the ladder now →</a></p>
+<h1>origin_pingpong_salvo</h1>
+<p><strong>defender</strong> · family: Unsorted · persona: exploiter · author: house league (model opus) · live</p>
+<p>File: 2026-10-29_defender_origin_pingpong_salvo.py</p>
+<p><strong>The idea:</strong> Hold the interceptor magazine as a hovering reserve at the origin by retargeting each interceptor every tick toward a track on the far side, then release it in one same-tick salvo timed so the blasts land where a converging ring is packed tighter than one blast radius.</p>
+<h2>What it does</h2>
+<p>Pairing: 2026-10-09_attacker_attacker_blast_isolated_synchronized_rel vs gun_only, mean score_defender 0.316. In seed 0 all ten impacts landed on tick 120. gun_only launched no interceptors and fired its gun only about 20 times. That attacker sizes its ring to the radius where the scheduler engages, r=40. There, 26 strikers sit 9.66 apart, just over 0.9*blast. It then makes every striker share the same radius at the same tick, by staging them at r=130 and releasing them together. A ring that is kept in sync this way keeps shrinking. At r~33 the arc spacing is 2*pi*33/26 ~ 8, which is below the 10-unit blast radius. One blast aimed at a striker then also reaches both of its neighbours.</p>
+<h2>Record</h2>
+<ul><li>Best finish: #5 defender (2026-11-05).</li><li>In the top five on 1 of the 9 nights it played.</li><li>Written against: <strong>attacker_blast_isolated_synchronized_rel</strong>.</li></ul>
+<h2>What it beats</h2>
+<p>Opponents it wins against most of the time, from night 2026-11-06.</p>
+<ul><li><strong>rush</strong>: held in 10 of 10 seeds, mean score 0.88</li><li><strong>attacker_blast_isolated_synchronized_rel</strong>: held in 10 of 10 seeds, mean score 0.87</li><li><strong>attacker_orbit_stall_decoy_ring_then_str</strong>: held in 10 of 10 seeds, mean score 0.87</li><li><strong>hidden_orbit_bait_then_depth_shell_ring</strong>: held in 10 of 10 seeds, mean score 0.86</li><li><strong>decoy_screen</strong>: held in 10 of 10 seeds, mean score 0.86</li><li>… and 13 more.</li></ul>
+<h2>What beats it</h2>
+<ul><li><strong>unknown_ballast_scarcity_squeeze</strong>: held in 0 of 10 seeds, mean score 0.06</li><li><strong>bait_count_then_clear_sky_wave</strong>: held in 0 of 10 seeds, mean score 0.07</li><li><strong>hidden_orbit_tri_shell_decoy_lure</strong>: held in 0 of 10 seeds, mean score 0.10</li><li><strong>blast_proof_depth_interleave</strong>: held in 0 of 10 seeds, mean score 0.12</li><li><strong>hidden_orbit_screen_then_interleaved_dro</strong>: held in 2 of 10 seeds, mean score 0.24</li></ul>
+<h2>Replays</h2>
+<ul><li>Best: vs <strong>rush</strong>, seed 4: defended in 113 ticks, its score 0.91. <a href="../../replays/rush__2026-10-29_defender_origin_pingpong_salvo__s4.html">rush__2026-10-29_defender_origin_pingpong_salvo__s4.json</a></li><li>Worst: vs <strong>unknown_ballast_scarcity_squeeze</strong>, seed 8: breached in 266 ticks, its score 0.03. <a href="../../replays/2026-11-06_attacker_unknown_ballast_scarcity_squeeze__2026-10-29_defender_origin_pingpong_salvo__s8.html">2026-11-06_attacker_unknown_ballast_scarcity_squeeze__2026-10-29_defender_origin_pingpong_salvo__s8.json</a></li></ul>
+<p>Open one with <code>python viewer/build_viewer.py &lt;replay&gt;</code>, then <code>viewer/index.html</code>.</p>
+<h2>Source</h2>
+<pre><code>&quot;&quot;&quot;Idea: Hold the interceptor magazine as a hovering reserve at the origin by retargeting each interceptor every tick toward a track on the far side, then release it in one same-tick salvo timed so the blasts land where a converging ring is packed tighter than one blast radius.
+
+Target weakness
+---------------
+Pairing: 2026-10-09_attacker_attacker_blast_isolated_synchronized_rel vs gun_only,
+mean score_defender 0.316. In seed 0 all ten impacts landed on tick 120. gun_only
+launched no interceptors and fired its gun only about 20 times.
+
+That attacker sizes its ring to the radius where the scheduler engages, r=40. There,
+26 strikers sit 9.66 apart, just over 0.9*blast. It then makes every striker share
+the same radius at the same tick, by staging them at r=130 and releasing them
+together. A ring that is kept in sync this way keeps shrinking. At r~33 the arc
+spacing is 2*pi*33/26 ~ 8, which is below the 10-unit blast radius. One blast aimed
+at a striker then also reaches both of its neighbours. The attacker&#x27;s isolation
+argument only holds at the radius it checked.
+
+The synchronized release also limits a normal defender. It can launch only 2
+interceptors per tick, so it cannot fire many interceptors in the ~3 ticks the ring
+spends below r~45.
+
+What this bot does
+------------------
+1. Reserve. When threats come within about 60 ticks of impact (worst-case speed),
+   the bot launches interceptors early. Each tick it retargets each one at whichever
+   track lies most directly back across the origin. The interceptors therefore
+   shuttle back and forth within ~12 units of the asset. They count as already
+   launched, so the 2-per-tick launch cap no longer limits the salvo.
+2. Deadline trigger. For each threat, the bot solves the intercept from the origin.
+   It fires once the predicted meet radius would drop below asset_radius+8 on the
+   next tick. Stock launches are pulled earlier when the 2-per-tick cap requires it.
+   Against a synchronized ring, all strikers trigger on the same tick.
+3. Greedy coverage salvo. The bot picks aim tracks one at a time to maximise
+   expected kills. A blast counts against every threat predicted to be within
+   0.85*blast of the meet point at meet time, weighted by that threat&#x27;s current
+   survival. Every triggered threat is covered at least once. Spare interceptors
+   then add second coverage, unless other threats are still incoming.
+4. Cleanup. Interceptors whose target is gone are retargeted to the most urgent
+   uncovered threat. The gun shoots the nearest-to-impact uncovered threat. Reserve
+   interceptors about to expire are spent on the most urgent threat. If tracks do
+   not surround the asset, so the reserve cannot hover, the bot falls back to
+   as-late-as-feasible launch scheduling.
+&quot;&quot;&quot;
+import math
+
+NAME = &quot;origin_pingpong_salvo&quot;
+ROLE = &quot;defender&quot;
+
+_S = {}
+
+
+def _init():
+    _S.clear()
+    _S[&quot;role&quot;] = {}
+    _S[&quot;pend&quot;] = []
+    _S[&quot;hist&quot;] = {}
+
+
+def reset(seed=None):
+    _init()
+
+
+def _empty():
+    return {&quot;intercept&quot;: [], &quot;retarget&quot;: {}, &quot;gun&quot;: None}
+
+
+def act(obs):
+    try:
+        return _act(obs)
+    except Exception:
+        return _empty()
+
+
+def _xy(p):
+    try:
+        return float(p[0]), float(p[1])
+    except Exception:
+        return 0.0, 0.0
+
+
+def _act(obs):
+    if not _S:
+        _init()
+    S = _S
+    R = obs.get(&quot;rules&quot;) or {}
+    asset = obs.get(&quot;asset&quot;) or {}
+    AR = float(asset.get(&quot;radius&quot;, R.get(&quot;asset_radius&quot;, 25.0)))
+    ax, ay = _xy(asset.get(&quot;pos&quot;, (0.0, 0.0)))
+    IS = float(R.get(&quot;interceptor_speed&quot;, 12.0))
+    BR = float(R.get(&quot;blast_radius&quot;, 10.0))
+    PK = float(R.get(&quot;interceptor_kill_prob&quot;, 0.85))
+    LIFE = int(R.get(&quot;interceptor_lifetime&quot;, 90))
+    LPT = int(R.get(&quot;interceptor_launches_per_tick&quot;, 2))
+    GR = float(R.get(&quot;gun_range&quot;, 100.0))
+    VMAX = max(float(R.get(&quot;striker_speed&quot;, 4.0)), float(R.get(&quot;decoy_speed&quot;, 4.0)), 0.5)
+    tick = int(obs.get(&quot;tick&quot;, 0))
+    stock = int(obs.get(&quot;stock&quot;, 0))
+    ammo = int(obs.get(&quot;ammo&quot;, 0))
+    CR = 0.85 * BR
+    RC = AR + 8.0
+
+    # ---------------- tracks ----------------
+    tracks = {}
+    hist = S[&quot;hist&quot;]
+    for t in obs.get(&quot;tracks&quot;) or []:
+        tid = t.get(&quot;id&quot;)
+        if tid is None:
+            continue
+        px, py = _xy(t.get(&quot;pos&quot;, (0, 0)))
+        px -= ax
+        py -= ay
+        vx, vy = _xy(t.get(&quot;vel&quot;) or (0, 0))
+        h = hist.setdefault(tid, [])
+        h.append((tick, px, py))
+        if len(h) &gt; 6:
+            del h[0]
+        if len(h) &gt;= 4:
+            t0, x0, y0 = h[0]
+            dt = tick - t0
+            if dt &gt; 0:
+                vx = 0.5 * vx + 0.5 * (px - x0) / dt
+                vy = 0.5 * vy + 0.5 * (py - y0) / dt
+        r = math.hypot(px, py)
+        vc = -(px * vx + py * vy) / r if r &gt; 1e-6 else 0.0
+        cls = t.get(&quot;cls&quot;, &quot;unknown&quot;)
+        tracks[tid] = {&quot;id&quot;: tid, &quot;x&quot;: px, &quot;y&quot;: py, &quot;vx&quot;: vx, &quot;vy&quot;: vy,
+                       &quot;r&quot;: r, &quot;vc&quot;: vc, &quot;threat&quot;: cls != &quot;decoy&quot;}
+    if tick % 20 == 0:
+        for k in list(hist.keys()):
+            if k not in tracks:
+                del hist[k]
+
+    def meet(d, qx=0.0, qy=0.0):
+        px = d[&quot;x&quot;] - qx
+        py = d[&quot;y&quot;] - qy
+        vx, vy = d[&quot;vx&quot;], d[&quot;vy&quot;]
+        a = vx * vx + vy * vy - IS * IS
+        b = 2.0 * (px * vx + py * vy)
+        c = px * px + py * py
+        if a &gt;= -1e-9:
+            tm = math.sqrt(c) / IS
+        else:
+            disc = b * b - 4 * a * c
+            if disc &lt; 0:
+                disc = 0.0
+            tm = (-b - math.sqrt(disc)) / (2 * a)
+            if tm &lt; 0:
+                tm = math.sqrt(c) / IS
+        return tm, d[&quot;x&quot;] + vx * tm, d[&quot;y&quot;] + vy * tm
+
+    # ---------------- interceptors &amp; roles ----------------
+    role = S[&quot;role&quot;]
+    pend = S[&quot;pend&quot;]
+    ints = []
+    seen = set()
+    for it in obs.get(&quot;interceptors&quot;) or []:
+        iid = it.get(&quot;id&quot;)
+        if iid is None:
+            continue
+        x, y = _xy(it.get(&quot;pos&quot;, (0, 0)))
+        rec = {&quot;id&quot;: iid, &quot;target&quot;: it.get(&quot;target&quot;), &quot;x&quot;: x - ax, &quot;y&quot;: y - ay,
+               &quot;age&quot;: int(it.get(&quot;age&quot;, 0) or 0)}
+        ints.append(rec)
+        seen.add(iid)
+        if iid not in role:
+            rl = &quot;engage&quot;
+            for k, (pt, pr) in enumerate(pend):
+                if pt == rec[&quot;target&quot;]:
+                    rl = pr
+                    del pend[k]
+                    break
+            role[iid] = rl
+    for k in list(role.keys()):
+        if k not in seen:
+            del role[k]
+    S[&quot;pend&quot;] = []
+    new_pend = []
+
+    retarget = {}
+    intercept = []
+    launched = 0
+
+    threats = [d for d in tracks.values() if d[&quot;threat&quot;]]
+    surv = {d[&quot;id&quot;]: 1.0 for d in threats}
+
+    def apply_blast(tm, mx, my):
+        for e in threats:
+            ex = e[&quot;x&quot;] + e[&quot;vx&quot;] * tm
+            ey = e[&quot;y&quot;] + e[&quot;vy&quot;] * tm
+            if (ex - mx) ** 2 + (ey - my) ** 2 &lt;= CR * CR:
+                surv[e[&quot;id&quot;]] *= (1.0 - PK)
+
+    def gain(tm, mx, my):
+        g = 0.0
+        for e in threats:
+            s = surv[e[&quot;id&quot;]]
+            if s &lt; 0.02:
+                continue
+            ex = e[&quot;x&quot;] + e[&quot;vx&quot;] * tm
+            ey = e[&quot;y&quot;] + e[&quot;vy&quot;] * tm
+            if (ex - mx) ** 2 + (ey - my) ** 2 &lt;= CR * CR:
+                g += s * PK
+        return g
+
+    def urgency(d):
+        return (d[&quot;r&quot;] - AR) / max(d[&quot;vc&quot;], 0.5)
+
+    engaged = [i for i in ints if role.get(i[&quot;id&quot;]) == &quot;engage&quot;]
+    loiter = [i for i in ints if role.get(i[&quot;id&quot;]) == &quot;loiter&quot;]
+
+    orphans = []
+    for i in engaged:
+        tg = i[&quot;target&quot;]
+        if tg in tracks and tracks[tg][&quot;threat&quot;]:
+            tm, mx, my = meet(tracks[tg], i[&quot;x&quot;], i[&quot;y&quot;])
+            apply_blast(tm, mx, my)
+        else:
+            orphans.append(i)
+    for i in orphans:
+        cands = [d for d in threats if surv[d[&quot;id&quot;]] &gt; 0.3 and d[&quot;r&quot;] &lt; 250]
+        if not cands:
+            cands = [d for d in threats if surv[d[&quot;id&quot;]] &gt; 0.05 and d[&quot;r&quot;] &lt; 250]
+        if cands:
+            d = min(cands, key=lambda d: (urgency(d), math.hypot(d[&quot;x&quot;] - i[&quot;x&quot;], d[&quot;y&quot;] - i[&quot;y&quot;])))
+            retarget[i[&quot;id&quot;]] = d[&quot;id&quot;]
+            tm, mx, my = meet(d, i[&quot;x&quot;], i[&quot;y&quot;])
+            apply_blast(tm, mx, my)
+        else:
+            role[i[&quot;id&quot;]] = &quot;loiter&quot;
+            loiter.append(i)
+
+    # expiring loiterers: spend on most urgent threat
+    keep = []
+    for i in loiter:
+        if i[&quot;age&quot;] &gt;= LIFE - 8:
+            cands = [d for d in threats if surv[d[&quot;id&quot;]] &gt; 0.05]
+            if cands:
+                d = min(cands, key=lambda d: (-surv[d[&quot;id&quot;]], urgency(d)))
+                retarget[i[&quot;id&quot;]] = d[&quot;id&quot;]
+                role[i[&quot;id&quot;]] = &quot;engage&quot;
+                tm, mx, my = meet(d, i[&quot;x&quot;], i[&quot;y&quot;])
+                apply_blast(tm, mx, my)
+                continue
+        keep.append(i)
+    loiter = keep
+
+    # ---------------- trigger ----------------
+    info = {}
+    U = []
+    for d in threats:
+        if surv[d[&quot;id&quot;]] &lt;= 0.3:
+            continue
+        if d[&quot;vc&quot;] &lt;= 0.3 and d[&quot;r&quot;] &gt; AR + 30:
+            continue
+        tm, mx, my = meet(d)
+        rm = math.hypot(mx, my)
+        nd = dict(d)
+        nd[&quot;x&quot;] += d[&quot;vx&quot;]
+        nd[&quot;y&quot;] += d[&quot;vy&quot;]
+        _, mx2, my2 = meet(nd)
+        dr = rm - math.hypot(mx2, my2)
+        if rm &lt;= RC:
+            tum = 0.0
+        elif dr &gt; 0.05:
+            tum = (rm - RC) / dr
+        else:
+            tum = float(&quot;inf&quot;)
+        info[d[&quot;id&quot;]] = (tm, mx, my)
+        U.append((tum, d))
+    U.sort(key=lambda z: z[0])
+    L = len(loiter)
+    B = []
+    for idx, (tum, d) in enumerate(U):
+        k = idx + 1 - L
+        k = min(k, stock)
+        req = 0 if k &lt;= 0 else int(math.ceil(k / float(LPT)))
+        if tum &lt; 1.0 + req:
+            B.append(d)
+
+    if B:
+        bset = set(d[&quot;id&quot;] for d in B)
+        fut = sum(1 for d in threats if d[&quot;id&quot;] not in bset and surv[d[&quot;id&quot;]] &gt; 0.3)
+        thr = 0.1 if fut == 0 else 0.45
+        free_loit = list(loiter)
+
+        def avail():
+            return len(free_loit) + max(0, min(stock - launched, LPT - launched))
+
+        def fire(d):
+            nonlocal launched
+            tm, mx, my = info[d[&quot;id&quot;]]
+            if free_loit:
+                n = math.hypot(mx, my) or 1.0
+                ux, uy = mx / n, my / n
+                best = max(free_loit, key=lambda i: i[&quot;x&quot;] * ux + i[&quot;y&quot;] * uy)
+                free_loit.remove(best)
+                retarget[best[&quot;id&quot;]] = d[&quot;id&quot;]
+                role[best[&quot;id&quot;]] = &quot;engage&quot;
+            else:
+                intercept.append(d[&quot;id&quot;])
+                new_pend.append((d[&quot;id&quot;], &quot;engage&quot;))
+                launched += 1
+            apply_blast(tm, mx, my)
+
+        guard = 0
+        while avail() &gt; 0 and guard &lt; 60:
+            guard += 1
+            if not any(surv[d[&quot;id&quot;]] &gt; 0.3 for d in B):
+                break
+            c = max(B, key=lambda d: gain(*info[d[&quot;id&quot;]]))
+            if gain(*info[c[&quot;id&quot;]]) &lt;= 0.0:
+                break
+            fire(c)
+        guard = 0
+        while avail() &gt; 0 and guard &lt; 60:
+            guard += 1
+            c = max(B, key=lambda d: gain(*info[d[&quot;id&quot;]]))
+            if gain(*info[c[&quot;id&quot;]]) &lt; thr:
+                break
+            fire(c)
+        loiter = free_loit
+
+    # ---------------- loiter steering ----------------
+    far = [d for d in tracks.values() if d[&quot;r&quot;] &gt; 35.0]
+    bear = sorted(math.atan2(d[&quot;y&quot;], d[&quot;x&quot;]) for d in far)
+    can_loiter = False
+    if len(bear) &gt;= 3:
+        gap = max(bear[k + 1] - bear[k] for k in range(len(bear) - 1))
+        gap = max(gap, bear[0] + 2 * math.pi - bear[-1])
+        can_loiter = gap &lt; 2.2
+
+    def steer(qx, qy, cur):
+        if not far:
+            return None
+        q = math.hypot(qx, qy)
+        if q &lt; 3.0:
+            if cur in tracks and tracks[cur][&quot;r&quot;] &gt; 35.0:
+                return cur
+            return max(far, key=lambda d: d[&quot;r&quot;])[&quot;id&quot;]
+        ux, uy = -qx / q, -qy / q
+        best, bs = None, -9.0
+        for d in far:
+            dx, dy = d[&quot;x&quot;] - qx, d[&quot;y&quot;] - qy
+            n = math.hypot(dx, dy)
+            if n &lt; 20.0:
+                continue
+            sc = (dx * ux + dy * uy) / n
+            if sc &gt; bs:
+                bs, best = sc, d[&quot;id&quot;]
+        return best
+
+    for i in loiter:
+        tg = steer(i[&quot;x&quot;], i[&quot;y&quot;], i[&quot;target&quot;])
+        if tg is not None:
+            retarget[i[&quot;id&quot;]] = tg
+
+    # ---------------- reserve launches ----------------
+    if can_loiter and stock - launched &gt; 0 and launched &lt; LPT:
+        near = sum(1 for d in threats if d[&quot;r&quot;] &lt;= AR + 60.0 * VMAX and surv[d[&quot;id&quot;]] &gt; 0.3)
+        need = near - len(loiter)
+        n = min(need, stock - launched, LPT - launched)
+        for _ in range(max(0, n)):
+            tg = steer(0.0, 0.0, None)
+            if tg is None:
+                break
+            intercept.append(tg)
+            new_pend.append((tg, &quot;loiter&quot;))
+            launched += 1
+
+    S[&quot;pend&quot;] = new_pend
+
+    # ---------------- gun ----------------
+    gun = None
+    if ammo &gt; 0:
+        best, bs = None, float(&quot;inf&quot;)
+        for d in threats:
+            if d[&quot;r&quot;] &gt; GR:
+                continue
+            sc = urgency(d)
+            if surv[d[&quot;id&quot;]] &lt;= 0.3:
+                sc += 4.0
+            if sc &lt; bs:
+                bs, best = sc, d[&quot;id&quot;]
+        gun = best
+
+    return {&quot;intercept&quot;: intercept[:LPT], &quot;retarget&quot;: retarget, &quot;gun&quot;: gun}</code></pre></div></main>
+<footer class="ftr"><div class="wrap">
+<span>Code: Apache License 2.0 · Replays, results and research: CC BY 4.0</span><a href="https://github.com/goel12133/swarm-colosseum">GitHub</a><span>built by Pelennor</span>
+<span class="t3">built from night 39 (2026-11-07)</span>
+<button class="theme-btn" type="button" id="theme" aria-label="Toggle light and dark theme" hidden>Theme</button>
+</div></footer>
+<script src="../../site.js" defer></script></body></html>
