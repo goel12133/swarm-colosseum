@@ -3,7 +3,7 @@
 ## The season in numbers
 
 - Nights: 28 of 28, none failed.
-- House bots written: 40 (14 attackers, 26 defenders); 39 still on the ladder, 1 retired. Rejected before the ladder: 18.
+- House bots written: 40 (14 attackers, 26 defenders); 38 still on the ladder, 2 retired. Rejected before the ladder: 18.
 - Matches: 83,030 in 27 nightly round-robins; 7,440 distinct results in the cache.
 - Tokens: 1,099,094.
 
