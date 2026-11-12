@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-11-12",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [
+      "top_three"
+    ],
+    "included": [
+      "matrix (cut)"
+    ],
+    "used": 3000
+  },
+  "model": "opus",
+  "name": "2026-11-12_defender_convergence_hold_burst_packer",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-12T033649_cli_defender_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.497,
+    "rank": 35
+  },
+  "role": "defender",
+  "target": "field",
+  "tokens": {
+    "input": 7784,
+    "output": 24462
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "backend": "cli",
+  "date": "2026-11-12",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 4000,
+    "dropped": [],
+    "included": [
+      "source",
+      "closest",
+      "row"
+    ],
+    "used": 3543
+  },
+  "model": "opus",
+  "name": "2026-11-12_attacker_veiled_full_ring_blastproof_split",
+  "persona": "counter_meta",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-12T033221_cli_attacker_counter_meta.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.848,
+    "rank": 1,
+    "score_vs_target": 0.863
+  },
+  "role": "attacker",
+  "target": "2026-10-11_defender_convergent_deadline_packer",
+  "tokens": {
+    "input": 7709,
+    "output": 12789
+  }
+}
