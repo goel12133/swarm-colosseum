@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-11-13",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [
+      "top_three"
+    ],
+    "included": [
+      "matrix (cut)"
+    ],
+    "used": 3000
+  },
+  "model": "opus",
+  "name": "2026-11-13_attacker_outside_radar_dual_shell_simultaneous_re",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-13T033123_cli_attacker_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.424,
+    "rank": 13
+  },
+  "role": "attacker",
+  "target": "field",
+  "tokens": {
+    "input": 7780,
+    "output": 6576
+  }
+}
