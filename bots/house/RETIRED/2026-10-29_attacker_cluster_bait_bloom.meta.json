@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-10-29",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3500,
+    "dropped": [],
+    "included": [
+      "source"
+    ],
+    "used": 2809
+  },
+  "model": "opus",
+  "name": "2026-10-29_attacker_cluster_bait_bloom",
+  "persona": "contrarian",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-10-29T033658_cli_attacker_contrarian.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.225,
+    "rank": 16,
+    "score_vs_target": 0.168
+  },
+  "role": "attacker",
+  "target": "2026-10-11_defender_convergent_deadline_packer",
+  "tokens": {
+    "input": 12454,
+    "output": 28461
+  }
+}
