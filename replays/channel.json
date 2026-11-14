@@ -1,0 +1,36 @@
+{
+ "epoch": "2026-11-14T03:30:00Z",
+ "night": 45,
+ "items": [
+  {
+   "data": "data/2026-11-12_attacker_veiled_full_ring_blastproof_split__2026-10-11_defender_convergent_deadline_packer__s7.json.gz",
+   "a": "veiled_full_ring_blastproof_split",
+   "d": "convergent_deadline_packer",
+   "ar": 1,
+   "dr": 1,
+   "frames": 65,
+   "label": "#1 v #1",
+   "page": "2026-11-12_attacker_veiled_full_ring_blastproof_split__2026-10-11_defender_convergent_deadline_packer__s7.html"
+  },
+  {
+   "data": "data/2026-11-01_attacker_hidden_orbit_bait_then_depth_shell_ring__2026-11-14_defender_id_gated_magazine_hold__s6.json.gz",
+   "a": "hidden_orbit_bait_then_depth_shell_ring",
+   "d": "id_gated_magazine_hold",
+   "ar": 21,
+   "dr": 29,
+   "frames": 108,
+   "label": "new last night",
+   "page": "2026-11-01_attacker_hidden_orbit_bait_then_depth_shell_ring__2026-11-14_defender_id_gated_magazine_hold__s6.html"
+  },
+  {
+   "data": "data/2026-09-28_attacker_staggered_screen_trickle__2026-10-14_defender_parked_hover_ring_doublecover__s9.json.gz",
+   "a": "staggered_screen_trickle",
+   "d": "parked_hover_ring_doublecover",
+   "ar": 19,
+   "dr": 2,
+   "frames": 223,
+   "label": "upset",
+   "page": "2026-09-28_attacker_staggered_screen_trickle__2026-10-14_defender_parked_hover_ring_doublecover__s9.html"
+  }
+ ]
+}
