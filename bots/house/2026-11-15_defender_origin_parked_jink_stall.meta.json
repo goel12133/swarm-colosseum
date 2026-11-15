@@ -1,0 +1,33 @@
+{
+  "backend": "cli",
+  "date": "2026-11-15",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 4000,
+    "dropped": [],
+    "included": [
+      "source",
+      "closest",
+      "row"
+    ],
+    "used": 3679
+  },
+  "model": "opus",
+  "name": "2026-11-15_defender_origin_parked_jink_stall",
+  "persona": "counter_meta",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-15T033444_cli_defender_counter_meta.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.527,
+    "rank": 7,
+    "score_vs_target": 0.186
+  },
+  "role": "defender",
+  "target": "2026-11-12_attacker_veiled_full_ring_blastproof_split",
+  "tokens": {
+    "input": 7942,
+    "output": 18883
+  }
+}
