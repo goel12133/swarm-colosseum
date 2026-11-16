@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-11-16",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [
+      "top_three"
+    ],
+    "included": [
+      "matrix (cut)"
+    ],
+    "used": 3000
+  },
+  "model": "opus",
+  "name": "2026-11-16_defender_ledger_backscheduled_idband_rehomer",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-16T033304_cli_defender_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.418,
+    "rank": 35
+  },
+  "role": "defender",
+  "target": "field",
+  "tokens": {
+    "input": 7807,
+    "output": 12180
+  }
+}
