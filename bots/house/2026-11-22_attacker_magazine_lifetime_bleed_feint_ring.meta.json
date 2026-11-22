@@ -1,0 +1,31 @@
+{
+  "backend": "cli",
+  "date": "2026-11-22",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3500,
+    "dropped": [],
+    "included": [
+      "source"
+    ],
+    "used": 2747
+  },
+  "model": "opus",
+  "name": "2026-11-22_attacker_magazine_lifetime_bleed_feint_ring",
+  "persona": "contrarian",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-22T033215_cli_attacker_contrarian.md",
+  "result": {
+    "beat_target": true,
+    "field_mean": 0.747,
+    "rank": 11,
+    "score_vs_target": 0.916
+  },
+  "role": "attacker",
+  "target": "2026-10-14_defender_parked_hover_ring_doublecover",
+  "tokens": {
+    "input": 6326,
+    "output": 12019
+  }
+}
