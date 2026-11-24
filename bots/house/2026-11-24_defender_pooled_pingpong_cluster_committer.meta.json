@@ -1,0 +1,32 @@
+{
+  "backend": "cli",
+  "date": "2026-11-24",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 3000,
+    "dropped": [
+      "top_three"
+    ],
+    "included": [
+      "matrix (cut)"
+    ],
+    "used": 3000
+  },
+  "model": "opus",
+  "name": "2026-11-24_defender_pooled_pingpong_cluster_committer",
+  "persona": "generalist",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-24T033356_cli_defender_generalist.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.543,
+    "rank": 28
+  },
+  "role": "defender",
+  "target": "field",
+  "tokens": {
+    "input": 7786,
+    "output": 13519
+  }
+}
