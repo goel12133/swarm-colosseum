@@ -1,0 +1,33 @@
+{
+  "backend": "cli",
+  "date": "2026-11-27",
+  "dry_run": false,
+  "escalation": false,
+  "evidence": {
+    "budget": 4000,
+    "dropped": [],
+    "included": [
+      "source",
+      "closest",
+      "row"
+    ],
+    "used": 3644
+  },
+  "model": "opus",
+  "name": "2026-11-27_defender_defender_id_gate_magazine_vault",
+  "persona": "counter_meta",
+  "prompt_version": "2026-10-03.1",
+  "raw_response": "out/house_raw/2026-11-27T033946_cli_defender_counter_meta.md",
+  "result": {
+    "beat_target": false,
+    "field_mean": 0.475,
+    "rank": 19,
+    "score_vs_target": 0.15
+  },
+  "role": "defender",
+  "target": "2026-11-15_attacker_attacker_radar_shadow_orbit_decoy_drain",
+  "tokens": {
+    "input": 16438,
+    "output": 44683
+  }
+}
